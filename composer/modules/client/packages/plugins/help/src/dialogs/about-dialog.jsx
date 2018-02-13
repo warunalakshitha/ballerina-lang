@@ -16,9 +16,9 @@
  * under the License.
  *
  */
-
+import { Dialog } from '@ballerina-lang/composer-core';
 import React from 'react';
-import Dialog from './../../../core/view/Dialog';
+import PropTypes from 'prop-types';
 
 /**
  * About Dialog
