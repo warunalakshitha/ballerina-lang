@@ -18,7 +18,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import Tree from './tree.jsx';
+import Tree from './tree';
 import './function.css';
 
 export default class FunctionInv extends React.Component {
