@@ -4,8 +4,9 @@
   "version": "0.963.1",
   "description": "A web based tool for creating integrations in ballerina language.",
   "scripts": {
+    "dev": "lerna run dev --stream",
     "clean": "lerna run clean --stream",
-    "build": "lerna run build --stream --concurrency 1"
+    "build": "lerna bootstrap && lerna run build --stream"
   },
   "lint-staged": {
     "linters": {
