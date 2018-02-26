@@ -33,7 +33,7 @@
     "react-bootstrap": "^0.31.5",
     "react-treeview": "^0.4.7",
     "react-json-view": "^1.13.3",
-    "react-htmltree": "github:pahans/react-htmltree#upgrade-to-react-16",
+    "@pahans/react-htmltree": "^0.8.1",
     "react-linkify": "^0.2.1",
     "json5": "^0.5.1",
     "lodash": "^4.13.1"
