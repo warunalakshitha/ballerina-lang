@@ -35,7 +35,6 @@ import org.wso2.ballerinalang.compiler.semantics.model.symbols.BXMLNSSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.SymTag;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.Symbols;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BArrayType;
-import org.wso2.ballerinalang.compiler.semantics.model.types.BEndpointType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BInvokableType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BJSONType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BTableType;
@@ -44,7 +43,6 @@ import org.wso2.ballerinalang.compiler.tree.BLangNodeVisitor;
 import org.wso2.ballerinalang.compiler.tree.types.BLangArrayType;
 import org.wso2.ballerinalang.compiler.tree.types.BLangBuiltInRefTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangConstrainedType;
-import org.wso2.ballerinalang.compiler.tree.types.BLangEndpointTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangFunctionTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangType;
 import org.wso2.ballerinalang.compiler.tree.types.BLangUserDefinedType;
@@ -53,7 +51,7 @@ import org.wso2.ballerinalang.compiler.util.CompilerContext;
 import org.wso2.ballerinalang.compiler.util.Name;
 import org.wso2.ballerinalang.compiler.util.Names;
 import org.wso2.ballerinalang.compiler.util.TypeTags;
-import org.wso2.ballerinalang.compiler.util.diagnotic.DiagnosticLog;
+import org.wso2.ballerinalang.compiler.util.diagnotic.BLangDiagnosticLog;
 import org.wso2.ballerinalang.compiler.util.diagnotic.DiagnosticPos;
 import org.wso2.ballerinalang.programfile.InstructionCodes;
 import org.wso2.ballerinalang.util.Lists;
@@ -76,7 +74,7 @@ public class SymbolResolver extends BLangNodeVisitor {
 
     private SymbolTable symTable;
     private Names names;
-    private DiagnosticLog dlog;
+    private BLangDiagnosticLog dlog;
     private Types types;
 
     private SymbolEnv env;
@@ -97,7 +95,7 @@ public class SymbolResolver extends BLangNodeVisitor {
 
         this.symTable = SymbolTable.getInstance(context);
         this.names = Names.getInstance(context);
-        this.dlog = DiagnosticLog.getInstance(context);
+        this.dlog = BLangDiagnosticLog.getInstance(context);
         this.types = Types.getInstance(context);
     }
 
@@ -180,7 +178,8 @@ public class SymbolResolver extends BLangNodeVisitor {
         if (lhsType.tag == TypeTags.NULL &&
                 (rhsType.tag == TypeTags.STRUCT ||
                         rhsType.tag == TypeTags.CONNECTOR ||
-                        rhsType.tag == TypeTags.ENUM)) {
+                        rhsType.tag == TypeTags.ENUM ||
+                        rhsType.tag == TypeTags.INVOKABLE)) {
             List<BType> paramTypes = Lists.of(lhsType, rhsType);
             List<BType> retTypes = Lists.of(symTable.booleanType);
             BInvokableType opType = new BInvokableType(paramTypes, retTypes, null);
@@ -189,7 +188,8 @@ public class SymbolResolver extends BLangNodeVisitor {
 
         if ((lhsType.tag == TypeTags.STRUCT ||
                 lhsType.tag == TypeTags.CONNECTOR ||
-                lhsType.tag == TypeTags.ENUM)
+                lhsType.tag == TypeTags.ENUM ||
+                lhsType.tag == TypeTags.INVOKABLE)
                 && rhsType.tag == TypeTags.NULL) {
             List<BType> paramTypes = Lists.of(lhsType, rhsType);
             List<BType> retTypes = Lists.of(symTable.booleanType);
@@ -456,11 +456,6 @@ public class SymbolResolver extends BLangNodeVisitor {
 
     public void visit(BLangBuiltInRefTypeNode builtInRefType) {
         visitBuiltInTypeNode(builtInRefType, builtInRefType.typeKind, this.env);
-    }
-
-    public void visit(BLangEndpointTypeNode endpointType) {
-        BType constraintType = resolveTypeNode(endpointType.constraint, env);
-        resultType = new BEndpointType(TypeTags.ENDPOINT, constraintType, null);
     }
 
     public void visit(BLangArrayType arrayTypeNode) {

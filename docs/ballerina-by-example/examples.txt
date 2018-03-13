@@ -47,7 +47,6 @@ SQL Connector
 Table with SQL Connector
 Transactions
 Distributed Transactions
-Transactions Distributed
 Transformers
 Transform JSON
 Strings
@@ -75,6 +74,7 @@ HTTP Data Binding
 HTTP Failover
 HTTP Load Balancer
 HTTP Forwarded Extension
+HTTP 2.0 Server Push
 Log API
 Function Pointers
 Lambda
