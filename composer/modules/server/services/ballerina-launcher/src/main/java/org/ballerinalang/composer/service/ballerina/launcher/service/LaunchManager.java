@@ -395,7 +395,8 @@ public class LaunchManager {
             String line = "";
             while ((line = reader.readLine()) != null) {
                 if (this.command.isErrorOutputEnabled()) {
-                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.ERROR, line);
+                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.ERROR,
+                            "BVM-OUTPUT:" + line);
                 }
             }
         } catch (IOException e) {
