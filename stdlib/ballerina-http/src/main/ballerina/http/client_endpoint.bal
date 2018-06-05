@@ -85,6 +85,7 @@ documentation {
     F{{cache}} HTTP caching related configurations
     F{{compression}} Specifies the way of handling compression (`accept-encoding`) header
     F{{auth}} HTTP authentication releated configurations
+    F{{interruptible}} Specifies whther to checkpoint the http methods
 }
 public type ClientEndpointConfig {
     string url,
@@ -102,6 +103,7 @@ public type ClientEndpointConfig {
     CacheConfig cache,
     Compression compression = COMPRESSION_AUTO,
     AuthConfig? auth,
+    boolean interruptible = false,
 };
 
 native function createHttpClient(string uri, ClientEndpointConfig config) returns CallerActions;
@@ -219,6 +221,8 @@ public type AuthConfig {
 public function Client::init(ClientEndpointConfig config) {
     boolean httpClientRequired = false;
     string url = config.url;
+    boolean interruptible = config.interruptible;
+
     if (url.hasSuffix("/")) {
         int lastIndex = url.length() - 1;
         url = url.substring(0, lastIndex);
@@ -253,6 +257,11 @@ public function Client::init(ClientEndpointConfig config) {
         }
     } else {
         self.httpClient = createCircuitBreakerClient(url, config);
+    }
+
+    if (interruptible){
+        io:println( "Creating interuptable client.......");
+        self.httpClient = new InterruptibleClient(url, config, self.httpClient);
     }
 }
 
