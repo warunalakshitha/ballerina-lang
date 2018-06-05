@@ -19,14 +19,14 @@ package org.ballerinalang.bre.bvm.persistency;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.ballerinalang.bre.bvm.WorkerExecutionContext;
-import org.ballerinalang.bre.bvm.WorkerResponseContext;
 import org.ballerinalang.bre.bvm.persistency.adapters.ArrayListAdapter;
 import org.ballerinalang.bre.bvm.persistency.adapters.HashMapAdapter;
 import org.ballerinalang.bre.bvm.persistency.adapters.RefTypeAdaptor;
-import org.ballerinalang.bre.bvm.persistency.reftypes.GenericObjectAdaptor;
+import org.ballerinalang.bre.bvm.persistency.reftypes.SerializableBBLOB;
 import org.ballerinalang.bre.bvm.persistency.reftypes.SerializableBJSON;
 import org.ballerinalang.bre.bvm.persistency.reftypes.SerializableBStruct;
 import org.ballerinalang.bre.bvm.persistency.reftypes.SerializableRefType;
+import org.ballerinalang.model.values.BBlob;
 import org.ballerinalang.model.values.BInteger;
 import org.ballerinalang.model.values.BJSON;
 import org.ballerinalang.model.values.BRefType;
@@ -164,6 +164,8 @@ public class PersistenceUtils {
             return new SerializableBStruct((BStruct) refType, state);
         } else if (refType instanceof BJSON) {
             return new SerializableBJSON((BJSON) refType);
+        } else if (refType instanceof BBlob) {
+            return new SerializableBBLOB((BBlob) refType);
         } else {
             return null;
         }
