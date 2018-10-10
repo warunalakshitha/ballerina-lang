@@ -18,6 +18,7 @@
  */
 package org.ballerinalang.persistence.store;
 
+import org.ballerinalang.bre.bvm.BLangScheduler;
 import org.ballerinalang.bre.bvm.WorkerExecutionContext;
 import org.ballerinalang.model.util.serializer.JsonSerializer;
 import org.ballerinalang.persistence.Deserializer;
@@ -75,14 +76,21 @@ public class PersistenceStore {
         PersistenceStore.storageProvider = storageProvider;
     }
 
+    public static StorageProvider getStorageProvider() {
+        return storageProvider;
+    }
+
     private static State createState(SerializableState deSerializedState, ProgramFile programFile,
                                      Deserializer deserializer) {
         // we need to generate new state with deserialised state inorder to use newly created serializable data and
         // object hashes.
         List<WorkerExecutionContext> executableCtxList = deSerializedState.getExecutionContexts(programFile,
                                                                                                 deserializer);
-        SerializableState sState = new SerializableState(deSerializedState.getId(), executableCtxList);
-        return new State(sState, executableCtxList);
+        List<BLangScheduler.NativeCallExecutor> nativeCallExecutors = deSerializedState
+                .getNativeCallExecutors(programFile, deserializer);
+        SerializableState sState = new SerializableState(deSerializedState.getId(), executableCtxList,
+                                                         nativeCallExecutors);
+        return new State(sState, executableCtxList, nativeCallExecutors);
     }
 
     public static SerializableState deserialize(String json) {

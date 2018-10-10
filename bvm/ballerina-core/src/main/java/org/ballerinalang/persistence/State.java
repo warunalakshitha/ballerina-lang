@@ -17,6 +17,7 @@
  */
 package org.ballerinalang.persistence;
 
+import org.ballerinalang.bre.bvm.BLangScheduler;
 import org.ballerinalang.bre.bvm.WorkerExecutionContext;
 import org.ballerinalang.persistence.serializable.SerializableState;
 
@@ -33,8 +34,13 @@ public class State {
 
     public List<WorkerExecutionContext> executableCtxList;
 
-    public State(SerializableState sState, List<WorkerExecutionContext> executableCtxList) {
+    public List<BLangScheduler.NativeCallExecutor> nativeCallExecutors;
+
+    public State(SerializableState sState,
+                 List<WorkerExecutionContext> executableCtxList,
+                 List<BLangScheduler.NativeCallExecutor> nativeCallExecutors) {
         this.sState = sState;
         this.executableCtxList = executableCtxList;
+        this.nativeCallExecutors = nativeCallExecutors;
     }
 }

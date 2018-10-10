@@ -76,7 +76,7 @@ import static org.ballerinalang.runtime.Constants.STATE_ID;
  */
 public class BLangFunctions {
 
-    private static final String JOIN_TYPE_SOME = "some";
+    public static final String JOIN_TYPE_SOME = "some";
 
     private BLangFunctions() { }
 
@@ -271,6 +271,7 @@ public class BLangFunctions {
                 invokeNativeCallableAsync(callableUnitInfo, parentCtx, argRegs, retRegs, flags);
                 resultCtx = parentCtx;
             } else {
+                BLangScheduler.handleInterruptibleBeforeNativeCallable(callableUnitInfo, parentCtx);
                 resultCtx = invokeNativeCallable(callableUnitInfo, parentCtx, argRegs, retRegs, flags);
             }
         } else {
@@ -434,7 +435,6 @@ public class BLangFunctions {
         }
         try {
             ObserverContext observerContext = checkAndStartNativeCallableObservation(ctx, callableUnitInfo, flags);
-            BLangScheduler.handleInterruptibleBeforeNativeCallable(callableUnitInfo, parentCtx);
             if (nativeCallable.isBlocking()) {
                 nativeCallable.execute(ctx, null);
                 BLangVMUtils.populateWorkerDataWithValues(parentLocalData, retRegs, ctx.getReturnValues(), retTypes);
@@ -471,6 +471,7 @@ public class BLangFunctions {
         if (nativeCallable.isBlocking()) {
             respCtx = BLangScheduler.executeBlockingNativeAsync(nativeCallable, nativeCtx, flags);
         } else {
+            BLangScheduler.handleInterruptibleBeforeNativeCallable(callableUnitInfo, parentCtx);
             respCtx = BLangScheduler.executeNonBlockingNativeAsync(nativeCallable, nativeCtx, flags);
         }
         BLangVMUtils.populateWorkerDataWithValues(parentCtx.workerLocal, retRegs,
@@ -566,34 +567,48 @@ public class BLangFunctions {
         }
     }
 
-    public static WorkerExecutionContext invokeForkJoin(WorkerExecutionContext parentCtx, ForkjoinInfo forkjoinInfo,
-            int joinTargetIp, int joinVarReg, int timeoutRegIndex, int timeoutTargetIp, int timeoutVarReg) {
-        WorkerInfo[] workerInfos = forkjoinInfo.getWorkerInfos();
+    public static ForkJoinWorkerResponseContext createForkJoinResponseContext(WorkerExecutionContext parentCtx,
+                                                                                  ForkjoinInfo forkjoinInfo,
+                                                                                  int joinTargetIp, int joinVarReg,
+                                                                                  int timeoutTargetIp,
+                                                                                  int timeoutVarReg) {
 
         Set<String> joinWorkerNames = new LinkedHashSet<>(Lists.of(forkjoinInfo.getJoinWorkerNames()));
         if (joinWorkerNames.isEmpty()) {
             /* if no join workers are specified, that means, all should be considered */
             joinWorkerNames.addAll(forkjoinInfo.getWorkerInfoMap().keySet());
         }
-
         Map<String, String> channels = getChannels(forkjoinInfo);
-
         int reqJoinCount;
         if (forkjoinInfo.getJoinType().equalsIgnoreCase(JOIN_TYPE_SOME)) {
             reqJoinCount = forkjoinInfo.getWorkerCount();
         } else {
             reqJoinCount = joinWorkerNames.size();
         }
+        return new ForkJoinWorkerResponseContext(parentCtx, joinTargetIp, joinVarReg, timeoutTargetIp, timeoutVarReg,
+                                                 forkjoinInfo.getWorkerInfos().length, reqJoinCount, joinWorkerNames,
+                                                 channels);
+    }
 
-        SyncCallableWorkerResponseContext respCtx = new ForkJoinWorkerResponseContext(parentCtx, joinTargetIp,
-                joinVarReg, timeoutTargetIp, timeoutVarReg, workerInfos.length, reqJoinCount, 
-                joinWorkerNames, channels);
-
+    public static void scheduleForkJoinTimeout(WorkerExecutionContext parentCtx,
+                                               SyncCallableWorkerResponseContext respCtx,
+                                               ForkjoinInfo forkjoinInfo, int timeoutRegIndex) {
         if (forkjoinInfo.isTimeoutAvailable()) {
             long timeout = parentCtx.workerLocal.longRegs[timeoutRegIndex];
             //fork join timeout is in seconds, hence converting to milliseconds
             AsyncTimer.schedule(new ForkJoinTimeoutCallback(respCtx), timeout);
         }
+    }
+
+    public static WorkerExecutionContext invokeForkJoin(WorkerExecutionContext parentCtx, ForkjoinInfo forkjoinInfo,
+                                                        int joinTargetIp, int joinVarReg, int timeoutRegIndex,
+                                                        int timeoutTargetIp, int timeoutVarReg) {
+
+        SyncCallableWorkerResponseContext respCtx = createForkJoinResponseContext(parentCtx, forkjoinInfo,
+                                                                                  joinTargetIp, joinVarReg,
+                                                                                  timeoutTargetIp, timeoutVarReg);
+        scheduleForkJoinTimeout(parentCtx, respCtx, forkjoinInfo, timeoutRegIndex);
+        WorkerInfo[] workerInfos = forkjoinInfo.getWorkerInfos();
         BLangScheduler.workerWaitForResponse(parentCtx);
         WorkerExecutionContext ctx;
         if (parentCtx.interruptible) {
@@ -631,7 +646,7 @@ public class BLangFunctions {
         return BLangScheduler.schedule(ctx);
     }
 
-    private static Map<String, String> getChannels(ForkjoinInfo forkjoinInfo) {
+    public static Map<String, String> getChannels(ForkjoinInfo forkjoinInfo) {
         Map<String, String> channels = new HashMap<>();
         forkjoinInfo.getWorkerInfoMap().forEach((k, v) -> channels.put(k, v.getWorkerDataChannelInfoForForkJoin()
                 != null ? v.getWorkerDataChannelInfoForForkJoin().getChannelName() : null));

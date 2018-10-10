@@ -20,6 +20,7 @@ package org.ballerinalang.persistence;
 import org.ballerinalang.bre.bvm.AsyncInvocableWorkerResponseContext;
 import org.ballerinalang.bre.bvm.BLangScheduler;
 import org.ballerinalang.persistence.store.PersistenceStore;
+import org.ballerinalang.runtime.threadpool.ThreadPoolFactory;
 import org.ballerinalang.util.codegen.ProgramFile;
 import org.ballerinalang.util.codegen.ResourceInfo;
 import org.ballerinalang.util.program.BLangVMUtils;
@@ -48,6 +49,9 @@ public class RecoveryTask implements Runnable {
         }
         states.forEach(state -> {
             RuntimeStates.add(state.sState);
+            state.nativeCallExecutors.forEach(exec -> {
+                ThreadPoolFactory.getInstance().getWorkerExecutor().submit(exec);
+            });
             state.executableCtxList.forEach(ctx -> {
                 if (ctx.callableUnitInfo instanceof ResourceInfo) {
                     ResourceInfo resourceInfo = (ResourceInfo) ctx.callableUnitInfo;
