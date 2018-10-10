@@ -26,6 +26,8 @@ import org.ballerinalang.persistence.serializable.responses.SerializableResponse
 import org.ballerinalang.util.codegen.CallableUnitInfo;
 import org.ballerinalang.util.codegen.ProgramFile;
 
+import java.util.HashSet;
+
 /**
  * This class implements @{@link SerializableResponseContext} to serialize @{@link CallableWorkerResponseContext}.
  *
@@ -35,32 +37,34 @@ public class SerializableCallableResponse extends SerializableResponseContext {
 
     public int[] retRegIndexes;
 
-    public int workerCount;
-
     public SerializableCallableResponse(String respCtxKey, CallableWorkerResponseContext respCtx) {
-        this.respCtxKey = respCtxKey;
+        super(respCtxKey, respCtx.getHaltCount());
         retRegIndexes = respCtx.getRetRegIndexes();
-        workerCount = respCtx.getWorkerCount();
-    }
-
-    @Override
-    public WorkerResponseContext getResponseContext(ProgramFile programFile, CallableUnitInfo callableUnitInfo,
-                                                    SerializableState state, Deserializer deserializer) {
-        return new CallableWorkerResponseContext(callableUnitInfo.getRetParamTypes(), workerCount);
     }
 
     @Override
     public void addTargetContexts(WorkerResponseContext respCtx, SerializableState state) {
         CallableWorkerResponseContext callableCtx = (CallableWorkerResponseContext) respCtx;
         SerializableContext sTargetCtx = state
-                .getSerializableContext(String.valueOf(callableCtx.getTargetContext().hashCode()));
+                .getSerializableContext(state.getObjectKey(callableCtx.getTargetContext()));
         targetCtxKey = sTargetCtx.ctxKey;
     }
 
     @Override
-    public void joinTargetContextInfo(WorkerResponseContext respCtx, ProgramFile programFile,
-                                      SerializableState state, Deserializer deserializer) {
+    public void update(WorkerResponseContext respCtx, SerializableState state,
+                       HashSet<String> updatedObjectSet) {
+        this.haltCount = ((CallableWorkerResponseContext) respCtx).getHaltCount();
+    }
+
+    @Override
+    public WorkerResponseContext getResponseContext(ProgramFile programFile, CallableUnitInfo callableUnitInfo,
+                                                    SerializableState state, Deserializer deserializer) {
+        CallableWorkerResponseContext respCtx = new CallableWorkerResponseContext(callableUnitInfo.getRetParamTypes(),
+                                                                                  callableUnitInfo.getWorkerSet()
+                                                                                          .generalWorkers.length);
         respCtx.joinTargetContextInfo(state.getExecutionContext(targetCtxKey, programFile, deserializer),
                                       retRegIndexes);
+        respCtx.setHaltCount(haltCount);
+        return respCtx;
     }
 }

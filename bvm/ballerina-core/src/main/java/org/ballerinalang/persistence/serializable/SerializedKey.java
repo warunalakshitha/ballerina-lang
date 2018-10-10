@@ -18,15 +18,15 @@
 package org.ballerinalang.persistence.serializable;
 
 /**
- * This class is a representation of serialized data key.
+ * This class is a representation of serialized data id.
  *
  * @since 0.981.1
  */
-public class SerializedKey {
+public class SerializedId {
 
-    public String key;
+    public Integer id;
 
-    public SerializedKey(String key) {
-        this.key = key;
+    public SerializedId(Integer id) {
+        this.id = id;
     }
 }

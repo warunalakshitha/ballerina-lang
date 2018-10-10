@@ -18,15 +18,22 @@
 package org.ballerinalang.persistence.serializable;
 
 import org.ballerinalang.bre.bvm.AsyncInvocableWorkerResponseContext;
+import org.ballerinalang.bre.bvm.BLangScheduler;
 import org.ballerinalang.bre.bvm.WorkerExecutionContext;
 import org.ballerinalang.bre.bvm.WorkerResponseContext;
+import org.ballerinalang.bre.bvm.WorkerState;
+import org.ballerinalang.model.InterruptibleNativeCallableUnit;
+import org.ballerinalang.model.NativeCallableUnit;
 import org.ballerinalang.model.values.BRefType;
 import org.ballerinalang.persistence.Deserializer;
 import org.ballerinalang.persistence.Serializer;
 import org.ballerinalang.persistence.serializable.reftypes.Serializable;
 import org.ballerinalang.persistence.serializable.reftypes.SerializableRefType;
+import org.ballerinalang.persistence.serializable.reftypes.impl.SerializableBFuture;
 import org.ballerinalang.persistence.serializable.responses.SerializableResponseContext;
+import org.ballerinalang.persistence.serializable.responses.SerializableResponseContextFactory;
 import org.ballerinalang.persistence.serializable.responses.impl.SerializableAsyncResponse;
+import org.ballerinalang.persistence.store.PersistenceStore;
 import org.ballerinalang.util.codegen.CallableUnitInfo;
 import org.ballerinalang.util.codegen.ProgramFile;
 
@@ -35,10 +42,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.ballerinalang.persistence.Serializer.REMOVABLE_TYPES_INITIATION;
 
 /**
  * This class represents a serializable state. This holds the required functionality to persist the context.
@@ -61,6 +67,9 @@ public class SerializableState {
     // Map of BRefType object hashcode vs serializable BRefType
     private Map<String, SerializableRefType> sRefTypes = new HashMap<>();
 
+    // Map of NativeCallExecutor object hashcode vs serializable NativeCallExecutor
+    private Map<String, SerializableNativeCallExecutor> sNativeCallExecutors = new HashMap<>();
+
     // Map of global properties used in context hierarchy
     public HashMap<String, Object> globalProps = new HashMap<>();
 
@@ -72,16 +81,19 @@ public class SerializableState {
         this.id = id;
     }
 
-    public SerializableState(String id, List<WorkerExecutionContext> ctxList) {
+    public SerializableState(String id, List<WorkerExecutionContext> ctxList,
+                             List<BLangScheduler.NativeCallExecutor> nativeCallExecutors) {
         this.id = id;
         HashSet<String> updatedObjectSet = new HashSet<>();
-        ctxList.forEach(ctx -> populateContext(ctx, ctx.ip, true, false, updatedObjectSet, null));
+        ctxList.forEach(ctx -> populateContext(ctx, ctx.ip, false, updatedObjectSet));
+        nativeCallExecutors.forEach(exec -> sNativeCallExecutors
+                .put(getObjectKey(exec), new SerializableNativeCallExecutor(exec, this, updatedObjectSet)));
     }
 
     public SerializableState(String id, WorkerExecutionContext executionContext) {
         this.id = id;
         HashSet<String> updatedObjectSet = new HashSet<>();
-        populateContext(executionContext, executionContext.ip, true, false, updatedObjectSet, null);
+        populateContext(executionContext, executionContext.ip, false, updatedObjectSet);
     }
 
     /**
@@ -92,9 +104,8 @@ public class SerializableState {
      * @return Updated serialized state as a string
      */
     public synchronized String checkPoint(WorkerExecutionContext ctx, int ip) {
-        HashSet<String> updatedObjectSet = new HashSet<>();
-        populateContext(ctx, ip, false, true, updatedObjectSet, null);
-        cleanCompletedContexts();
+        populateContext(ctx, ip, true, new HashSet<>());
+        cleanCompletedRespContexts();
         return serialize();
     }
 
@@ -107,11 +118,10 @@ public class SerializableState {
     public synchronized void registerContexts(WorkerExecutionContext parentCtx, List<WorkerExecutionContext> ctxList) {
         // Since all ctx list have one parent, we can update the parent recursively at once.
         HashSet<String> updatedObjectSet = new HashSet<>();
-        SerializableContext sParentCtx = populateContext(parentCtx, parentCtx.ip, false, true, updatedObjectSet, null);
+        SerializableContext sParentCtx = populateContext(parentCtx, parentCtx.ip, true, updatedObjectSet);
         ctxList.forEach(ctx -> {
-            SerializableContext sCtx = new SerializableContext(String.valueOf(ctx.hashCode()), ctx, this,
-                                                               ctx.ip + 1, true, false, updatedObjectSet);
-            sContexts.put(sCtx.ctxKey, sCtx);
+            SerializableContext sCtx = new SerializableContext(getObjectKey(ctx), ctx, this,
+                                                               ctx.ip + 1, false, updatedObjectSet);
             sCurrentCtxKeys.add(sCtx.ctxKey);
         });
         if (!ctxList.isEmpty() && ctxList.get(0).respCtx instanceof AsyncInvocableWorkerResponseContext) {
@@ -119,52 +129,111 @@ public class SerializableState {
         } else {
             sCurrentCtxKeys.remove(sParentCtx.ctxKey);
         }
-        cleanCompletedContexts();
+        cleanCompletedRespContexts();
     }
 
-    /**
-     * Add or update serializable worker execution context data propagating through context hierarchy.
-     *
-     * @param ctx                   Worker Execution context to be updated
-     * @param ip                    Instruction point
-     * @param isCompletedCtxRemoved Flag to determine whether we have remove the completed context. This will be used
-     *                              as a performance improvement since if it is true we do not need to check child
-     *                              contexts
-     * @param updateParent          Flag to determine whether need to update parent
-     * @param updatedObjectSet      Set contains already updated context and refTypes during propagating through context
-     *                              hierarchy
-     * @param childCtx              Child context which needs to populate the parent context
-     * @return Serializable context
-     */
-    SerializableContext populateContext(WorkerExecutionContext ctx, int ip, Boolean isCompletedCtxRemoved,
-                                        boolean updateParent, HashSet<String> updatedObjectSet,
-                                        SerializableContext childCtx) {
-        String ctxKey = String.valueOf(ctx.hashCode());
-        final SerializableContext exCtx = sContexts.get(ctxKey);
-        SerializableContext updatedCtx = exCtx;
-        if (updatedObjectSet != null && !updatedObjectSet.contains(ctxKey)) {
-            updatedObjectSet.add(ctxKey);
-            // We need to remove the already completed worker execution contexts from the serializable state.
-            // ex. Here we have two functions as f2 will be called after f1.
-            // f1();
-            // f2()
-            // Here when we update the f2 context hierarchy , contexts and data related to f1 required be cleaned.
-            // This only be required to do at once for given update process of context hierarchy.
-            if (!isCompletedCtxRemoved) {
-                isCompletedCtxRemoved = removeCompletedContexts(exCtx, childCtx);
+    public synchronized void registerAsyncNativeContext(BLangScheduler.NativeCallExecutor nativeCallExecutor,
+                                                        NativeCallableUnit nativeCallable) {
+        WorkerExecutionContext parentCtx = nativeCallExecutor.nativeCtx.getParentWorkerExecutionContext();
+        populateContext(parentCtx, parentCtx.ip + 1, true, new HashSet<>());
+        sNativeCallExecutors.put(getObjectKey(nativeCallExecutor), new SerializableNativeCallExecutor
+                (nativeCallExecutor, this, new HashSet<>()));
+        if (nativeCallable instanceof InterruptibleNativeCallableUnit
+                && ((InterruptibleNativeCallableUnit) nativeCallable)
+                .persistBeforeOperation()) {
+            PersistenceStore.getStorageProvider().persistState(this.id, serialize());
+        }
+    }
+
+    public synchronized void removeAsyncNativeContext(BLangScheduler.NativeCallExecutor nativeCallExecutor) {
+        SerializableNativeCallExecutor sNativeExec = sNativeCallExecutors.remove(getObjectKey(nativeCallExecutor));
+        sRespContexts.put(sNativeExec.respCtxKey, SerializableResponseContextFactory
+                .getResponseContext(sNativeExec.respCtxKey, nativeCallExecutor.respCtx, this, new HashSet<>()));
+        if (nativeCallExecutor.nativeCallable instanceof InterruptibleNativeCallableUnit &&
+                ((InterruptibleNativeCallableUnit) nativeCallExecutor.nativeCallable).persistAfterOperation()) {
+            PersistenceStore.getStorageProvider().persistState(id, serialize());
+        }
+    }
+
+    public synchronized void handleWorkerHalt(WorkerExecutionContext ctx) {
+        String ctxKey = getObjectKey(ctx);
+        SerializableContext sCtx = sContexts.get(ctxKey);
+        if (sCtx != null) {
+            removeContextData(ctxKey, sCtx);
+            populateRespContext(ctx.respCtx);
+            if (ctx.parent != null && !ctx.parent.state.equals(WorkerState.DONE)) {
+                if (sCtx.type.equals(SerializableContext.Type.WORKER)) {
+                    SerializableContext parentCtx = sContexts.get(sCtx.parentCtxKey);
+                    parentCtx.update(ctx.parent, this, true, new HashSet<>());
+                }
             }
-            updatedCtx = new SerializableContext(ctxKey, ctx, this, ip, isCompletedCtxRemoved,
-                                                 updateParent, updatedObjectSet);
-            sContexts.put(ctxKey, updatedCtx);
-            if (exCtx != null) {
-                updatedCtx.children.addAll(exCtx.children);
-            }
-            sCurrentCtxKeys.add(ctxKey);
-            if (updatedCtx.parent != null && !isAsync(ctx)) {
-                sCurrentCtxKeys.remove(updatedCtx.parent);
+            if (sContexts.size() <= 1 && (ctx.parent == null || ctx.parent.isRootContext() || ctx.parent.state.equals
+                    (WorkerState.DONE))) {
+                BLangScheduler.cleanCompletedState(this.id);
             }
         }
-        return updatedCtx;
+    }
+
+    public synchronized void handleWorkerReturn(WorkerExecutionContext ctx) {
+        String ctxKey = getObjectKey(ctx);
+        SerializableContext sCtx = sContexts.get(ctxKey);
+        if (sCtx != null) {
+            removeContextData(ctxKey, sCtx);
+            populateRespContext(ctx.respCtx);
+            if (ctx.parent != null && !ctx.parent.state.equals(WorkerState.DONE)) {
+                if (sCtx.type.equals(SerializableContext.Type.WORKER)) {
+                    SerializableContext parentCtx = sContexts.get(sCtx.parentCtxKey);
+                    parentCtx.update(ctx.parent, this, parentCtx.ip + 1, true, new HashSet<>());
+                    sCurrentCtxKeys.add(parentCtx.ctxKey);
+                }
+            }
+            if (sContexts.size() <= 1 && (ctx.parent == null || ctx.parent.isRootContext() ||
+                    ctx.parent.state.equals(WorkerState.DONE))) {
+                BLangScheduler.cleanCompletedState(this.id);
+            }
+        }
+    }
+
+    public synchronized void handleWorkerStop(WorkerExecutionContext ctx) {
+        String ctxKey = getObjectKey(ctx);
+        SerializableContext sCtx = sContexts.get(ctxKey);
+        if (sCtx != null) {
+            removeContextData(ctxKey, sCtx);
+            String respCtxKey = getObjectKey(ctx.respCtx);
+            SerializableResponseContext sRespCtx = sRespContexts.get(respCtxKey);
+            if (sRespCtx instanceof SerializableAsyncResponse) {
+                if (!((SerializableAsyncResponse) sRespCtx).cancelled) {
+                    populateRespContext(ctx.respCtx);
+                }
+            }
+        }
+    }
+
+    private void removeContextData(String ctxKey, SerializableContext sCtx) {
+        removeRefTypes(sCtx);
+        sCurrentCtxKeys.remove(ctxKey);
+        sContexts.remove(ctxKey);
+
+    }
+
+    private SerializableContext populateContext(WorkerExecutionContext ctx, int ip, boolean updateParent,
+                                                HashSet<String> updatedObjectSet) {
+        String ctxKey = getObjectKey(ctx);
+        SerializableContext sCtx = sContexts.get(ctxKey);
+        if (sCtx != null) {
+            sCtx.update(ctx, this, ip, updateParent, updatedObjectSet);
+        } else {
+            sCtx = new SerializableContext(ctxKey, ctx, this, ip, updateParent, updatedObjectSet);
+        }
+        sCurrentCtxKeys.add(ctxKey);
+        if (!isAsync(ctx)) {
+            sCurrentCtxKeys.remove(sCtx.parentCtxKey);
+        }
+        return sCtx;
+    }
+
+    void registerContext(SerializableContext sCtx) {
+        sContexts.put(sCtx.ctxKey, sCtx);
     }
 
     /**
@@ -180,25 +249,62 @@ public class SerializableState {
                 .stream()
                 .map(sCtxKey -> sContexts.get(sCtxKey).getWorkerExecutionContext(programFile, this, deserializer))
                 .collect(Collectors.toList());
+
     }
 
-    public SerializableResponseContext addRespContext(WorkerResponseContext responseContext,
-                                                      HashSet<String> updatedObjectSet) {
-        String respCtxKey = String.valueOf(responseContext.hashCode());
+    public synchronized List<BLangScheduler.NativeCallExecutor> getNativeCallExecutors(ProgramFile programFile,
+                                                                                       Deserializer deserializer) {
+        return sNativeCallExecutors.values()
+                                   .stream()
+                                   .map(sExec -> sExec.getExecutor(programFile, deserializer, this))
+                                   .collect(Collectors.toList());
+    }
+
+    public SerializableResponseContext populateRespContext(WorkerResponseContext respCtx,
+                                                           HashSet<String> updatedObjectSet) {
+        String respCtxKey = getObjectKey(respCtx);
         SerializableResponseContext sRespCtx = sRespContexts.get(respCtxKey);
         if (!updatedObjectSet.contains(respCtxKey)) {
+            if (sRespCtx != null) {
+                sRespCtx.update(respCtx, this, updatedObjectSet);
+            } else {
+                sRespCtx = addRespContext(respCtxKey, respCtx, updatedObjectSet);
+            }
             updatedObjectSet.add(respCtxKey);
-            sRespCtx = Serializer.sRspCtxFactory.getResponseContext(respCtxKey, responseContext);
-            sRespContexts.put(sRespCtx.getRespCtxKey(), sRespCtx);
-            sRespCtx.addTargetContexts(responseContext, this);
+
         }
         return sRespCtx;
     }
 
-    public WorkerExecutionContext getExecutionContext(String contextKey, ProgramFile programFile,
+    private void populateRespContext(WorkerResponseContext respCtx) {
+        String respCtxKey = getObjectKey(respCtx);
+        SerializableResponseContext sRespCtx = sRespContexts.get(respCtxKey);
+        if (sRespCtx != null) {
+            sRespCtx.update(respCtx, this, new HashSet<>());
+        } else {
+            addRespContext(respCtxKey, respCtx, new HashSet<>());
+        }
+    }
+
+    private SerializableResponseContext addRespContext(String respCtxKey, WorkerResponseContext respCtx,
+                                                       HashSet<String> updatedObjectSet) {
+        SerializableResponseContext sRespCtx = SerializableResponseContextFactory
+                .getResponseContext(respCtxKey, respCtx, this, updatedObjectSet);
+        sRespContexts.put(sRespCtx.getRespCtxKey(), sRespCtx);
+        WorkerExecutionContext targetCtx = respCtx.getTargetContext();
+        if (targetCtx != null && !targetCtx.state.equals(WorkerState.DONE)) {
+            sRespCtx.addTargetContexts(respCtx, this);
+        }
+        return sRespCtx;
+    }
+
+    public WorkerExecutionContext getExecutionContext(String ctxKey, ProgramFile programFile,
                                                       Deserializer deserializer) {
-        SerializableContext serializableContext = sContexts.get(contextKey);
-        return serializableContext.getWorkerExecutionContext(programFile, this, deserializer);
+        SerializableContext serializableContext = sContexts.get(ctxKey);
+        if (serializableContext != null) {
+            return serializableContext.getWorkerExecutionContext(programFile, this, deserializer);
+        }
+        return null;
     }
 
     public WorkerResponseContext getResponseContext(String respCtxKey, ProgramFile programFile,
@@ -209,9 +315,10 @@ public class SerializableState {
             return responseContext;
         }
         SerializableResponseContext sRespContext = sRespContexts.get(respCtxKey);
-        responseContext = sRespContext.getResponseContext(programFile, callableUnitInfo, this, deserializer);
-        deserializer.getRespContexts().put(respCtxKey, responseContext);
-        sRespContext.joinTargetContextInfo(responseContext, programFile, this, deserializer);
+        if (sRespContext != null) {
+            responseContext = sRespContext.getResponseContext(programFile, callableUnitInfo, this, deserializer);
+            deserializer.getRespContexts().put(respCtxKey, responseContext);
+        }
         return responseContext;
     }
 
@@ -257,14 +364,14 @@ public class SerializableState {
 
     public Object deserialize(Object o, ProgramFile programFile, Deserializer deserializer) {
         if (o instanceof SerializedKey) {
-            SerializedKey key = (SerializedKey) o;
-            BRefType bRefType = deserializer.getRefTypes().get(key.key);
+            SerializedKey serializedKey = (SerializedKey) o;
+            BRefType bRefType = deserializer.getRefTypes().get(serializedKey.key);
             if (bRefType != null) {
                 return bRefType;
             } else {
-                SerializableRefType sRefType = sRefTypes.get(key.key);
+                SerializableRefType sRefType = sRefTypes.get(serializedKey.key);
                 bRefType = sRefType.getBRefType(programFile, this, deserializer);
-                deserializer.getRefTypes().put(key.key, bRefType);
+                deserializer.getRefTypes().put(serializedKey.key, bRefType);
                 sRefType.setContexts(bRefType, programFile, this, deserializer);
                 return bRefType;
             }
@@ -278,7 +385,7 @@ public class SerializableState {
     }
 
     private SerializedKey addRefType(Serializable serializable, HashSet<String> updatedObjectSet) {
-        String refKey = String.valueOf(serializable.hashCode());
+        String refKey = getObjectKey(serializable);
         if (!updatedObjectSet.contains(refKey)) {
             updatedObjectSet.add(refKey);
             SerializableRefType sRefType = serializable.serialize(this, updatedObjectSet);
@@ -292,58 +399,46 @@ public class SerializableState {
         }
     }
 
-    private void cleanCompletedContexts() {
-        sRespContexts.entrySet().removeIf(respCtx -> !(respCtx.getValue() instanceof SerializableAsyncResponse) &&
-                !sContexts.containsKey(respCtx.getValue().getTargetCtxKey()));
-        sContexts.entrySet().removeIf(sCtx -> sCtx.getValue().respCtxKey != null &&
-                sRespContexts.get(sCtx.getValue().respCtxKey) == null);
-    }
-
-    private boolean removeCompletedContexts(SerializableContext exCtx, SerializableContext childCtx) {
-        if (exCtx != null) {
-            if (childCtx != null) {
-                exCtx.children.remove(childCtx.ctxKey);
-            }
-            if (childCtx == null || !childCtx.type.equals(SerializableContext.Type.WORKER)) {
-                return exCtx.children.removeIf(child -> {
-                    boolean isRemovable = REMOVABLE_TYPES_INITIATION.contains(
-                            sContexts.get(child).type);
-                    if (isRemovable) {
-                        SerializableContext context = sContexts.get(child);
-                        cleanContextData(context.ctxKey, context);
-                    }
-                    return isRemovable;
-                });
-            }
-        }
-        return false;
-    }
-
-    private void cleanContextData(String ctxKey, SerializableContext ctx) {
-        ctx.children.forEach(childCtxKey -> {
-            SerializableContext childCtx = sContexts.get(childCtxKey);
-            cleanContextData(childCtxKey, childCtx);
-        });
-        ctx.children.clear();
-        removeRefTypes(ctx);
-        sContexts.remove(ctxKey);
-        sCurrentCtxKeys.remove(ctxKey);
+    private void cleanCompletedRespContexts() {
+        Set<String> runningRespCtx = sContexts.values()
+                                              .stream()
+                                              .map(sCtx -> sCtx.respCtxKey)
+                                              .filter(Objects::nonNull)
+                                              .collect(Collectors.toSet());
+        sRespContexts.entrySet()
+                     .removeIf(respCtx -> !(respCtx.getValue() instanceof SerializableAsyncResponse) &&
+                             !runningRespCtx.contains(respCtx.getKey()));
     }
 
     private void removeRefTypes(SerializableContext ctx) {
         if (ctx.workerLocal != null && ctx.workerLocal.refFields != null) {
             ctx.workerLocal.refFields.stream()
                                      .filter(o -> o instanceof SerializedKey)
-                                     .forEach(o -> sRefTypes.remove(((SerializedKey) o).key));
+                                     .forEach(o -> removeRefType((SerializedKey) o));
         }
         if (ctx.workerResult != null && ctx.workerResult.refFields != null) {
             ctx.workerResult.refFields.stream()
                                       .filter(o -> o instanceof SerializedKey)
-                                      .forEach(o -> sRefTypes.remove(((SerializedKey) o).key));
+                                      .forEach(o -> removeRefType((SerializedKey) o));
+        }
+    }
+
+    private void removeRefType(SerializedKey sKey) {
+        SerializableRefType refType = sRefTypes.remove(sKey.key);
+        if (refType instanceof SerializableBFuture) {
+            SerializableBFuture bFuture = (SerializableBFuture) refType;
+            SerializableAsyncResponse sAsyncResp = (SerializableAsyncResponse) sRespContexts.get(bFuture.respCtxKey);
+            if (sAsyncResp.isDone()) {
+                sRespContexts.remove(bFuture.respCtxKey);
+            }
         }
     }
 
     public boolean isAsync(WorkerExecutionContext ctx) {
         return ctx.respCtx instanceof AsyncInvocableWorkerResponseContext;
+    }
+
+    public String getObjectKey(Object o) {
+        return String.valueOf(System.identityHashCode(o));
     }
 }

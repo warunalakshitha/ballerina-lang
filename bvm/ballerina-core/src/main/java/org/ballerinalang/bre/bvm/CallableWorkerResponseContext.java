@@ -47,19 +47,27 @@ public class CallableWorkerResponseContext extends BaseWorkerResponseContext {
         this.responseTypes = responseTypes;
     }
     
-    protected boolean isFulfilled() {
+    public boolean isFulfilled() {
         return fulfilled;
     }
     
-    protected void setAsFulfilled() {
+    public void setAsFulfilled() {
         this.fulfilled = true;
     }
     
-    protected void setCurrentSignal(WorkerSignal signal) {
+    public void setCurrentSignal(WorkerSignal signal) {
         this.currentSignal = signal;
     }
-    
-    protected WorkerSignal getCurrentSignal() {
+
+    public int getHaltCount() {
+        return haltCount;
+    }
+
+    public void setHaltCount(int haltCount) {
+        this.haltCount = haltCount;
+    }
+
+    public WorkerSignal getCurrentSignal() {
         return currentSignal;
     }
     

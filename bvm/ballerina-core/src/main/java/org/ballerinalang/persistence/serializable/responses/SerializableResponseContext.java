@@ -24,6 +24,8 @@ import org.ballerinalang.persistence.serializable.SerializableState;
 import org.ballerinalang.util.codegen.CallableUnitInfo;
 import org.ballerinalang.util.codegen.ProgramFile;
 
+import java.util.HashSet;
+
 /**
  * This is the representation of serializable Ballerina response context.
  *
@@ -35,19 +37,23 @@ public abstract class SerializableResponseContext {
 
     protected String targetCtxKey;
 
-    public abstract WorkerResponseContext getResponseContext(ProgramFile programFile, CallableUnitInfo
-            callableUnitInfo, SerializableState state, Deserializer deserializer);
+    protected int haltCount;
+
+    public SerializableResponseContext(String respCtxKey, int haltCount) {
+        this.respCtxKey = respCtxKey;
+        this.haltCount = haltCount;
+    }
 
     public abstract void addTargetContexts(WorkerResponseContext respCtx, SerializableState state);
 
-    public abstract void joinTargetContextInfo(WorkerResponseContext respCtx, ProgramFile programFile,
-                                               SerializableState state, Deserializer deserializer);
+    public abstract void update(WorkerResponseContext respCtx, SerializableState state,
+                                HashSet<String> updatedObjectSet);
+
+    public abstract WorkerResponseContext getResponseContext(ProgramFile programFile, CallableUnitInfo
+            callableUnitInfo, SerializableState state, Deserializer deserializer);
 
     public String getRespCtxKey() {
         return respCtxKey;
     }
 
-    public String getTargetCtxKey() {
-        return targetCtxKey;
-    }
 }

@@ -26,6 +26,7 @@ import org.ballerinalang.model.types.BType;
 import org.ballerinalang.model.values.BMap;
 import org.ballerinalang.model.values.BValue;
 import org.ballerinalang.persistence.RuntimeStates;
+import org.ballerinalang.persistence.serializable.SerializableState;
 import org.ballerinalang.persistence.store.PersistenceStore;
 import org.ballerinalang.runtime.Constants;
 import org.ballerinalang.runtime.threadpool.ThreadPoolFactory;
@@ -151,12 +152,13 @@ public class BLangScheduler {
     
     public static void stopWorker(WorkerExecutionContext ctx) {
         ctx.stop = true;
+        handleInterruptibleAfterWorkerStop(ctx);
+
     }
     
     public static void workerDone(WorkerExecutionContext ctx) {
         schedulerStats.stateTransition(ctx, WorkerState.DONE);
         ctx.state = WorkerState.DONE;
-        handleInterruptibleAfterExecution(ctx);
         workerCountDown();
     }
     
@@ -188,7 +190,7 @@ public class BLangScheduler {
     public static void workerExcepted(WorkerExecutionContext ctx) {
         schedulerStats.stateTransition(ctx, WorkerState.EXCEPTED);
         ctx.state = WorkerState.EXCEPTED;
-        handleInterruptibleAfterExecution(ctx);
+        handleInterruptibleAfterException(ctx);
         workerCountDown();
     }
     
@@ -214,6 +216,7 @@ public class BLangScheduler {
         AsyncInvocableWorkerResponseContext respCtx = new AsyncInvocableWorkerResponseContext(callableUnitInfo);
         checkAndObserveNativeAsync(nativeCtx, respCtx, callableUnitInfo, flags);
         NativeCallExecutor exec = new NativeCallExecutor(nativeCallable, nativeCtx, respCtx);
+        handleInterruptibleBeforeAsyncNativeCallable(nativeCtx, exec, respCtx);
         ThreadPoolFactory.getInstance().getWorkerExecutor().submit(exec);
         return respCtx;
     }
@@ -268,14 +271,71 @@ public class BLangScheduler {
         }
     }
 
-    private static void handleInterruptibleAfterExecution(WorkerExecutionContext ctx) {
-        if (ctx.interruptible && ctx.parent != null && ctx.parent.isRootContext()) {
-            /* If the context is interruptible and its parent is the root context, means given context is the last
-            worker which is completed. So persisted state will be cleared in memory and storage. */
-            String stateId = (String) ctx.globalProps.get(Constants.STATE_ID);
-            RuntimeStates.remove(stateId);
-            PersistenceStore.removeStates(stateId);
+    private static void handleInterruptibleBeforeAsyncNativeCallable(Context nativeCtx,
+                                                                     NativeCallExecutor nativeCallExecutor,
+                                                                     AsyncInvocableWorkerResponseContext respCtx) {
+        if (nativeCtx.getParentWorkerExecutionContext().interruptible) {
+            NativeCallableUnit nativeCallable = nativeCtx.getCallableUnitInfo().getNativeCallableUnit();
+            SerializableState sState = RuntimeStates.get(nativeCtx.getParentWorkerExecutionContext()
+                                                                 .globalProps.get(Constants.STATE_ID).toString());
+            sState.registerAsyncNativeContext(nativeCallExecutor, nativeCallable);
         }
+    }
+
+    private static void handleInterruptibleAfterAsyncNativeCallable(NativeCallExecutor nativeCallExecutor) {
+        WorkerExecutionContext parentCtx = nativeCallExecutor.nativeCtx
+                .getParentWorkerExecutionContext();
+        if (parentCtx.interruptible) {
+            RuntimeStates.get(parentCtx.globalProps.get(Constants.STATE_ID).toString())
+                         .removeAsyncNativeContext(nativeCallExecutor);
+        }
+    }
+
+    private static void handleInterruptibleAfterException(WorkerExecutionContext ctx) {
+        if (ctx.interruptible) {
+            String stateId = (String) ctx.globalProps.get(Constants.STATE_ID);
+            if (ctx.parent != null && ctx.parent.isRootContext()) {
+                cleanCompletedState(stateId);
+            }
+        }
+    }
+
+    public static void handleInterruptibleAfterWorkerReturn(WorkerExecutionContext ctx) {
+        if (ctx.interruptible) {
+            String stateId = (String) ctx.globalProps.get(Constants.STATE_ID);
+            SerializableState sState = RuntimeStates.get(stateId);
+            // If we have left only parent ctc to be finish, we will remove the state.
+            if (sState != null) {
+                sState.handleWorkerReturn(ctx);
+            }
+        }
+    }
+
+    public static void handleInterruptibleAfterWorkerHalt(WorkerExecutionContext ctx) {
+        if (ctx.interruptible) {
+            String stateId = (String) ctx.globalProps.get(Constants.STATE_ID);
+            SerializableState sState = RuntimeStates.get(stateId);
+            if (sState != null) {
+                sState.handleWorkerHalt(ctx);
+            }
+        }
+    }
+
+    public static void handleInterruptibleAfterWorkerStop(WorkerExecutionContext ctx) {
+        if (ctx.interruptible) {
+            String stateId = (String) ctx.globalProps.get(Constants.STATE_ID);
+            SerializableState sState = RuntimeStates.get(stateId);
+            if (sState != null) {
+                sState.handleWorkerStop(ctx);
+            }
+        }
+    }
+
+    public static void cleanCompletedState(String stateId) {
+          /* If the context is interruptible and its parent is the root context, means given context is the
+          last worker which is completed. So persisted state will be cleared in memory and storage. */
+        RuntimeStates.remove(stateId);
+        PersistenceStore.removeStates(stateId);
     }
 
     /**
@@ -299,13 +359,13 @@ public class BLangScheduler {
     /**
      * This represents the thread used to run a blocking native call in async mode.
      */
-    private static class NativeCallExecutor implements Runnable {
+    public static class NativeCallExecutor implements Runnable {
 
-        private NativeCallableUnit nativeCallable;
+        public NativeCallableUnit nativeCallable;
+
+        public Context nativeCtx;
         
-        private Context nativeCtx;
-        
-        private WorkerResponseContext respCtx;
+        public WorkerResponseContext respCtx;
         
         public NativeCallExecutor(NativeCallableUnit nativeCallable, Context nativeCtx, 
                 WorkerResponseContext respCtx) {
@@ -328,6 +388,7 @@ public class BLangScheduler {
                 this.nativeCallable.execute(this.nativeCtx, null);
                 BLangVMUtils.populateWorkerResultWithValues(result, this.nativeCtx.getReturnValues(), retTypes);
                 runInCaller = this.respCtx.signal(new WorkerSignal(null, SignalType.RETURN, result));
+                BLangScheduler.handleInterruptibleAfterAsyncNativeCallable(this);
             } catch (BLangNullReferenceException e) {
                 BMap<String, BValue> error = BLangVMErrors.createNullRefException(this.nativeCtx);
                 runInCaller = this.respCtx.signal(new WorkerSignal(new WorkerExecutionContext(error), 
@@ -365,6 +426,7 @@ public class BLangScheduler {
             WorkerData result = BLangVMUtils.createWorkerData(cui.retWorkerIndex);
             BType[] retTypes = cui.getRetParamTypes();
             BLangVMUtils.populateWorkerResultWithValues(result, this.nativeCallCtx.getReturnValues(), retTypes);
+            BLangScheduler.handleInterruptibleAfterNativeCallable(this.nativeCallCtx.getParentWorkerExecutionContext());
             WorkerExecutionContext ctx = this.respCtx.signal(new WorkerSignal(null, SignalType.RETURN, result));
             workerCountDown();
             BLangScheduler.resume(ctx);
@@ -376,6 +438,7 @@ public class BLangScheduler {
             WorkerData result = BLangVMUtils.createWorkerData(cui.retWorkerIndex);
             BType[] retTypes = cui.getRetParamTypes();
             BLangVMUtils.populateWorkerResultWithValues(result, this.nativeCallCtx.getReturnValues(), retTypes);
+            BLangScheduler.handleInterruptibleAfterNativeCallable(this.nativeCallCtx.getParentWorkerExecutionContext());
             WorkerExecutionContext ctx = this.respCtx.signal(new WorkerSignal(
                     new WorkerExecutionContext(error), SignalType.ERROR, result));
             workerCountDown();

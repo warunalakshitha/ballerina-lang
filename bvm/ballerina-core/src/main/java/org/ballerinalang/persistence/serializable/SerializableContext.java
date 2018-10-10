@@ -49,19 +49,17 @@ public class SerializableContext {
 
     public String ctxKey;
 
-    public String parent;
-
-    public WorkerState state = WorkerState.CREATED;
+    String parentCtxKey;
 
     String respCtxKey;
+
+    public WorkerState state = WorkerState.CREATED;
 
     public int ip;
 
     public int[] retRegIndexes;
 
     private boolean runInCaller;
-
-    public boolean interruptible;
 
     private String enclosingServiceName;
 
@@ -81,12 +79,12 @@ public class SerializableContext {
 
     SerializableWorkerData workerResult;
 
-    public HashSet<String> children = new HashSet<>();
+    public SerializableContext() {
+    }
 
-    public SerializableContext(String ctxKey, WorkerExecutionContext ctx, SerializableState state, int ip,
-                               boolean isCompletedCtxRemoved, boolean updateParent, HashSet<String> updatedObjectSet) {
+    SerializableContext(String ctxKey, WorkerExecutionContext ctx, SerializableState state, int ip,
+                        boolean updateParent, HashSet<String> updatedObjectSet) {
         this.ctxKey = ctxKey;
-        this.interruptible = ctx.interruptible;
         if (ctx.workerInfo != null) {
             workerName = ctx.workerInfo.getWorkerName();
             if (ctx.respCtx instanceof AsyncInvocableWorkerResponseContext) {
@@ -97,31 +95,6 @@ public class SerializableContext {
                 type = Type.WORKER;
             }
         }
-        // Add or Update the parent contexts.
-        populateParentContexts(ctx, state, isCompletedCtxRemoved, updateParent, updatedObjectSet);
-        // Update worker execution context data.
-        populateData(ctx, ip, state, updatedObjectSet);
-    }
-
-    private void populateParentContexts(WorkerExecutionContext ctx, SerializableState state,
-                                        boolean isCompletedCtxRemoved, boolean updateParent,
-                                        HashSet<String> updatedObjectSet) {
-        if (ctx.parent != null) {
-            SerializableContext sParentCtx = state.getSerializableContext(String.valueOf(ctx.parent.hashCode()));
-            if (sParentCtx == null || (updateParent && !type.equals(Type.ASYNC))) {
-                sParentCtx = state.populateContext(ctx.parent, ctx.parent.ip, isCompletedCtxRemoved, updateParent,
-                                                   updatedObjectSet, this);
-            }
-            sParentCtx.children.add(ctxKey);
-            this.parent = sParentCtx.ctxKey;
-        }
-    }
-
-    private void populateData(WorkerExecutionContext ctx, int ip, SerializableState state,
-                              HashSet<String> updatedObjectSet) {
-        this.ip = ip;
-        populateProps(state.globalProps, ctx.globalProps, state, updatedObjectSet);
-        populateProps(localProps, ctx.localProps, state, updatedObjectSet);
         retRegIndexes = ctx.retRegIndexes;
         runInCaller = ctx.runInCaller;
         if (ctx.callableUnitInfo != null) {
@@ -135,8 +108,60 @@ public class SerializableContext {
             }
             callableUnitPkgPath = ctx.callableUnitInfo.getPkgPath();
         }
+        // Add or Update the parent contexts.
+        populateParentContexts(ctx, state, updateParent, updatedObjectSet);
+        // Update worker execution context data.
+        populateData(ctx, ip, state, updatedObjectSet);
+        // Register in state
+        state.registerContext(this);
+    }
+
+    public void update(WorkerExecutionContext ctx, SerializableState state, int ip, boolean updateParent,
+                       HashSet<String> updatedObjectSet) {
+        // Add or Update the parent contexts.
+        populateParentContexts(ctx, state, updateParent, updatedObjectSet);
+        // Update worker execution context data.
+        populateData(ctx, ip, state, updatedObjectSet);
+    }
+
+    public void update(WorkerExecutionContext ctx, SerializableState state, boolean updateParent,
+                       HashSet<String> updatedObjectSet) {
+        // Add or Update the parent contexts.
+        populateParentContexts(ctx, state, updateParent, updatedObjectSet);
+        // Update worker execution context data.
+        populateData(ctx, state, updatedObjectSet);
+    }
+
+    private void populateParentContexts(WorkerExecutionContext ctx, SerializableState state, boolean updateParent,
+                                        HashSet<String> updatedObjectSet) {
+        String sParentCtxKey = state.getObjectKey(ctx.parent);
+        if (!type.equals(Type.ASYNC) &&  ctx.parent != null && !ctx.parent.state.equals(WorkerState.DONE)) {
+            SerializableContext sParentCtx = state.getSerializableContext(sParentCtxKey);
+            if (sParentCtx == null) {
+                sParentCtx = new SerializableContext(sParentCtxKey, ctx.parent, state, ctx.parent.ip, updateParent,
+                                                     updatedObjectSet);
+            } else if (updateParent) {
+                if (type.equals(Type.DEFAULT)) {
+                    sParentCtx.update(ctx.parent, state, ctx.parent.ip, true, updatedObjectSet);
+                } else {
+                    sParentCtx.update(ctx.parent, state, true, updatedObjectSet);
+                }
+            }
+            this.parentCtxKey = sParentCtx.ctxKey;
+        }
+    }
+
+    private void populateData(WorkerExecutionContext ctx, int ip, SerializableState state,
+                              HashSet<String> updatedObjectSet) {
+        this.ip = ip;
+        populateData(ctx, state, updatedObjectSet);
+    }
+
+    private void populateData(WorkerExecutionContext ctx, SerializableState state, HashSet<String> updatedObjectSet) {
+        populateProperties(ctx.globalProps, state.globalProps, state, updatedObjectSet);
+        populateProperties(ctx.localProps, this.localProps, state, updatedObjectSet);
         if (ctx.respCtx != null) {
-            respCtxKey = state.addRespContext(ctx.respCtx, updatedObjectSet).getRespCtxKey();
+            respCtxKey = state.populateRespContext(ctx.respCtx, updatedObjectSet).getRespCtxKey();
         }
         if (ctx.workerLocal != null) {
             workerLocal = new SerializableWorkerData(ctx.workerLocal, state, updatedObjectSet);
@@ -161,12 +186,16 @@ public class SerializableContext {
         WorkerData workerLocalData = null;
         WorkerData workerResultData = null;
         PackageInfo packageInfo = null;
-        Map<String, Object> tempGlobalProps = prepareProps(state.globalProps, state, programFile, deserializer);
+        HashMap<String, Object> globalProps = deserializer.getGlobalPropertyMap().get(state.getId());
+        if (globalProps == null) {
+            globalProps = prepareProps(state.globalProps, state, programFile, deserializer);
+            deserializer.getGlobalPropertyMap().put(state.getId(), globalProps);
+        }
         if (callableUnitPkgPath != null) {
             packageInfo = programFile.getPackageInfo(callableUnitPkgPath);
             if (enclosingServiceName != null) {
                 ServiceInfo serviceInfo = packageInfo.getServiceInfo(enclosingServiceName);
-                tempGlobalProps.put(SERVICE_INFO_KEY, serviceInfo);
+                globalProps.put(SERVICE_INFO_KEY, serviceInfo);
                 callableUnitInfo = serviceInfo.getResourceInfo(callableUnitName);
             } else {
                 callableUnitInfo = packageInfo.getFunctionInfo(callableUnitName);
@@ -178,13 +207,25 @@ public class SerializableContext {
         if (workerResult != null) {
             workerResultData = workerResult.getWorkerData(programFile, state, deserializer);
         }
-        if (parent == null || callableUnitInfo == null) {
-            // this is the root context
-            workerExecutionContext = new WorkerExecutionContext(programFile);
-            workerExecutionContext.workerLocal = workerLocalData;
-            workerExecutionContext.workerResult = workerResultData;
+        WorkerExecutionContext parentCtx;
+        if (parentCtxKey == null || (parentCtx = state.getExecutionContext(parentCtxKey, programFile, deserializer))
+                == null || callableUnitInfo == null) {
+            if (callableUnitInfo != null) {
+                WorkerResponseContext respCtx = null;
+                if (respCtxKey != null) {
+                    respCtx = state.getResponseContext(this.respCtxKey, programFile, callableUnitInfo, deserializer);
+                }
+                WorkerInfo workerInfo = getWorkerInfo(respCtx, null, packageInfo, callableUnitInfo);
+                workerExecutionContext = new WorkerExecutionContext(respCtx, callableUnitInfo, workerInfo,
+                                                                    workerLocalData, workerResultData,
+                                                                    retRegIndexes, runInCaller);
+            } else {
+                // This is the root context
+                workerExecutionContext = new WorkerExecutionContext(programFile);
+                workerExecutionContext.workerLocal = workerLocalData;
+                workerExecutionContext.workerResult = workerResultData;
+            }
         } else {
-            WorkerExecutionContext parentCtx = state.getExecutionContext(parent, programFile, deserializer);
             WorkerResponseContext respCtx = null;
             if (respCtxKey != null) {
                 respCtx = state.getResponseContext(this.respCtxKey, programFile, callableUnitInfo, deserializer);
@@ -194,36 +235,40 @@ public class SerializableContext {
                                                                 workerInfo, workerLocalData, workerResultData,
                                                                 retRegIndexes, runInCaller);
         }
-        workerExecutionContext.globalProps = tempGlobalProps;
+        workerExecutionContext.globalProps = globalProps;
         workerExecutionContext.localProps = prepareProps(localProps, state, programFile, deserializer);
         workerExecutionContext.ip = ip;
-        workerExecutionContext.interruptible = interruptible;
+        workerExecutionContext.interruptible = true;
         deserializer.getContexts().put(ctxKey, workerExecutionContext);
         return workerExecutionContext;
     }
 
-    private Map<String, Object> prepareProps(HashMap<String, Object> properties, SerializableState state,
-                                             ProgramFile programFile, Deserializer deserializer) {
-        Map<String, Object> props = new HashMap<>();
-        if (properties != null) {
-            properties.forEach((s, o) -> {
+    private HashMap<String, Object>  prepareProps(HashMap<String, Object> sourcePropertyMap, SerializableState
+            state, ProgramFile programFile, Deserializer deserializer) {
+        HashMap<String, Object> targetPropertyMap = new HashMap<>();
+        if (sourcePropertyMap != null) {
+            sourcePropertyMap.forEach((s, o) -> {
                 Object deserialize = state.deserialize(o, programFile, deserializer);
-                props.put(s, deserialize);
+                targetPropertyMap.put(s, deserialize);
             });
         }
-        return props;
+        return targetPropertyMap;
     }
 
-    private void populateProps(HashMap<String, Object> properties, Map<String, Object> props,
-                               SerializableState state, HashSet<String> updatedObjectSet) {
-        if (props != null) {
-            props.forEach((s, o) -> properties.put(s, state.serialize(o, updatedObjectSet)));
+    private void populateProperties(Map<String, Object> sourcePropertyMap, HashMap<String, Object> targetPropertyMap,
+                                    SerializableState state, HashSet<String> updatedObjectSet) {
+        String targetPropertyMapKey = state.getObjectKey(targetPropertyMap);
+        if (!updatedObjectSet.contains(targetPropertyMapKey) && sourcePropertyMap != null &&
+                targetPropertyMap != null) {
+            targetPropertyMap.clear();
+            sourcePropertyMap.forEach((s, o) -> targetPropertyMap.put(s, state.serialize(o, updatedObjectSet)));
+            updatedObjectSet.contains(targetPropertyMapKey);
         }
     }
 
     private WorkerInfo getWorkerInfo(WorkerResponseContext respCtx, WorkerExecutionContext parentCtx,
                                      PackageInfo packageInfo, CallableUnitInfo callableUnitInfo) {
-        if (respCtx instanceof ForkJoinWorkerResponseContext) {
+        if (parentCtx != null && respCtx instanceof ForkJoinWorkerResponseContext) {
             return ((Instruction.InstructionFORKJOIN) packageInfo.getInstructions()[parentCtx.ip - 1])
                     .forkJoinCPEntry.getForkjoinInfo().getWorkerInfo(workerName);
         } else if (Constants.DEFAULT.equals(workerName)) {

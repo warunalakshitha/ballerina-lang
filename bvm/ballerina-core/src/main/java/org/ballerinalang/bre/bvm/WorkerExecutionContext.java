@@ -90,6 +90,8 @@ public class WorkerExecutionContext {
         this.runInCaller = true;
         configureDistributedTransactions();
     }
+
+
     
     public WorkerExecutionContext(BMap<String, BValue> error) {
         this.error = error;
@@ -111,6 +113,23 @@ public class WorkerExecutionContext {
         this.retRegIndexes = retRegIndexes;
         this.interruptible = parent.interruptible;
         this.globalProps = parent.globalProps;
+        this.ip = this.workerInfo.getCodeAttributeInfo().getCodeAddrs();
+        this.runInCaller = runInCaller;
+        initDebugger();
+    }
+
+    public WorkerExecutionContext(WorkerResponseContext respCtx, CallableUnitInfo callableUnitInfo,
+                                  WorkerInfo workerInfo, WorkerData workerLocal, WorkerData workerResult,
+                                  int[] retRegIndexes, boolean runInCaller) {
+        this.respCtx = respCtx;
+        this.callableUnitInfo = callableUnitInfo;
+        this.workerInfo = workerInfo;
+        this.programFile = callableUnitInfo.getPackageInfo().getProgramFile();
+        this.constPool = callableUnitInfo.getPackageInfo().getConstPoolEntries();
+        this.code = callableUnitInfo.getPackageInfo().getInstructions();
+        this.workerLocal = workerLocal;
+        this.workerResult = workerResult;
+        this.retRegIndexes = retRegIndexes;
         this.ip = this.workerInfo.getCodeAttributeInfo().getCodeAddrs();
         this.runInCaller = runInCaller;
         initDebugger();

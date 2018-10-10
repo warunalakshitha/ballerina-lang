@@ -70,7 +70,6 @@ import org.ballerinalang.model.values.BXML;
 import org.ballerinalang.model.values.BXMLAttributes;
 import org.ballerinalang.model.values.BXMLQName;
 import org.ballerinalang.model.values.BXMLSequence;
-import org.ballerinalang.persistence.states.State;
 import org.ballerinalang.persistence.store.PersistenceStore;
 import org.ballerinalang.runtime.Constants;
 import org.ballerinalang.util.TransactionStatus;
@@ -153,7 +152,9 @@ public class CPU {
 
     private static WorkerExecutionContext handleHalt(WorkerExecutionContext ctx) {
         BLangScheduler.workerDone(ctx);
-        return ctx.respCtx.signal(new WorkerSignal(ctx, SignalType.HALT, ctx.workerResult));
+        WorkerExecutionContext signal = ctx.respCtx.signal(new WorkerSignal(ctx, SignalType.HALT, ctx.workerResult));
+        BLangScheduler.handleInterruptibleAfterWorkerHalt(ctx);
+        return signal;
     }
 
     public static void exec(WorkerExecutionContext ctx) {
@@ -807,14 +808,12 @@ public class CPU {
             //inject the value to the ctx
             copyArgValueForWorkerReceive(pendingCtx.context.workerLocal, pendingCtx.regIndex, dataType, dataVal);
             if (pendingCtx.context.interruptible) {
-                String stateId = (String) pendingCtx.context.globalProps.get(STATE_ID);
-                PersistenceStore.persistState(new State(pendingCtx.context, stateId, pendingCtx.context.ip + 1));
+                PersistenceStore.persistState(pendingCtx.context, pendingCtx.context.ip + 1);
             }
             BLangScheduler.resume(pendingCtx.context);
         }
         if (ctx.interruptible) {
-            String stateId = (String) ctx.globalProps.get(STATE_ID);
-            PersistenceStore.persistState(new State(ctx, stateId, ctx.ip + 1));
+            PersistenceStore.persistState(ctx,  ctx.ip + 1);
         }
     }
 
@@ -840,8 +839,7 @@ public class CPU {
         if (value != null) {
             copyArgValueForWorkerReceive(ctx.workerLocal, receiverReg, receiverType, (BRefType) value);
             if (ctx.interruptible) {
-                String stateId = (String) ctx.globalProps.get(STATE_ID);
-                PersistenceStore.persistState(new State(ctx, stateId, ctx.ip + 1));
+                PersistenceStore.persistState(ctx, ctx.ip + 1);
             }
             return true;
         }
@@ -2788,7 +2786,9 @@ public class CPU {
 
     private static WorkerExecutionContext handleReturn(WorkerExecutionContext ctx) {
         BLangScheduler.workerDone(ctx);
-        return ctx.respCtx.signal(new WorkerSignal(ctx, SignalType.RETURN, ctx.workerResult));
+        WorkerExecutionContext signal = ctx.respCtx.signal(new WorkerSignal(ctx, SignalType.RETURN, ctx.workerResult));
+        BLangScheduler.handleInterruptibleAfterWorkerReturn(ctx);
+        return signal;
     }
 
     private static boolean checkFiniteTypeAssignable(BValue bRefTypeValue, BType lhsType) {
