@@ -25,11 +25,12 @@ import org.ballerinalang.persistence.serializable.SerializableContext;
 import org.ballerinalang.persistence.serializable.SerializableState;
 import org.ballerinalang.persistence.serializable.responses.SerializableResponseContext;
 import org.ballerinalang.util.codegen.CallableUnitInfo;
+import org.ballerinalang.util.codegen.ForkjoinInfo;
+import org.ballerinalang.util.codegen.Instruction;
 import org.ballerinalang.util.codegen.ProgramFile;
+import org.ballerinalang.util.program.BLangFunctions;
 
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * This class implements @{@link SerializableResponseContext} to serialize @{@link ForkJoinWorkerResponseContext}.
@@ -40,54 +41,38 @@ public class SerializableForkJoinResponse extends SerializableResponseContext {
 
     public int[] retRegIndexes;
 
-    public int workerCount;
-
-    private int reqJoinCount;
-
-    private int joinTargetIp;
-
-    private int joinVarReg;
-
-    private int timeoutTargetIp;
-
-    private int timeoutVarReg;
-
-    private Set<String> joinWorkerNames;
-
-    private Map<String, String> channelNames;
-
     public SerializableForkJoinResponse(String respCtxKey, ForkJoinWorkerResponseContext respCtx) {
-        this.respCtxKey = respCtxKey;
+        super(respCtxKey, respCtx.getHaltCount());
         retRegIndexes = respCtx.getRetRegIndexes();
-        workerCount = respCtx.getWorkerCount();
-        reqJoinCount = respCtx.getReqJoinCount();
-        joinTargetIp = respCtx.getJoinTargetIp();
-        joinVarReg = respCtx.getJoinVarReg();
-        timeoutTargetIp = respCtx.getTimeoutTargetIp();
-        timeoutVarReg = respCtx.getTimeoutVarReg();
-        joinWorkerNames = new HashSet<>(respCtx.getJoinWorkerNames());
-        channelNames = respCtx.getChannelNames();
-    }
-
-    @Override
-    public WorkerResponseContext getResponseContext(ProgramFile programFile, CallableUnitInfo callableUnitInfo,
-                                                    SerializableState state, Deserializer deserializer) {
-        return new ForkJoinWorkerResponseContext(null, joinTargetIp, joinVarReg, timeoutTargetIp, timeoutVarReg,
-                                                 workerCount, reqJoinCount, joinWorkerNames, channelNames);
     }
 
     @Override
     public void addTargetContexts(WorkerResponseContext respCtx, SerializableState state) {
         ForkJoinWorkerResponseContext forkJoinCtx = (ForkJoinWorkerResponseContext) respCtx;
         SerializableContext sTargetCtx = state
-                .getSerializableContext(String.valueOf(forkJoinCtx.getTargetContext().hashCode()));
+                .getSerializableContext(state.getObjectKey(forkJoinCtx.getTargetContext()));
         targetCtxKey = sTargetCtx.ctxKey;
     }
 
     @Override
-    public void joinTargetContextInfo(WorkerResponseContext respCtx, ProgramFile programFile,
-                                      SerializableState state, Deserializer deserializer) {
+    public void update(WorkerResponseContext respCtx, SerializableState state, HashSet<String> updatedObjectSet) {
+        this.haltCount = ((ForkJoinWorkerResponseContext) respCtx).getHaltCount();
+    }
+
+    @Override
+    public WorkerResponseContext getResponseContext(ProgramFile programFile, CallableUnitInfo callableUnitInfo,
+                                                    SerializableState state, Deserializer deserializer) {
         WorkerExecutionContext ctx = state.getExecutionContext(targetCtxKey, programFile, deserializer);
+        Instruction.InstructionFORKJOIN forkJoinIns = (Instruction.InstructionFORKJOIN) callableUnitInfo
+                .getPackageInfo().getInstructions()[ctx.ip - 1];
+        ForkjoinInfo forkjoinInfo = forkJoinIns.forkJoinCPEntry.getForkjoinInfo();
+        ForkJoinWorkerResponseContext respCtx = BLangFunctions
+                .createForkJoinResponseContext(ctx, forkjoinInfo, forkJoinIns.joinBlockAddr,
+                                               forkJoinIns.joinVarRegIndex, forkJoinIns.timeoutBlockAddr,
+                                               forkJoinIns.timeoutVarRegIndex);
+        respCtx.setHaltCount(haltCount);
+        BLangFunctions.scheduleForkJoinTimeout(ctx, respCtx, forkjoinInfo, forkJoinIns.timeoutRegIndex);
         respCtx.joinTargetContextInfo(ctx, retRegIndexes);
+        return respCtx;
     }
 }
