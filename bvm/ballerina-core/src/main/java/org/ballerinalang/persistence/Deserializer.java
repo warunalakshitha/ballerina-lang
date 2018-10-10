@@ -39,10 +39,13 @@ public class Deserializer {
 
     private Map<String, WorkerResponseContext> respContexts = new HashMap<>();
 
+    private Map<String, HashMap<String, Object>> globalPropertyMap = new HashMap<>();
+
     public void cleanUpDeserializer() {
         refTypes.clear();
         contexts.clear();
         respContexts.clear();
+        globalPropertyMap.clear();
     }
 
     public Map<String, BRefType> getRefTypes() {
@@ -57,4 +60,7 @@ public class Deserializer {
         return respContexts;
     }
 
+    public Map<String, HashMap<String, Object>> getGlobalPropertyMap() {
+        return globalPropertyMap;
+    }
 }

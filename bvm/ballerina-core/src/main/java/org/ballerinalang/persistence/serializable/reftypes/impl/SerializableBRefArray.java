@@ -45,6 +45,9 @@ public class SerializableBRefArray implements SerializableRefType {
 
     private ArrayList<Object> values = new ArrayList<>();
 
+    public SerializableBRefArray() {
+    }
+
     public SerializableBRefArray(BRefValueArray bRefValueArray, SerializableState state,
                                  HashSet<String> updatedObjectSet) {
         BArrayType arrayType = (BArrayType) bRefValueArray.getType();

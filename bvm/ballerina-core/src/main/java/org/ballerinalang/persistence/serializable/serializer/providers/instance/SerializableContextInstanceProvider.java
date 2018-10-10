@@ -17,11 +17,8 @@
  */
 package org.ballerinalang.persistence.serializable.serializer.providers.instance;
 
-import org.ballerinalang.bre.bvm.WorkerExecutionContext;
 import org.ballerinalang.model.util.serializer.TypeInstanceProvider;
 import org.ballerinalang.persistence.serializable.SerializableContext;
-import org.ballerinalang.persistence.serializable.SerializableState;
-import org.ballerinalang.util.codegen.ProgramFile;
 
 /**
  * Provide object instance for serializing {@link SerializableContext}.
@@ -36,8 +33,7 @@ public class SerializableContextInstanceProvider implements TypeInstanceProvider
 
     @Override
     public Object newInstance() {
-        WorkerExecutionContext ctx = new WorkerExecutionContext(new ProgramFile());
-        return new SerializableContext(null, ctx, new SerializableState(null, ctx), 0, false, false, null);
+        return new SerializableContext();
     }
 
     @Override
