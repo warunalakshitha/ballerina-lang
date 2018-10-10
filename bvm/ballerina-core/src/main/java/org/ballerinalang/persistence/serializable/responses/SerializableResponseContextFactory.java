@@ -22,9 +22,12 @@ import org.ballerinalang.bre.bvm.AsyncInvocableWorkerResponseContext;
 import org.ballerinalang.bre.bvm.CallableWorkerResponseContext;
 import org.ballerinalang.bre.bvm.ForkJoinWorkerResponseContext;
 import org.ballerinalang.bre.bvm.WorkerResponseContext;
+import org.ballerinalang.persistence.serializable.SerializableState;
 import org.ballerinalang.persistence.serializable.responses.impl.SerializableAsyncResponse;
 import org.ballerinalang.persistence.serializable.responses.impl.SerializableCallableResponse;
 import org.ballerinalang.persistence.serializable.responses.impl.SerializableForkJoinResponse;
+
+import java.util.HashSet;
 
 /**
  * This factory class provides an implementation of @{@link SerializableResponseContext}
@@ -34,9 +37,12 @@ import org.ballerinalang.persistence.serializable.responses.impl.SerializableFor
  */
 public class SerializableResponseContextFactory {
 
-    public SerializableResponseContext getResponseContext(String respCtxKey, WorkerResponseContext respCtx) {
+    public static SerializableResponseContext getResponseContext(String respCtxKey, WorkerResponseContext respCtx,
+                                                                 SerializableState state,
+                                                                 HashSet<String> updatedObjectSet) {
         if (respCtx instanceof AsyncInvocableWorkerResponseContext) {
-            return new SerializableAsyncResponse(respCtxKey, (AsyncInvocableWorkerResponseContext) respCtx);
+            return new SerializableAsyncResponse(respCtxKey, (AsyncInvocableWorkerResponseContext) respCtx, state,
+                                                 updatedObjectSet);
         } else if (respCtx instanceof ForkJoinWorkerResponseContext) {
             return new SerializableForkJoinResponse(respCtxKey, (ForkJoinWorkerResponseContext) respCtx);
         } else {

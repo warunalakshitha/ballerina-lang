@@ -138,6 +138,18 @@ public class AsyncInvocableWorkerResponseContext extends SyncCallableWorkerRespo
         return cancelled;
     }
     
+    public boolean isErrored() {
+        return errored;
+    }
+
+    public void setAsErrored() {
+        this.errored = true;
+    }
+
+    public void setAsCancelled() {
+        this.cancelled = true;
+    }
+
     public synchronized boolean cancel() {
         if (this.isDone()) {
             return false;

@@ -33,7 +33,7 @@ public abstract class BaseWorkerResponseContext implements WorkerResponseContext
 
     protected int[] retRegIndexes;
 
-    protected WorkerSignal currentSignal;
+    public WorkerSignal currentSignal;
     
     protected List<CallableUnitCallback> responseCallbacks;
 
@@ -109,6 +109,7 @@ public abstract class BaseWorkerResponseContext implements WorkerResponseContext
         return null;
     }
 
+    @Override
     public WorkerExecutionContext getTargetContext() {
         return targetCtx;
     }
@@ -117,8 +118,8 @@ public abstract class BaseWorkerResponseContext implements WorkerResponseContext
         return retRegIndexes;
     }
 
-    public int getWorkerCount() {
-        return workerCount;
+    public WorkerSignal getCurrentSignal() {
+        return currentSignal;
     }
 
     @Override

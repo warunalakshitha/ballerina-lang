@@ -40,7 +40,10 @@ public class SerializableWorkerData {
 
     ArrayList<Object> refFields;
 
-    public SerializableWorkerData(WorkerData workerData, SerializableState state, HashSet<String> updatedObjectSet) {
+    public SerializableWorkerData() {
+    }
+
+    SerializableWorkerData(WorkerData workerData, SerializableState state, HashSet<String> updatedObjectSet) {
         doubleRegs = workerData.doubleRegs;
         intRegs = workerData.intRegs;
         longRegs = workerData.longRegs;

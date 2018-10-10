@@ -22,9 +22,12 @@ import org.ballerinalang.bre.bvm.ForkJoinWorkerResponseContext;
 import org.ballerinalang.bre.bvm.WorkerResponseContext;
 import org.ballerinalang.persistence.Deserializer;
 import org.ballerinalang.persistence.serializable.SerializableState;
+import org.ballerinalang.persistence.serializable.SerializableWorkerSignal;
 import org.ballerinalang.persistence.serializable.responses.SerializableResponseContext;
 import org.ballerinalang.util.codegen.CallableUnitInfo;
 import org.ballerinalang.util.codegen.ProgramFile;
+
+import java.util.HashSet;
 
 /**
  * This class implements @{@link SerializableResponseContext} to serialize @{@link ForkJoinWorkerResponseContext}.
@@ -33,20 +36,24 @@ import org.ballerinalang.util.codegen.ProgramFile;
  */
 public class SerializableAsyncResponse extends SerializableResponseContext {
 
-    public int[] retRegIndexes;
+    public SerializableWorkerSignal signal;
 
-    public int workerCount;
+    public boolean fulfilled;
 
-    public SerializableAsyncResponse(String respCtxKey, AsyncInvocableWorkerResponseContext respCtx) {
+    public boolean cancelled;
+
+    private boolean errored;
+
+    public SerializableAsyncResponse(String respCtxKey, AsyncInvocableWorkerResponseContext respCtx,
+                                     SerializableState state, HashSet<String> updatedObjectSet) {
+        super(respCtxKey, respCtx.getHaltCount());
         this.respCtxKey = respCtxKey;
-        retRegIndexes = respCtx.getRetRegIndexes();
-        workerCount = respCtx.getWorkerCount();
-    }
-
-    @Override
-    public WorkerResponseContext getResponseContext(ProgramFile programFile, CallableUnitInfo callableUnitInfo,
-                                                    SerializableState state, Deserializer deserializer) {
-        return new AsyncInvocableWorkerResponseContext(callableUnitInfo, workerCount);
+        if (respCtx.currentSignal != null) {
+            this.signal = new SerializableWorkerSignal(respCtx.currentSignal, state, updatedObjectSet);
+        }
+        this.fulfilled = respCtx.isFulfilled();
+        this.cancelled = respCtx.isCancelled();
+        this.errored = respCtx.isErrored();
     }
 
     @Override
@@ -54,7 +61,43 @@ public class SerializableAsyncResponse extends SerializableResponseContext {
     }
 
     @Override
-    public void joinTargetContextInfo(WorkerResponseContext respCtx, ProgramFile programFile, SerializableState state,
-                                      Deserializer deserializer) {
+    public void update(WorkerResponseContext respCtx, SerializableState state, HashSet<String> updatedObjectSet) {
+        AsyncInvocableWorkerResponseContext asyncRespCtx = (AsyncInvocableWorkerResponseContext) respCtx;
+        if (!isDone()) {
+            if (asyncRespCtx.currentSignal != null) {
+                this.signal = new SerializableWorkerSignal(asyncRespCtx.currentSignal, state, updatedObjectSet);
+            }
+            this.fulfilled = asyncRespCtx.isFulfilled();
+            this.cancelled = asyncRespCtx.isCancelled();
+            this.errored = asyncRespCtx.isErrored();
+        }
+        this.haltCount = asyncRespCtx.getHaltCount();
     }
+
+    @Override
+    public WorkerResponseContext getResponseContext(ProgramFile programFile, CallableUnitInfo callableUnitInfo,
+                                                    SerializableState state, Deserializer deserializer) {
+        AsyncInvocableWorkerResponseContext asyncRespCtx =
+                new AsyncInvocableWorkerResponseContext(callableUnitInfo,
+                                                        callableUnitInfo.getWorkerSet().generalWorkers.length);
+        if (signal != null) {
+            asyncRespCtx.setCurrentSignal(signal.getWorkerData(programFile, state, deserializer));
+        }
+        if (fulfilled) {
+            asyncRespCtx.setAsFulfilled();
+        }
+        if (errored) {
+            asyncRespCtx.setAsErrored();
+        }
+        if (cancelled) {
+            asyncRespCtx.setAsCancelled();
+        }
+        asyncRespCtx.setHaltCount(haltCount);
+        return asyncRespCtx;
+    }
+
+    public boolean isDone() {
+        return fulfilled || errored || cancelled;
+    }
+
 }

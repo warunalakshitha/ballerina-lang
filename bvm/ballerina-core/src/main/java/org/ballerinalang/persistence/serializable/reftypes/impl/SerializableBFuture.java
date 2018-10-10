@@ -38,7 +38,7 @@ import java.util.HashSet;
  */
 public class SerializableBFuture implements SerializableRefType {
 
-    private String respCtxKey;
+    public String respCtxKey;
 
     private String callableName;
 
@@ -53,7 +53,7 @@ public class SerializableBFuture implements SerializableRefType {
             callableName = callableUnitInfo.getName();
         }
         pkgPath = ((AsyncInvocableWorkerResponseContext) bFuture.value()).getCallableUnitInfo().getPkgPath();
-        respCtxKey = state.addRespContext(bFuture.value(), updatedObjectSet).getRespCtxKey();
+        respCtxKey = state.populateRespContext(bFuture.value(), updatedObjectSet).getRespCtxKey();
     }
 
     @Override
