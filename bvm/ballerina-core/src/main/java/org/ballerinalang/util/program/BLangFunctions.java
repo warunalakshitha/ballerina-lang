@@ -391,18 +391,20 @@ public class BLangFunctions {
                 workerExecutionContexts.add(createWorker(respCtx, parentCtx, argRegs, callableUnitInfo,
                                                          workerSet.generalWorkers[i], wdi, initWorkerLocalData,
                                                          initWorkerCAI, false, observerContext));
-                populateDataForNonNativeCallableAsync(callableUnitInfo, parentCtx, workerExecutionContexts, respCtx,
-                                                      retRegs);
-                registerAndScheduleInterruptibleWorkers(parentCtx, workerExecutionContexts);
+              
             }
+            populateDataForNonNativeCallableAsync(callableUnitInfo, parentCtx, workerExecutionContexts, respCtx,
+                                                  retRegs);
+            registerAndScheduleInterruptibleWorkers(parentCtx, workerExecutionContexts);
         } else {
             for (int i = 0; i < generalWorkersCount; i++) {
                 workerExecutionContexts.add(executeWorker(respCtx, parentCtx, argRegs, callableUnitInfo,
                                                           workerSet.generalWorkers[i], wdi, initWorkerLocalData,
                                                           initWorkerCAI, false, observerContext));
-                populateDataForNonNativeCallableAsync(callableUnitInfo, parentCtx, workerExecutionContexts, respCtx,
-                                                      retRegs);
+              
             }
+            populateDataForNonNativeCallableAsync(callableUnitInfo, parentCtx, workerExecutionContexts, respCtx,
+                                                  retRegs);
         }
     }
 
@@ -471,7 +473,6 @@ public class BLangFunctions {
         if (nativeCallable.isBlocking()) {
             respCtx = BLangScheduler.executeBlockingNativeAsync(nativeCallable, nativeCtx, flags);
         } else {
-            BLangScheduler.handleInterruptibleBeforeNativeCallable(callableUnitInfo, parentCtx);
             respCtx = BLangScheduler.executeNonBlockingNativeAsync(nativeCallable, nativeCtx, flags);
         }
         BLangVMUtils.populateWorkerDataWithValues(parentCtx.workerLocal, retRegs,
