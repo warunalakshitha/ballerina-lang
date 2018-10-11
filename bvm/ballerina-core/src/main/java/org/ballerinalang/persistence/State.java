@@ -17,8 +17,9 @@
  */
 package org.ballerinalang.persistence;
 
-import org.ballerinalang.bre.bvm.BLangScheduler;
+import org.ballerinalang.bre.NativeCallContext;
 import org.ballerinalang.bre.bvm.WorkerExecutionContext;
+import org.ballerinalang.bre.bvm.WorkerResponseContext;
 import org.ballerinalang.persistence.serializable.SerializableState;
 
 import java.util.List;
@@ -30,17 +31,31 @@ import java.util.List;
  */
 public class State {
 
-    public SerializableState sState;
+    SerializableState sState;
 
     public List<WorkerExecutionContext> executableCtxList;
 
-    public List<BLangScheduler.NativeCallExecutor> nativeCallExecutors;
+    List<AsyncNativeContext> asyncNativeContexts;
 
-    public State(SerializableState sState,
-                 List<WorkerExecutionContext> executableCtxList,
-                 List<BLangScheduler.NativeCallExecutor> nativeCallExecutors) {
+    public State(SerializableState sState, List<WorkerExecutionContext> executableCtxList,
+                 List<AsyncNativeContext> asyncNativeContexts) {
         this.sState = sState;
         this.executableCtxList = executableCtxList;
-        this.nativeCallExecutors = nativeCallExecutors;
+        this.asyncNativeContexts = asyncNativeContexts;
+    }
+
+    /**
+     * This is used as data transfer class to hold @{@link NativeCallContext} and @{@link WorkerResponseContext}.
+     */
+    public static class AsyncNativeContext {
+
+        public NativeCallContext nativeCallContext;
+
+        public WorkerResponseContext respCtx;
+
+        public AsyncNativeContext(NativeCallContext nativeCallContext, WorkerResponseContext respCtx) {
+            this.nativeCallContext = nativeCallContext;
+            this.respCtx = respCtx;
+        }
     }
 }

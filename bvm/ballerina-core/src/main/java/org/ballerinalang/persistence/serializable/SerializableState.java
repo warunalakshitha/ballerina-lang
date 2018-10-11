@@ -17,6 +17,7 @@
  */
 package org.ballerinalang.persistence.serializable;
 
+import org.ballerinalang.bre.Context;
 import org.ballerinalang.bre.bvm.AsyncInvocableWorkerResponseContext;
 import org.ballerinalang.bre.bvm.BLangScheduler;
 import org.ballerinalang.bre.bvm.WorkerExecutionContext;
@@ -27,6 +28,7 @@ import org.ballerinalang.model.NativeCallableUnit;
 import org.ballerinalang.model.values.BRefType;
 import org.ballerinalang.persistence.Deserializer;
 import org.ballerinalang.persistence.Serializer;
+import org.ballerinalang.persistence.State;
 import org.ballerinalang.persistence.serializable.reftypes.Serializable;
 import org.ballerinalang.persistence.serializable.reftypes.SerializableRefType;
 import org.ballerinalang.persistence.serializable.reftypes.impl.SerializableBFuture;
@@ -68,7 +70,7 @@ public class SerializableState {
     private Map<String, SerializableRefType> sRefTypes = new HashMap<>();
 
     // Map of NativeCallExecutor object hashcode vs serializable NativeCallExecutor
-    private Map<String, SerializableNativeCallExecutor> sNativeCallExecutors = new HashMap<>();
+    private Map<String, SerializableAsyncNativeContext> sAsyncNativeContexts = new HashMap<>();
 
     // Map of global properties used in context hierarchy
     public HashMap<String, Object> globalProps = new HashMap<>();
@@ -82,12 +84,14 @@ public class SerializableState {
     }
 
     public SerializableState(String id, List<WorkerExecutionContext> ctxList,
-                             List<BLangScheduler.NativeCallExecutor> nativeCallExecutors) {
+                             List<State.AsyncNativeContext> asyncNativeContexts) {
         this.id = id;
         HashSet<String> updatedObjectSet = new HashSet<>();
         ctxList.forEach(ctx -> populateContext(ctx, ctx.ip, false, updatedObjectSet));
-        nativeCallExecutors.forEach(exec -> sNativeCallExecutors
-                .put(getObjectKey(exec), new SerializableNativeCallExecutor(exec, this, updatedObjectSet)));
+        asyncNativeContexts.forEach(nativeCtx -> sAsyncNativeContexts
+                .put(getObjectKey(nativeCtx), new SerializableAsyncNativeContext(nativeCtx.nativeCallContext,
+                                                                                 nativeCtx.respCtx, this,
+                                                                                 updatedObjectSet)));
     }
 
     public SerializableState(String id, WorkerExecutionContext executionContext) {
@@ -132,12 +136,12 @@ public class SerializableState {
         cleanCompletedRespContexts();
     }
 
-    public synchronized void registerAsyncNativeContext(BLangScheduler.NativeCallExecutor nativeCallExecutor,
-                                                        NativeCallableUnit nativeCallable) {
-        WorkerExecutionContext parentCtx = nativeCallExecutor.nativeCtx.getParentWorkerExecutionContext();
+    public synchronized void registerAsyncNativeContext(Context nativeCtx, WorkerResponseContext respCtx) {
+        WorkerExecutionContext parentCtx = nativeCtx.getParentWorkerExecutionContext();
         populateContext(parentCtx, parentCtx.ip + 1, true, new HashSet<>());
-        sNativeCallExecutors.put(getObjectKey(nativeCallExecutor), new SerializableNativeCallExecutor
-                (nativeCallExecutor, this, new HashSet<>()));
+        sAsyncNativeContexts.put(getObjectKey(nativeCtx), new SerializableAsyncNativeContext(nativeCtx, respCtx,
+                                                                                             this, new HashSet<>()));
+        NativeCallableUnit nativeCallable = nativeCtx.getCallableUnitInfo().getNativeCallableUnit();
         if (nativeCallable instanceof InterruptibleNativeCallableUnit
                 && ((InterruptibleNativeCallableUnit) nativeCallable)
                 .persistBeforeOperation()) {
@@ -145,12 +149,12 @@ public class SerializableState {
         }
     }
 
-    public synchronized void removeAsyncNativeContext(BLangScheduler.NativeCallExecutor nativeCallExecutor) {
-        SerializableNativeCallExecutor sNativeExec = sNativeCallExecutors.remove(getObjectKey(nativeCallExecutor));
-        sRespContexts.put(sNativeExec.respCtxKey, SerializableResponseContextFactory
-                .getResponseContext(sNativeExec.respCtxKey, nativeCallExecutor.respCtx, this, new HashSet<>()));
-        if (nativeCallExecutor.nativeCallable instanceof InterruptibleNativeCallableUnit &&
-                ((InterruptibleNativeCallableUnit) nativeCallExecutor.nativeCallable).persistAfterOperation()) {
+    public synchronized void removeAsyncNativeContext(Context nativeCtx, WorkerResponseContext respCtx) {
+        sAsyncNativeContexts.remove(getObjectKey(nativeCtx));
+        populateRespContext(respCtx);
+        NativeCallableUnit nativeCallable = nativeCtx.getCallableUnitInfo().getNativeCallableUnit();
+        if (nativeCallable instanceof InterruptibleNativeCallableUnit &&
+                ((InterruptibleNativeCallableUnit) nativeCallable).persistAfterOperation()) {
             PersistenceStore.getStorageProvider().persistState(id, serialize());
         }
     }
@@ -252,11 +256,11 @@ public class SerializableState {
 
     }
 
-    public synchronized List<BLangScheduler.NativeCallExecutor> getNativeCallExecutors(ProgramFile programFile,
-                                                                                       Deserializer deserializer) {
-        return sNativeCallExecutors.values()
+    public synchronized List<State.AsyncNativeContext> getAsyncNativeContexts(ProgramFile programFile,
+                                                                              Deserializer deserializer) {
+        return sAsyncNativeContexts.values()
                                    .stream()
-                                   .map(sExec -> sExec.getExecutor(programFile, deserializer, this))
+                                   .map(sCtx -> sCtx.getAsyncNativeContext(programFile, deserializer, this))
                                    .collect(Collectors.toList());
     }
 

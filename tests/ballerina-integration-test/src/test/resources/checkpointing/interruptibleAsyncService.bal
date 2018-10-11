@@ -36,16 +36,39 @@ service<http:Service> s1 bind { port: 9090 } {
         io:println("Starting flow...");
         http:Response res = new;
         var clientRresponse = conn->respond(res);
-        future<int> f1 = start sum(10, 20);
+        string testString1= "sync";
+        string testString2= "async";
+        // native sync blocking
+        string result1 = testString1.toUpper();
+        // native sync non blocking
+        runtime:sleep(1);
+        // native async blocking
+        future<string> future1 =  start  testString1.toUpper();
+        // native async non blocking
+        future future2 =  start runtime:sleep(1);
+
+
+        string word= "future";
+        io:println("before f3 ");
+       
+        io:println("future1 called");
         runtime:checkpoint();
-        io:println("f1 is done: "+ f1.isDone());
-        io:println("Waiting until function unblock...");
+        future<string> future2 =  start  word.toUpper();
+        io:println("future2 called");
+        runtime:checkpoint();
+        io:println("checkpointed and waiting..");
+        runtime:sleep(5000);
+        await future1;
+        string result2 = await future2;
+        io:println("Async future2" + result2 );
+        
+        
         while (blockFunction){
 
         }
-        int x = await f1;
-        io:println("f1 return value: " + x);
-        io:println("f1 is done: "+ f1.isDone());
+       
+        string result2 = await future1;
+        await future2;
         io:println("State completed");
 
     }

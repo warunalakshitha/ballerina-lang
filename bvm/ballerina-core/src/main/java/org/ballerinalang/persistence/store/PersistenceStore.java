@@ -18,7 +18,6 @@
  */
 package org.ballerinalang.persistence.store;
 
-import org.ballerinalang.bre.bvm.BLangScheduler;
 import org.ballerinalang.bre.bvm.WorkerExecutionContext;
 import org.ballerinalang.model.util.serializer.JsonSerializer;
 import org.ballerinalang.persistence.Deserializer;
@@ -86,11 +85,11 @@ public class PersistenceStore {
         // object hashes.
         List<WorkerExecutionContext> executableCtxList = deSerializedState.getExecutionContexts(programFile,
                                                                                                 deserializer);
-        List<BLangScheduler.NativeCallExecutor> nativeCallExecutors = deSerializedState
-                .getNativeCallExecutors(programFile, deserializer);
+        List<State.AsyncNativeContext> asyncNativeContexts = deSerializedState.getAsyncNativeContexts(programFile,
+                                                                                                      deserializer);
         SerializableState sState = new SerializableState(deSerializedState.getId(), executableCtxList,
-                                                         nativeCallExecutors);
-        return new State(sState, executableCtxList, nativeCallExecutors);
+                                                         asyncNativeContexts);
+        return new State(sState, executableCtxList, asyncNativeContexts);
     }
 
     public static SerializableState deserialize(String json) {

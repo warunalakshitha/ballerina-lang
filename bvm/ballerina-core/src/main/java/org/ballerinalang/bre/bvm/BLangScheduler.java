@@ -216,7 +216,7 @@ public class BLangScheduler {
         AsyncInvocableWorkerResponseContext respCtx = new AsyncInvocableWorkerResponseContext(callableUnitInfo);
         checkAndObserveNativeAsync(nativeCtx, respCtx, callableUnitInfo, flags);
         NativeCallExecutor exec = new NativeCallExecutor(nativeCallable, nativeCtx, respCtx);
-        handleInterruptibleBeforeAsyncNativeCallable(nativeCtx, exec, respCtx);
+        handleInterruptibleBeforeAsyncNativeCallable(nativeCtx, respCtx);
         ThreadPoolFactory.getInstance().getWorkerExecutor().submit(exec);
         return respCtx;
     }
@@ -227,6 +227,7 @@ public class BLangScheduler {
         AsyncInvocableWorkerResponseContext respCtx = new AsyncInvocableWorkerResponseContext(callableUnitInfo);
         checkAndObserveNativeAsync(nativeCtx, respCtx, callableUnitInfo, flags);
         BLangAsyncCallableUnitCallback callback = new BLangAsyncCallableUnitCallback(respCtx, nativeCtx);
+        handleInterruptibleBeforeAsyncNativeCallable(nativeCtx, respCtx);
         nativeCallable.execute(nativeCtx, callback);
         return respCtx;
     }
@@ -272,22 +273,20 @@ public class BLangScheduler {
     }
 
     private static void handleInterruptibleBeforeAsyncNativeCallable(Context nativeCtx,
-                                                                     NativeCallExecutor nativeCallExecutor,
-                                                                     AsyncInvocableWorkerResponseContext respCtx) {
+                                                                     WorkerResponseContext respCtx) {
         if (nativeCtx.getParentWorkerExecutionContext().interruptible) {
-            NativeCallableUnit nativeCallable = nativeCtx.getCallableUnitInfo().getNativeCallableUnit();
-            SerializableState sState = RuntimeStates.get(nativeCtx.getParentWorkerExecutionContext()
-                                                                 .globalProps.get(Constants.STATE_ID).toString());
-            sState.registerAsyncNativeContext(nativeCallExecutor, nativeCallable);
+            SerializableState sState = RuntimeStates
+                    .get(nativeCtx.getParentWorkerExecutionContext().globalProps.get(Constants.STATE_ID).toString());
+            sState.registerAsyncNativeContext(nativeCtx, respCtx);
         }
     }
 
-    private static void handleInterruptibleAfterAsyncNativeCallable(NativeCallExecutor nativeCallExecutor) {
-        WorkerExecutionContext parentCtx = nativeCallExecutor.nativeCtx
-                .getParentWorkerExecutionContext();
+    private static void handleInterruptibleAfterAsyncNativeCallable(Context nativeCtx,
+                                                                    WorkerResponseContext respCtx) {
+        WorkerExecutionContext parentCtx = nativeCtx.getParentWorkerExecutionContext();
         if (parentCtx.interruptible) {
             RuntimeStates.get(parentCtx.globalProps.get(Constants.STATE_ID).toString())
-                         .removeAsyncNativeContext(nativeCallExecutor);
+                         .removeAsyncNativeContext(nativeCtx, respCtx);
         }
     }
 
@@ -361,11 +360,11 @@ public class BLangScheduler {
      */
     public static class NativeCallExecutor implements Runnable {
 
-        public NativeCallableUnit nativeCallable;
+        private NativeCallableUnit nativeCallable;
 
-        public Context nativeCtx;
+        private Context nativeCtx;
         
-        public WorkerResponseContext respCtx;
+        private WorkerResponseContext respCtx;
         
         public NativeCallExecutor(NativeCallableUnit nativeCallable, Context nativeCtx, 
                 WorkerResponseContext respCtx) {
@@ -388,7 +387,7 @@ public class BLangScheduler {
                 this.nativeCallable.execute(this.nativeCtx, null);
                 BLangVMUtils.populateWorkerResultWithValues(result, this.nativeCtx.getReturnValues(), retTypes);
                 runInCaller = this.respCtx.signal(new WorkerSignal(null, SignalType.RETURN, result));
-                BLangScheduler.handleInterruptibleAfterAsyncNativeCallable(this);
+                BLangScheduler.handleInterruptibleAfterAsyncNativeCallable(this.nativeCtx, this.respCtx);
             } catch (BLangNullReferenceException e) {
                 BMap<String, BValue> error = BLangVMErrors.createNullRefException(this.nativeCtx);
                 runInCaller = this.respCtx.signal(new WorkerSignal(new WorkerExecutionContext(error), 
@@ -426,7 +425,7 @@ public class BLangScheduler {
             WorkerData result = BLangVMUtils.createWorkerData(cui.retWorkerIndex);
             BType[] retTypes = cui.getRetParamTypes();
             BLangVMUtils.populateWorkerResultWithValues(result, this.nativeCallCtx.getReturnValues(), retTypes);
-            BLangScheduler.handleInterruptibleAfterNativeCallable(this.nativeCallCtx.getParentWorkerExecutionContext());
+            BLangScheduler.handleInterruptibleAfterAsyncNativeCallable(this.nativeCallCtx, this.respCtx);
             WorkerExecutionContext ctx = this.respCtx.signal(new WorkerSignal(null, SignalType.RETURN, result));
             workerCountDown();
             BLangScheduler.resume(ctx);
@@ -438,7 +437,7 @@ public class BLangScheduler {
             WorkerData result = BLangVMUtils.createWorkerData(cui.retWorkerIndex);
             BType[] retTypes = cui.getRetParamTypes();
             BLangVMUtils.populateWorkerResultWithValues(result, this.nativeCallCtx.getReturnValues(), retTypes);
-            BLangScheduler.handleInterruptibleAfterNativeCallable(this.nativeCallCtx.getParentWorkerExecutionContext());
+            BLangScheduler.handleInterruptibleAfterAsyncNativeCallable(this.nativeCallCtx, this.respCtx);
             WorkerExecutionContext ctx = this.respCtx.signal(new WorkerSignal(
                     new WorkerExecutionContext(error), SignalType.ERROR, result));
             workerCountDown();

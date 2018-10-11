@@ -16,9 +16,11 @@
  */
 package org.ballerinalang.persistence.serializable;
 
+import org.ballerinalang.bre.Context;
 import org.ballerinalang.bre.NativeCallContext;
-import org.ballerinalang.bre.bvm.BLangScheduler;
+import org.ballerinalang.bre.bvm.WorkerResponseContext;
 import org.ballerinalang.persistence.Deserializer;
+import org.ballerinalang.persistence.State;
 import org.ballerinalang.util.codegen.CallableUnitInfo;
 import org.ballerinalang.util.codegen.PackageInfo;
 import org.ballerinalang.util.codegen.ProgramFile;
@@ -27,11 +29,11 @@ import org.ballerinalang.util.exceptions.BallerinaException;
 import java.util.HashSet;
 
 /**
- * This class represents a serializable Ballerina worker signal.
+ * This class represents a serializable native context.
  *
- * @since 0.981.1
+ * @since 0.982.1
  */
-class SerializableNativeCallExecutor {
+class SerializableAsyncNativeContext {
 
     private String parentCtxKey;
 
@@ -43,24 +45,23 @@ class SerializableNativeCallExecutor {
 
     private String pkgPath;
 
-    SerializableNativeCallExecutor(BLangScheduler.NativeCallExecutor nativeCallExecutor, SerializableState state,
-                                   HashSet<String> updatedObjectSet) {
-
-        CallableUnitInfo callableUnitInfo = nativeCallExecutor.nativeCtx.getCallableUnitInfo();
+    SerializableAsyncNativeContext(Context nativeCtx, WorkerResponseContext respCtx,
+                                   SerializableState state, HashSet<String> updatedObjectSet) {
+        CallableUnitInfo callableUnitInfo = nativeCtx.getCallableUnitInfo();
         if (callableUnitInfo.attachedToType != null) {
             callableName = callableUnitInfo.attachedToType.getName() + "." + callableUnitInfo.getName();
         } else {
             callableName = callableUnitInfo.getName();
         }
         pkgPath = callableUnitInfo.getPkgPath();
-        parentCtxKey = state.getObjectKey(nativeCallExecutor.nativeCtx.getParentWorkerExecutionContext());
-        respCtxKey = state.getObjectKey(nativeCallExecutor.respCtx);
-        workerData = new SerializableWorkerData(nativeCallExecutor.nativeCtx.getLocalWorkerData(), state,
+        parentCtxKey = state.getObjectKey(nativeCtx.getParentWorkerExecutionContext());
+        respCtxKey = state.getObjectKey(respCtx);
+        workerData = new SerializableWorkerData(nativeCtx.getLocalWorkerData(), state,
                                                 updatedObjectSet);
     }
 
-    BLangScheduler.NativeCallExecutor getExecutor(ProgramFile programFile, Deserializer deserializer,
-                                                  SerializableState state) {
+    State.AsyncNativeContext getAsyncNativeContext(ProgramFile programFile, Deserializer deserializer,
+                                                   SerializableState state) {
         PackageInfo packageInfo = programFile.getPackageInfo(pkgPath);
         if (packageInfo == null) {
             throw new BallerinaException("Package cannot be found  for path: " + pkgPath);
@@ -69,9 +70,8 @@ class SerializableNativeCallExecutor {
             NativeCallContext nativeCtx =
                     new NativeCallContext(state.getExecutionContext(parentCtxKey, programFile, deserializer),
                                           callableUnitInfo, workerData.getWorkerData(programFile, state, deserializer));
-            return new BLangScheduler.NativeCallExecutor(callableUnitInfo.getNativeCallableUnit(), nativeCtx,
-                                                         state.getResponseContext(respCtxKey, programFile,
-                                                                                  callableUnitInfo, deserializer));
+            return new State.AsyncNativeContext(nativeCtx, state.getResponseContext(respCtxKey, programFile,
+                                                                                    callableUnitInfo, deserializer));
         }
     }
 }

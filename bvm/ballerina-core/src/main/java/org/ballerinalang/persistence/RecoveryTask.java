@@ -19,6 +19,7 @@ package org.ballerinalang.persistence;
 
 import org.ballerinalang.bre.bvm.AsyncInvocableWorkerResponseContext;
 import org.ballerinalang.bre.bvm.BLangScheduler;
+import org.ballerinalang.model.NativeCallableUnit;
 import org.ballerinalang.persistence.store.PersistenceStore;
 import org.ballerinalang.runtime.threadpool.ThreadPoolFactory;
 import org.ballerinalang.util.codegen.ProgramFile;
@@ -49,8 +50,22 @@ public class RecoveryTask implements Runnable {
         }
         states.forEach(state -> {
             RuntimeStates.add(state.sState);
-            state.nativeCallExecutors.forEach(exec -> {
-                ThreadPoolFactory.getInstance().getWorkerExecutor().submit(exec);
+            state.asyncNativeContexts.forEach(asyncNativeContext -> {
+                NativeCallableUnit nativeCallable = asyncNativeContext
+                        .nativeCallContext.getCallableUnitInfo().getNativeCallableUnit();
+                if (nativeCallable.isBlocking()) {
+                    // If nativeCallable is blocking we will execute with separate thread.
+                    ThreadPoolFactory.getInstance().getWorkerExecutor()
+                                     .submit(new BLangScheduler.NativeCallExecutor(nativeCallable,
+                                                                                   asyncNativeContext.nativeCallContext,
+                                                                                   asyncNativeContext.respCtx));
+                } else {
+                    // If nativeCallable is non blocking we execute with callback.
+                    BLangScheduler.BLangAsyncCallableUnitCallback callback =
+                            new BLangScheduler.BLangAsyncCallableUnitCallback(asyncNativeContext.respCtx,
+                                                                              asyncNativeContext.nativeCallContext);
+                    nativeCallable.execute(asyncNativeContext.nativeCallContext, callback);
+                }
             });
             state.executableCtxList.forEach(ctx -> {
                 if (ctx.callableUnitInfo instanceof ResourceInfo) {
