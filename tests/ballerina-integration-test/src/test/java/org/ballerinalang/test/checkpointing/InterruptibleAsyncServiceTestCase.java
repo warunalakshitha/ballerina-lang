@@ -56,11 +56,17 @@ public class InterruptibleAsyncServiceTestCase extends BaseInterruptibleTest {
         try {
             ballerinaServer.startServer(balFilePath, args, requiredPorts);
             LogLeecher asyncFuncLog = new LogLeecher("f1 is done: false");
+            LogLeecher workersCompletionLog = new LogLeecher("f2 is done: false");
+            LogLeecher w2Log = new LogLeecher("Worker 2 ended with parameter name : worker 2");
             ballerinaServer.addLogLeecher(asyncFuncLog);
+            ballerinaServer.addLogLeecher(workersCompletionLog);
+            ballerinaServer.addLogLeecher(w2Log);
             HttpClientRequest.doGet(ballerinaServer.getServiceURLHttp(servicePort, "s1/r1"));
             Awaitility.await().atMost(5, TimeUnit.SECONDS)
                       .until(() -> fileStorageProvider.getAllSerializedStates().size() > 0);
             asyncFuncLog.waitForText(3000);
+            workersCompletionLog.waitForText(3000);
+            w2Log.waitForText(3000);
         } finally {
             ballerinaServer.killServer();
         }
@@ -76,11 +82,17 @@ public class InterruptibleAsyncServiceTestCase extends BaseInterruptibleTest {
             ballerinaServer.startServer(balFilePath, args, requiredPorts);
             LogLeecher asyncFuncCompletionLog = new LogLeecher("f1 is done: true");
             LogLeecher asyncFuncReturnLog = new LogLeecher("f1 return value: 30");
+            LogLeecher workersCompletionLog = new LogLeecher("f2 is done: true");
+            LogLeecher w1Log = new LogLeecher("Worker 1 ended with parameter name : worker 1");
             ballerinaServer.addLogLeecher(asyncFuncCompletionLog);
             ballerinaServer.addLogLeecher(asyncFuncReturnLog);
+            ballerinaServer.addLogLeecher(w1Log);
+            ballerinaServer.addLogLeecher(workersCompletionLog);
             HttpClientRequest.doGet(ballerinaServer.getServiceURLHttp(servicePort, "s1/r2"));
+            w1Log.waitForText(3000);
             asyncFuncCompletionLog.waitForText(3000);
             asyncFuncReturnLog.waitForText(3000);
+            workersCompletionLog.waitForText(3000);
             Awaitility.await().atMost(5, TimeUnit.SECONDS)
                       .until(() -> fileStorageProvider.getAllSerializedStates().size() == 0);
         } finally {
