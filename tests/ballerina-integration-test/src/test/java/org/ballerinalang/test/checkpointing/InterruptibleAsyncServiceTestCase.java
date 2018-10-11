@@ -64,8 +64,8 @@ public class InterruptibleAsyncServiceTestCase extends BaseInterruptibleTest {
             HttpClientRequest.doGet(ballerinaServer.getServiceURLHttp(servicePort, "s1/r1"));
             Awaitility.await().atMost(5, TimeUnit.SECONDS)
                       .until(() -> fileStorageProvider.getAllSerializedStates().size() > 0);
-            asyncFuncLog.waitForText(3000);
             workersCompletionLog.waitForText(3000);
+            asyncFuncLog.waitForText(3000);
             w2Log.waitForText(3000);
         } finally {
             ballerinaServer.killServer();

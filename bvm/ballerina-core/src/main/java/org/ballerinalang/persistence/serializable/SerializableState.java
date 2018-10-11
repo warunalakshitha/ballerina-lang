@@ -142,9 +142,8 @@ public class SerializableState {
         sAsyncNativeContexts.put(getObjectKey(nativeCtx), new SerializableAsyncNativeContext(nativeCtx, respCtx,
                                                                                              this, new HashSet<>()));
         NativeCallableUnit nativeCallable = nativeCtx.getCallableUnitInfo().getNativeCallableUnit();
-        if (nativeCallable instanceof InterruptibleNativeCallableUnit
-                && ((InterruptibleNativeCallableUnit) nativeCallable)
-                .persistBeforeOperation()) {
+        if (nativeCallable instanceof InterruptibleNativeCallableUnit && ((InterruptibleNativeCallableUnit) 
+                nativeCallable).persistBeforeOperation()) {
             PersistenceStore.getStorageProvider().persistState(this.id, serialize());
         }
     }

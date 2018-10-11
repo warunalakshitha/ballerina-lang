@@ -45,7 +45,7 @@ service<http:Service> s1 bind { port: 9090 } {
         future f2 = start testWorkers();
         runtime:checkpoint();
         io:println("f1 is done: "+ f1.isDone());
-        io:println("f1 is done: "+ f2.isDone());
+        io:println("f2 is done: "+ f2.isDone());
         io:println("Waiting until function unblock...");
         while (blockFunction){
 
@@ -54,7 +54,7 @@ service<http:Service> s1 bind { port: 9090 } {
         await f2;
         io:println("f1 return value: " + x);
         io:println("f1 is done: "+ f1.isDone());
-        io:println("f2 is done: "+ f1.isDone());
+        io:println("f2 is done: "+ f2.isDone());
         io:println("State completed");
 
     }
