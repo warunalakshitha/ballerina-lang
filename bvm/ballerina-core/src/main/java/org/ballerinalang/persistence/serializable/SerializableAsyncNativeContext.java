@@ -37,7 +37,7 @@ class SerializableAsyncNativeContext {
 
     private String parentCtxKey;
 
-    String respCtxKey;
+    private String respCtxKey;
 
     private SerializableWorkerData workerData;
 

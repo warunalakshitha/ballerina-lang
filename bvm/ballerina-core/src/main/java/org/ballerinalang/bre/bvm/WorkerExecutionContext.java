@@ -91,8 +91,6 @@ public class WorkerExecutionContext {
         configureDistributedTransactions();
     }
 
-
-    
     public WorkerExecutionContext(BMap<String, BValue> error) {
         this.error = error;
         this.workerInfo = new WorkerInfo(0, WORKER_NAME_NATIVE);

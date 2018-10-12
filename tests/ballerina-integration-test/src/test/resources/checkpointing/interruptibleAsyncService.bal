@@ -81,6 +81,7 @@ function testWorkers() {
         while (blockFunction){
         }
         io:println("Worker 1 ended with parameter name : " + p.name);
+        return;
     }
     worker w2 {
         io:println("Worker 2 Started...");

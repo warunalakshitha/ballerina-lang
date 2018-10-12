@@ -33,7 +33,7 @@ public abstract class BaseWorkerResponseContext implements WorkerResponseContext
 
     protected int[] retRegIndexes;
 
-    public WorkerSignal currentSignal;
+    protected WorkerSignal currentSignal;
     
     protected List<CallableUnitCallback> responseCallbacks;
 

@@ -66,10 +66,6 @@ public class CallableWorkerResponseContext extends BaseWorkerResponseContext {
     public void setHaltCount(int haltCount) {
         this.haltCount = haltCount;
     }
-
-    public WorkerSignal getCurrentSignal() {
-        return currentSignal;
-    }
     
     @Override
     protected void onMessage(WorkerSignal signal) {

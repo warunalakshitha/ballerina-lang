@@ -48,8 +48,8 @@ public class SerializableAsyncResponse extends SerializableResponseContext {
                                      SerializableState state, HashSet<String> updatedObjectSet) {
         super(respCtxKey, respCtx.getHaltCount());
         this.respCtxKey = respCtxKey;
-        if (respCtx.currentSignal != null) {
-            this.signal = new SerializableWorkerSignal(respCtx.currentSignal, state, updatedObjectSet);
+        if (respCtx.getCurrentSignal() != null) {
+            this.signal = new SerializableWorkerSignal(respCtx.getCurrentSignal(), state, updatedObjectSet);
         }
         this.fulfilled = respCtx.isFulfilled();
         this.cancelled = respCtx.isCancelled();
@@ -64,8 +64,8 @@ public class SerializableAsyncResponse extends SerializableResponseContext {
     public void update(WorkerResponseContext respCtx, SerializableState state, HashSet<String> updatedObjectSet) {
         AsyncInvocableWorkerResponseContext asyncRespCtx = (AsyncInvocableWorkerResponseContext) respCtx;
         if (!isDone()) {
-            if (asyncRespCtx.currentSignal != null) {
-                this.signal = new SerializableWorkerSignal(asyncRespCtx.currentSignal, state, updatedObjectSet);
+            if (asyncRespCtx.getCurrentSignal() != null) {
+                this.signal = new SerializableWorkerSignal(asyncRespCtx.getCurrentSignal(), state, updatedObjectSet);
             }
             this.fulfilled = asyncRespCtx.isFulfilled();
             this.cancelled = asyncRespCtx.isCancelled();
@@ -99,5 +99,4 @@ public class SerializableAsyncResponse extends SerializableResponseContext {
     public boolean isDone() {
         return fulfilled || errored || cancelled;
     }
-
 }
