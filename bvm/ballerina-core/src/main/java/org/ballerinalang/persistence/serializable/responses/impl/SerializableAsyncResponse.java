@@ -32,7 +32,7 @@ import java.util.HashSet;
 /**
  * This class implements @{@link SerializableResponseContext} to serialize @{@link ForkJoinWorkerResponseContext}.
  *
- * @since 0.981.2
+ * @since 0.983.0
  */
 public class SerializableAsyncResponse extends SerializableResponseContext {
 

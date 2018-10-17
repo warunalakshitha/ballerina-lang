@@ -26,7 +26,7 @@ import java.util.HashSet;
 /**
  * This class represents a serializable Ballerina worker signal.
  *
- * @since 0.981.1
+ * @since 0.983.0
  */
 public class SerializableWorkerSignal {
 

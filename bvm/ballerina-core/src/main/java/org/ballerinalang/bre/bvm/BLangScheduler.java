@@ -320,7 +320,7 @@ public class BLangScheduler {
         }
     }
 
-    public static void handleInterruptibleAfterWorkerStop(WorkerExecutionContext ctx) {
+    private static void handleInterruptibleAfterWorkerStop(WorkerExecutionContext ctx) {
         if (ctx.interruptible) {
             String stateId = (String) ctx.globalProps.get(Constants.STATE_ID);
             SerializableState sState = RuntimeStates.get(stateId);

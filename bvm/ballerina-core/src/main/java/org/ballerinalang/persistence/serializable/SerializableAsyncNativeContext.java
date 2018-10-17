@@ -31,7 +31,7 @@ import java.util.HashSet;
 /**
  * This class represents a serializable native context.
  *
- * @since 0.982.1
+ * @since 0.983.0
  */
 class SerializableAsyncNativeContext {
 

@@ -33,7 +33,7 @@ import java.util.HashSet;
  * This factory class provides an implementation of @{@link SerializableResponseContext}
  * on given @{@link org.ballerinalang.bre.bvm.WorkerResponseContext}.
  *
- * @since 0.981.2
+ * @since 0.983.0
  */
 public class SerializableResponseContextFactory {
 

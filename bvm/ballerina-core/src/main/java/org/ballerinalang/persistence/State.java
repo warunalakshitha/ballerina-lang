@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Represents execution state for given @{@link WorkerExecutionContext}.
  *
- * @since 0.981.1
+ * @since 0.983.0
  */
 public class State {
 

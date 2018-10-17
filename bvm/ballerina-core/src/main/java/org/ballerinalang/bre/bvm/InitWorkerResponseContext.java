@@ -67,5 +67,4 @@ public class InitWorkerResponseContext implements WorkerResponseContext {
     public WorkerExecutionContext getTargetContext() {
         return targetCtx;
     }
-
 }

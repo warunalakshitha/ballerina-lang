@@ -29,7 +29,7 @@ import java.util.HashSet;
 /**
  * This is the representation of serializable Ballerina response context.
  *
- * @since 0.981.2
+ * @since 0.983.0
  */
 public abstract class SerializableResponseContext {
 
