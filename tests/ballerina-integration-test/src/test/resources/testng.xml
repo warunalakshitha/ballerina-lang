@@ -229,7 +229,7 @@
             <class name="org.ballerinalang.test.checkpointing.InterruptibleWorkerServiceTestCase"/>
             <class name="org.ballerinalang.test.checkpointing.InterruptibleForkJoinServiceTestCase"/>
             <class name="org.ballerinalang.test.checkpointing.InterruptibleAsyncServiceTestCase"/>
-            <class name="org.ballerinalang.test.checkpointing.InterruptibleFunctionPointersTestCase"/>
+            <class name="org.ballerinalang.test.checkpointing.InterruptibleBaseTestCase"/>
             <class name="org.ballerinalang.test.checkpointing.InterruptibleNativeCallableTestCase"/>
         </classes>
     </test>
