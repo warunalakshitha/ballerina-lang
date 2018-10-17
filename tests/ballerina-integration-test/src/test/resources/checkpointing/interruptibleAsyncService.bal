@@ -35,7 +35,6 @@ service<http:Service> s1 bind { port: 9090 } {
         methods: ["GET"],
         path: "/r1"
     }
-
     @interruptible
     r1(endpoint conn, http:Request req) {
         io:println("Starting flow...");
@@ -43,9 +42,12 @@ service<http:Service> s1 bind { port: 9090 } {
         var clientRresponse = conn->respond(res);
         future<int> f1 = start sum(10, 20);
         future f2 = start testWorkers();
-        runtime:checkpoint();
+        future<int> f3 = start sum(10, 20);
         io:println("f1 is done: "+ f1.isDone());
         io:println("f2 is done: "+ f2.isDone());
+        io:println("f3 is cancelled: "+ f3.isCancelled());
+        boolean cancelled = f3.cancel();
+        runtime:checkpoint();
         io:println("Waiting until function unblock...");
         while (blockFunction){
 
@@ -55,8 +57,8 @@ service<http:Service> s1 bind { port: 9090 } {
         io:println("f1 return value: " + x);
         io:println("f1 is done: "+ f1.isDone());
         io:println("f2 is done: "+ f2.isDone());
+        io:println("f3 is cancelled: "+ f3.isCancelled());
         io:println("State completed");
-
     }
     r2(endpoint conn, http:Request req) {
         blockFunction = false;

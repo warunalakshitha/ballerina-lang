@@ -55,7 +55,7 @@ public class InterruptibleForkJoinServiceTestCase extends BaseInterruptibleTest 
         BServerInstance ballerinaServer = new BServerInstance(balServer);
         try {
             ballerinaServer.startServer(balFilePath, args, requiredPorts);
-            LogLeecher w1Log = new LogLeecher("Worker 1 parameter name worker 1");
+            LogLeecher w1Log = new LogLeecher("[w1] i: 23 s: Colombo");
             ballerinaServer.addLogLeecher(w1Log);
             HttpClientRequest.doGet(ballerinaServer.getServiceURLHttp(servicePort, "s1/r1"));
             HttpClientRequest.doGet(ballerinaServer.getServiceURLHttp(servicePort, "s1/r2"));
@@ -75,8 +75,8 @@ public class InterruptibleForkJoinServiceTestCase extends BaseInterruptibleTest 
         BServerInstance ballerinaServer = new BServerInstance(balServer);
         try {
             ballerinaServer.startServer(balFilePath, args, requiredPorts);
-            LogLeecher forkJoinW1log = new LogLeecher("[join-block] fW1: worker 1");
-            LogLeecher forkJoinW2Log = new LogLeecher("[join-block] fW2: worker 2");
+            LogLeecher forkJoinW1log = new LogLeecher("[join-block] fsW1: Colombo");
+            LogLeecher forkJoinW2Log = new LogLeecher("[join-block] fW2: 10.344");
             ballerinaServer.addLogLeecher(forkJoinW1log);
             ballerinaServer.addLogLeecher(forkJoinW2Log);
             HttpClientRequest.doGet(ballerinaServer.getServiceURLHttp(servicePort, "s1/r3"));
