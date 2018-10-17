@@ -33,10 +33,10 @@ public interface SerializableRefType {
     /**
      * Deserialize the serializable object and provide its @{@link BRefType} object.
      *
-     * @param programFile  Program file
-     * @param state        State
-     * @param deserializer Deserializer
-     * @return Deserialized @{@link BRefType} object
+     * @param programFile  program file
+     * @param state        state
+     * @param deserializer deserializer
+     * @return deserialized @{@link BRefType} object
      */
     BRefType getBRefType(ProgramFile programFile, SerializableState state, Deserializer deserializer);
 
@@ -44,10 +44,10 @@ public interface SerializableRefType {
      * Used to set any worker execution contexts or response contexts to deserialized @{@link BRefType}.
      * ex. @{@link BFuture}
      *
-     * @param refType      BRefType
-     * @param programFile  Program file
-     * @param state        State
-     * @param deserializer Deserializer
+     * @param refType      bRefType
+     * @param programFile  program file
+     * @param state        state
+     * @param deserializer deserializer
      */
     void setContexts(BRefType refType, ProgramFile programFile, SerializableState state,
                      Deserializer deserializer);

@@ -216,7 +216,6 @@ public class SerializableState {
         removeRefTypes(sCtx);
         sCurrentCtxKeys.remove(ctxKey);
         sContexts.remove(ctxKey);
-
     }
 
     private SerializableContext populateContext(WorkerExecutionContext ctx, int ip, boolean updateParent,
@@ -274,7 +273,6 @@ public class SerializableState {
                 sRespCtx = addRespContext(respCtxKey, respCtx, updatedObjectSet);
             }
             updatedObjectSet.add(respCtxKey);
-
         }
         return sRespCtx;
     }

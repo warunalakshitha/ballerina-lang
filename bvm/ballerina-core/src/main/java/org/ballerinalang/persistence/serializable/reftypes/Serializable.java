@@ -32,9 +32,9 @@ public interface Serializable {
     /**
      * Serialize @{@link BRefType} to persist.
      *
-     * @param state            Serializable state
-     * @param updatedObjectSet Set of already updated objects
-     * @return Serialized @{@link BRefType}
+     * @param state            serializable state
+     * @param updatedObjectSet set of already updated objects
+     * @return serialized @{@link BRefType}
      */
     SerializableRefType serialize(SerializableState state, HashSet<String> updatedObjectSet);
 }

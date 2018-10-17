@@ -18,7 +18,9 @@
 package org.ballerinalang.persistence.serializable.reftypes.impl;
 
 import org.ballerinalang.model.types.BArrayType;
+import org.ballerinalang.model.types.BTupleType;
 import org.ballerinalang.model.types.BType;
+import org.ballerinalang.model.types.TypeTags;
 import org.ballerinalang.model.values.BRefType;
 import org.ballerinalang.model.values.BRefValueArray;
 import org.ballerinalang.persistence.Deserializer;
@@ -45,15 +47,23 @@ public class SerializableBRefArray implements SerializableRefType {
 
     private ArrayList<Object> values = new ArrayList<>();
 
+    private ArrayList<BType> bTypeTypes = new ArrayList<>();
+
+    private int typeTag;
+
     public SerializableBRefArray() {
     }
 
     public SerializableBRefArray(BRefValueArray bRefValueArray, SerializableState state,
                                  HashSet<String> updatedObjectSet) {
-        BArrayType arrayType = (BArrayType) bRefValueArray.getType();
-        if (arrayType != null) {
+        typeTag = bRefValueArray.getType().getTag();
+        if (typeTag == TypeTags.ARRAY_TAG) {
+            BArrayType arrayType = (BArrayType) bRefValueArray.getType();
             structName = arrayType.getElementType().getName();
             pkgPath = arrayType.getElementType().getPackagePath();
+        } else if (typeTag == TypeTags.TUPLE_TAG) {
+            BTupleType bTupleType = (BTupleType) bRefValueArray.getType();
+            bTypeTypes.addAll(bTupleType.getTupleTypes());
         }
         for (int i = 0; i < bRefValueArray.size(); i++) {
             values.add(state.serialize(bRefValueArray.get(i), updatedObjectSet));
@@ -73,12 +83,16 @@ public class SerializableBRefArray implements SerializableRefType {
             }
         }
         BType type = null;
-        if (packageInfo != null) {
-            StructureTypeInfo structInfo = packageInfo.getStructInfo(structName);
-            if (structInfo == null) {
-                throw new BallerinaException(structName + " not found in package " + pkgPath);
+        if (typeTag == TypeTags.ARRAY_TAG) {
+            if (packageInfo != null) {
+                StructureTypeInfo structInfo = packageInfo.getStructInfo(structName);
+                if (structInfo == null) {
+                    throw new BallerinaException(structName + " not found in package " + pkgPath);
+                }
+                type = new BArrayType(structInfo.getType());
             }
-            type = new BArrayType(structInfo.getType());
+        } else if (typeTag == TypeTags.TUPLE_TAG) {
+            type = new BTupleType(bTypeTypes);
         }
         return new BRefValueArray(bRefTypes, type);
     }

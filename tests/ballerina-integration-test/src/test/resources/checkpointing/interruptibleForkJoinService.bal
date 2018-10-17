@@ -61,27 +61,34 @@ service<http:Service> s1 bind { port: 9090 } {
 function f1() {
     fork {
         worker w1 {
-            Person p = new;
-            p.name = "worker 1";
-            while (blockWorker1){
+            int i = 23;
+            string s = "Colombo";
+            io:println("[w1] i: ", i, " s: ", s);
+            while(blockWorker1){
+                
             }
             runtime:checkpoint();
-            io:println("Worker 1 parameter name " + p.name);
-            p -> fork;
+            (i, s) -> fork;
+            io:println("w1 done");
         }
         worker w2 {
-            Person p = new;
-            p.name = "worker 2";
-            while (blockWorker2){
-            }
+            float f = 10.344;
+            io:println("[w2] f: ", f);
             runtime:checkpoint();
-            io:println("Worker 2 parameter name " + p.name);
-            p -> fork;
+            while(blockWorker2){
+                
+            }
+            io:println("w2 checkpointed ");
+            runtime:sleep(3000);
+            f -> fork;
         }
     } join (all) (map results) {
-        Person pw1 = check <Person>results["w1"];
-        Person pw2 = check <Person>results["w2"];
-        io:println("[join-block] fW1: ", pw1.name);
-        io:println("[join-block] fW2: ", pw2.name);
+        io:println("fork checkpointed ");
+        int iW1;
+        string sW1;
+        (iW1, sW1) = check <(int, string)>results["w1"];
+        io:println("[join-block] fsW1: ", sW1);
+        float fW2 = check <float>results["w2"];
+        io:println("[join-block] fW2: ", fW2);
     }
 }
