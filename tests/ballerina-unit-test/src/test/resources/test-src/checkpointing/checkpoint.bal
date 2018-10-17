@@ -21,6 +21,7 @@ import ballerina/http;
 type Person object {
     string name;
     int age;
+    float weight;
 };
 
 @http:ServiceConfig {
@@ -44,9 +45,10 @@ service<http:Service> s1 bind { port: 9090 } {
     }
 }
 
-function f1() {
+function foo() {
     Person p1 = new;
     p1.name = "smith";
+    p1.weight = 65.5;
     p1.age = 20;
     runtime:checkpoint();
     io:println("Waiting..");
