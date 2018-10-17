@@ -153,7 +153,6 @@ public class BLangScheduler {
     public static void stopWorker(WorkerExecutionContext ctx) {
         ctx.stop = true;
         handleInterruptibleAfterWorkerStop(ctx);
-
     }
     
     public static void workerDone(WorkerExecutionContext ctx) {

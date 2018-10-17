@@ -20,6 +20,12 @@ import ballerina/http;
 
 boolean blockFunction = true;
 
+type Student record {
+    int id;
+    string name;
+    float height;
+};
+
 @http:ServiceConfig {
     basePath: "/s1"
 }
@@ -35,8 +41,7 @@ service<http:Service> s1 bind { port: 9090 } {
         io:println("Starting flow...");
         http:Response res = new;
         var response = conn->respond(res);
-        int result = f1(5, 20);
-        io:println("Result final is :" + result);
+        f1();
         io:println("State completed");
     }
 
@@ -47,14 +52,19 @@ service<http:Service> s1 bind { port: 9090 } {
     }
 }
 
-function f1(int x, int y) returns int {
+function f1() {
+    // Basic types
+    int x = 5;
+    Student student1 = { id: 1, name: "Waruna", height: 175.1 };
+    map addrMap = { line1: "No. 20", line2: "Palm Grove", city: "Colombo 03", country: "Sri Lanka" };
+    (int, string) t1 = (10, "John");
+    json j1 = [1, false, null, "foo", { first: "John", last: "Pala" }];
+    xml x1 = xml `<book>The Lost World</book>`;
+
+    // Function pointers
     function (int) returns (int) bar1 = option1;
-    function (int) returns (int) bar2 = option2;
     if (x < 10) {
         bar1 = option2;
-    }
-    if (y > 10) {
-        bar2 = option1;
     }
     runtime:checkpoint();
     io:println("Waiting on second request");
@@ -62,10 +72,13 @@ function f1(int x, int y) returns int {
 
     }
     int resultX = bar1(x);
-    int resultY = bar2(y);
-    io:println("Result x is :" + resultX);
-    io:println("Result y is :" + resultY);
-    return resultX + resultY;
+
+    // Print results after checkpoint
+    io:println(j1);
+    io:println(x1);
+    io:println(t1);
+    io:println(student1);
+    io:println("Function Pointer value :" + resultX);
 }
 
 function option1(int i) returns (int) {

@@ -79,7 +79,6 @@ function f1() {
                 
             }
             io:println("w2 checkpointed ");
-            runtime:sleep(3000);
             f -> fork;
         }
     } join (all) (map results) {

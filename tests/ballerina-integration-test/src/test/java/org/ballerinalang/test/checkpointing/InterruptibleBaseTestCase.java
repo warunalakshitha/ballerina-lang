@@ -34,11 +34,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Test cases for interruptible services check-pointing and resume.
+ * Test cases for interruptible services with types and functions check-pointing and resume.
  *
  * @since 0.983.0
  */
-public class InterruptibleFunctionPointersTestCase extends BaseInterruptibleTest {
+public class InterruptibleBaseTestCase extends BaseInterruptibleTest {
 
     private String balFilePath;
 
@@ -47,11 +47,11 @@ public class InterruptibleFunctionPointersTestCase extends BaseInterruptibleTest
         super.setup("ballerina-fp-states");
         balFilePath = new File("src" + File.separator + "test" + File.separator +
                                        "resources" + File.separator + "checkpointing" + File.separator +
-                                       "interruptibleFunctionPointers.bal").getAbsolutePath();
+                                       "interruptibleBasicService.bal").getAbsolutePath();
     }
 
     @Test(description = "Checkpoint will be saved and server interrupt before complete the request.")
-    public void testCheckpointSuccess() throws IOException, BallerinaTestException {
+    public void testBasicCheckpointSuccess() throws IOException, BallerinaTestException {
         BServerInstance ballerinaServer = new BServerInstance(balServer);
         try {
             ballerinaServer.startServer(balFilePath, args, requiredPorts);
@@ -70,20 +70,29 @@ public class InterruptibleFunctionPointersTestCase extends BaseInterruptibleTest
 
     @Test(description = "Resume the request after server started from last checkPointed state",
           priority = 1)
-    public void testCheckpointResumeSuccess() throws BallerinaTestException, IOException {
+    public void testBasicResumeSuccess() throws BallerinaTestException, IOException {
         BServerInstance ballerinaServer = new BServerInstance(balServer);
         try {
             ballerinaServer.startServer(balFilePath, args, requiredPorts);
-            LogLeecher resultXLog = new LogLeecher("Result x is :10");
-            LogLeecher resultYLog = new LogLeecher("Result y is :80");
-            LogLeecher finalResultLog = new LogLeecher("Result final is :90");
-            ballerinaServer.addLogLeecher(resultXLog);
-            ballerinaServer.addLogLeecher(resultYLog);
-            ballerinaServer.addLogLeecher(finalResultLog);
+            LogLeecher resultJson = new LogLeecher(
+                    "[1, false, null, \"foo\", {\"last\":\"Pala\", \"first\":\"John\"}]");
+            LogLeecher resultXml = new LogLeecher("<book>The Lost World</book>");
+            LogLeecher resultTuple = new LogLeecher("(10, \"John\")");
+            LogLeecher resultRecord = new LogLeecher("{name:\"Waruna\", id:1, height:175.1}");
+            LogLeecher resultFunctionPoniter = new LogLeecher("Function Pointer value :10");
+
+            ballerinaServer.addLogLeecher(resultJson);
+            ballerinaServer.addLogLeecher(resultXml);
+            ballerinaServer.addLogLeecher(resultTuple);
+            ballerinaServer.addLogLeecher(resultRecord);
+            ballerinaServer.addLogLeecher(resultFunctionPoniter);
             HttpClientRequest.doGet(ballerinaServer.getServiceURLHttp(servicePort, "s1/r2"));
-            resultXLog.waitForText(3000);
-            resultYLog.waitForText(3000);
-            finalResultLog.waitForText(3000);
+
+            resultJson.waitForText(3000);
+            resultXml.waitForText(3000);
+            resultTuple.waitForText(3000);
+            resultRecord.waitForText(3000);
+            resultFunctionPoniter.waitForText(3000);
             Awaitility.await().atMost(5, TimeUnit.SECONDS)
                       .until(() -> fileStorageProvider.getAllSerializedStates().size() == 0);
         } finally {

@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Test cases for interruptible services check-pointing and resume.
+ * Test cases for interruptible services with native callable check-pointing and resume.
  *
  * @since 0.983.0
  */
@@ -51,7 +51,7 @@ public class InterruptibleNativeCallableTestCase extends BaseInterruptibleTest {
     }
 
     @Test(description = "Checkpoint will be saved and server interrupt before complete the request.")
-    public void testCheckpointSuccess() throws IOException, BallerinaTestException {
+    public void testNativeCallableCheckpointSuccess() throws IOException, BallerinaTestException {
         BServerInstance ballerinaServer = new BServerInstance(balServer);
         try {
             ballerinaServer.startServer(balFilePath, args, requiredPorts);
@@ -67,7 +67,7 @@ public class InterruptibleNativeCallableTestCase extends BaseInterruptibleTest {
 
     @Test(description = "Resume the request after server started from last checkPointed state",
           priority = 1)
-    public void testCheckpointResumeSuccess() throws BallerinaTestException, IOException {
+    public void testNativeCallableResumeSuccess() throws BallerinaTestException, IOException {
         BServerInstance ballerinaServer = new BServerInstance(balServer);
         try {
             ballerinaServer.startServer(balFilePath, args, requiredPorts);

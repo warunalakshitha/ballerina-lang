@@ -50,6 +50,7 @@ public class RecoveryTask implements Runnable {
         }
         states.forEach(state -> {
             RuntimeStates.add(state.sState);
+            // Execute uncompleted native callable functions.
             state.asyncNativeContexts.forEach(asyncNativeContext -> {
                 NativeCallableUnit nativeCallable = asyncNativeContext
                         .nativeCallContext.getCallableUnitInfo().getNativeCallableUnit();
@@ -67,6 +68,7 @@ public class RecoveryTask implements Runnable {
                     nativeCallable.execute(asyncNativeContext.nativeCallContext, callback);
                 }
             });
+            // Schedule check pointed worker execution contexts.
             state.executableCtxList.forEach(ctx -> {
                 if (ctx.callableUnitInfo instanceof ResourceInfo) {
                     ResourceInfo resourceInfo = (ResourceInfo) ctx.callableUnitInfo;

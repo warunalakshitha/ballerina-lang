@@ -73,7 +73,6 @@ function sum(int a, int b) returns int {
     return a + b;
 }
 
-
 function testWorkers() {
     worker w1 {
         Person p = new;
@@ -93,6 +92,3 @@ function testWorkers() {
         io:println("Worker 2 ended with parameter name : " + p.name);
     }
 }
-
-
-

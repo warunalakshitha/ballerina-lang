@@ -25,7 +25,8 @@ import org.ballerinalang.persistence.serializable.SerializableState;
 import java.util.List;
 
 /**
- * Represents execution state for given @{@link WorkerExecutionContext}.
+ * Class is used to wrap the @{@link SerializableState} with list of @{@link WorkerExecutionContext} and
+ * list of @{@link AsyncNativeContext}s which will be rescheduled.
  *
  * @since 0.983.0
  */
@@ -45,7 +46,7 @@ public class State {
     }
 
     /**
-     * This is used as data transfer class to hold @{@link NativeCallContext} and @{@link WorkerResponseContext}.
+     * This is used hold the @{@link NativeCallContext} and @{@link WorkerResponseContext}.
      */
     public static class AsyncNativeContext {
 

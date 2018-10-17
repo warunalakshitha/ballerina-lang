@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Test cases for interruptible services check-pointing and resume.
+ * Test cases for interruptible async services check-pointing and resume.
  *
  * @since 0.983.0
  */
@@ -50,8 +50,8 @@ public class InterruptibleAsyncServiceTestCase extends BaseInterruptibleTest {
                                        "interruptibleAsyncService.bal").getAbsolutePath();
     }
 
-    @Test(description = "Checkpoint will be saved and server interrupt before complete the request.")
-    public void testCheckpointSuccess() throws IOException, BallerinaTestException {
+    @Test(description = "Checkpoint will be saved and server interrupt before complete the async request.")
+    public void testAsyncCheckpointSuccess() throws IOException, BallerinaTestException {
         BServerInstance ballerinaServer = new BServerInstance(balServer);
         try {
             ballerinaServer.startServer(balFilePath, args, requiredPorts);
@@ -79,7 +79,7 @@ public class InterruptibleAsyncServiceTestCase extends BaseInterruptibleTest {
 
     @Test(description = "Resume the request after server started from last checkPointed state",
           priority = 1)
-    public void testCheckpointResumeSuccess() throws BallerinaTestException, IOException {
+    public void testAsynResumeSuccess() throws BallerinaTestException, IOException {
         BServerInstance ballerinaServer = new BServerInstance(balServer);
         try {
             ballerinaServer.startServer(balFilePath, args, requiredPorts);

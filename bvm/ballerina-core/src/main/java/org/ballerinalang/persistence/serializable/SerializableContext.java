@@ -135,11 +135,11 @@ public class SerializableContext {
     private void populateParentContexts(WorkerExecutionContext ctx, SerializableState state, boolean updateParent,
                                         HashSet<String> updatedObjectSet) {
         String sParentCtxKey = state.getObjectKey(ctx.parent);
-        if (!type.equals(Type.ASYNC) &&  ctx.parent != null && !ctx.parent.state.equals(WorkerState.DONE)) {
+        if (!type.equals(Type.ASYNC) && ctx.parent != null && !ctx.parent.state.equals(WorkerState.DONE)) {
             SerializableContext sParentCtx = state.getSerializableContext(sParentCtxKey);
             if (sParentCtx == null) {
-                sParentCtx = new SerializableContext(sParentCtxKey, ctx.parent, state, ctx.parent.ip, updateParent,
-                                                     updatedObjectSet);
+                sParentCtx = new SerializableContext(sParentCtxKey, ctx.parent, state,
+                                                     ctx.parent.ip, updateParent, updatedObjectSet);
             } else if (updateParent) {
                 if (type.equals(Type.DEFAULT)) {
                     sParentCtx.update(ctx.parent, state, ctx.parent.ip, true, updatedObjectSet);
@@ -208,8 +208,9 @@ public class SerializableContext {
             workerResultData = workerResult.getWorkerData(programFile, state, deserializer);
         }
         WorkerExecutionContext parentCtx;
-        if (parentCtxKey == null || (parentCtx = state.getExecutionContext(parentCtxKey, programFile, deserializer))
-                == null || callableUnitInfo == null) {
+        if (parentCtxKey == null ||
+                (parentCtx = state.getExecutionContext(parentCtxKey, programFile, deserializer)) == null ||
+                callableUnitInfo == null) {
             if (callableUnitInfo != null) {
                 WorkerResponseContext respCtx = null;
                 if (respCtxKey != null) {
@@ -243,7 +244,7 @@ public class SerializableContext {
         return workerExecutionContext;
     }
 
-    private HashMap<String, Object>  prepareProps(HashMap<String, Object> sourcePropertyMap, SerializableState
+    private HashMap<String, Object> prepareProps(HashMap<String, Object> sourcePropertyMap, SerializableState
             state, ProgramFile programFile, Deserializer deserializer) {
         HashMap<String, Object> targetPropertyMap = new HashMap<>();
         if (sourcePropertyMap != null) {
