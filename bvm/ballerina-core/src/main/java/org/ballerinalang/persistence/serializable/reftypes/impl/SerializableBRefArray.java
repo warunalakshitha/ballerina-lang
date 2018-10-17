@@ -17,19 +17,13 @@
  */
 package org.ballerinalang.persistence.serializable.reftypes.impl;
 
-import org.ballerinalang.model.types.BArrayType;
-import org.ballerinalang.model.types.BTupleType;
 import org.ballerinalang.model.types.BType;
-import org.ballerinalang.model.types.TypeTags;
 import org.ballerinalang.model.values.BRefType;
 import org.ballerinalang.model.values.BRefValueArray;
 import org.ballerinalang.persistence.Deserializer;
 import org.ballerinalang.persistence.serializable.SerializableState;
 import org.ballerinalang.persistence.serializable.reftypes.SerializableRefType;
-import org.ballerinalang.util.codegen.PackageInfo;
 import org.ballerinalang.util.codegen.ProgramFile;
-import org.ballerinalang.util.codegen.StructureTypeInfo;
-import org.ballerinalang.util.exceptions.BallerinaException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,30 +35,16 @@ import java.util.HashSet;
  */
 public class SerializableBRefArray implements SerializableRefType {
 
-    private String structName;
-
-    private String pkgPath;
+    private BType bType;
 
     private ArrayList<Object> values = new ArrayList<>();
-
-    private ArrayList<BType> bTypeTypes = new ArrayList<>();
-
-    private int typeTag;
 
     public SerializableBRefArray() {
     }
 
     public SerializableBRefArray(BRefValueArray bRefValueArray, SerializableState state,
                                  HashSet<String> updatedObjectSet) {
-        typeTag = bRefValueArray.getType().getTag();
-        if (typeTag == TypeTags.ARRAY_TAG) {
-            BArrayType arrayType = (BArrayType) bRefValueArray.getType();
-            structName = arrayType.getElementType().getName();
-            pkgPath = arrayType.getElementType().getPackagePath();
-        } else if (typeTag == TypeTags.TUPLE_TAG) {
-            BTupleType bTupleType = (BTupleType) bRefValueArray.getType();
-            bTypeTypes.addAll(bTupleType.getTupleTypes());
-        }
+        bType = bRefValueArray.getType();
         for (int i = 0; i < bRefValueArray.size(); i++) {
             values.add(state.serialize(bRefValueArray.get(i), updatedObjectSet));
         }
@@ -72,7 +52,6 @@ public class SerializableBRefArray implements SerializableRefType {
 
     @Override
     public BRefType getBRefType(ProgramFile programFile, SerializableState state, Deserializer deserializer) {
-        PackageInfo packageInfo = programFile.getPackageInfo(pkgPath);
         BRefType[] bRefTypes = new BRefType[values.size()];
         for (int i = 0; i < values.size(); i++) {
             Object deserialize = state.deserialize(values.get(i), programFile, deserializer);
@@ -82,19 +61,7 @@ public class SerializableBRefArray implements SerializableRefType {
                 bRefTypes[i] = null;
             }
         }
-        BType type = null;
-        if (typeTag == TypeTags.ARRAY_TAG) {
-            if (packageInfo != null) {
-                StructureTypeInfo structInfo = packageInfo.getStructInfo(structName);
-                if (structInfo == null) {
-                    throw new BallerinaException(structName + " not found in package " + pkgPath);
-                }
-                type = new BArrayType(structInfo.getType());
-            }
-        } else if (typeTag == TypeTags.TUPLE_TAG) {
-            type = new BTupleType(bTypeTypes);
-        }
-        return new BRefValueArray(bRefTypes, type);
+        return new BRefValueArray(bRefTypes, bType);
     }
 
     @Override
