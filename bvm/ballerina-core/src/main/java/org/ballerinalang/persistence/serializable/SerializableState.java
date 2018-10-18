@@ -100,25 +100,12 @@ public class SerializableState {
         populateContext(executionContext, executionContext.ip, false, updatedObjectSet);
     }
 
-    /**
-     * Create a checkpoint on runtime state.
-     *
-     * @param ctx Worker Execution context to be updated
-     * @param ip  Instruction point
-     * @return Updated serialized state as a string
-     */
     public synchronized String checkPoint(WorkerExecutionContext ctx, int ip) {
         populateContext(ctx, ip, true, new HashSet<>());
         cleanCompletedRespContexts();
         return serialize();
     }
 
-    /**
-     * Register new worker execution contexts in the serialization state.
-     *
-     * @param parentCtx Parent worker execution context
-     * @param ctxList   List of worker execution contexts to be updated
-     */
     public synchronized void registerContexts(WorkerExecutionContext parentCtx, List<WorkerExecutionContext> ctxList) {
         // Since all ctx list have one parent, we can update the parent recursively at once.
         HashSet<String> updatedObjectSet = new HashSet<>();
@@ -142,7 +129,7 @@ public class SerializableState {
         sAsyncNativeContexts.put(getObjectKey(nativeCtx), new SerializableAsyncNativeContext(nativeCtx, respCtx,
                                                                                              this, new HashSet<>()));
         NativeCallableUnit nativeCallable = nativeCtx.getCallableUnitInfo().getNativeCallableUnit();
-        if (nativeCallable instanceof InterruptibleNativeCallableUnit && ((InterruptibleNativeCallableUnit) 
+        if (nativeCallable instanceof InterruptibleNativeCallableUnit && ((InterruptibleNativeCallableUnit)
                 nativeCallable).persistBeforeOperation()) {
             PersistenceStore.getStorageProvider().persistState(this.id, serialize());
         }
@@ -212,6 +199,27 @@ public class SerializableState {
         }
     }
 
+    public synchronized List<WorkerExecutionContext> getExecutionContexts(ProgramFile programFile,
+                                                                          Deserializer deserializer) {
+        return sCurrentCtxKeys
+                .stream()
+                .map(sCtxKey -> sContexts.get(sCtxKey).getWorkerExecutionContext(programFile, this, deserializer))
+                .collect(Collectors.toList());
+
+    }
+
+    public synchronized List<State.AsyncNativeContext> getAsyncNativeContexts(ProgramFile programFile,
+                                                                              Deserializer deserializer) {
+        return sAsyncNativeContexts.values()
+                                   .stream()
+                                   .map(sCtx -> sCtx.getAsyncNativeContext(programFile, deserializer, this))
+                                   .collect(Collectors.toList());
+    }
+
+    public String serialize() {
+        return Serializer.getJsonSerializer().serialize(this);
+    }
+
     private void removeContextData(String ctxKey, SerializableContext sCtx) {
         removeRefTypes(sCtx);
         sCurrentCtxKeys.remove(ctxKey);
@@ -236,30 +244,6 @@ public class SerializableState {
 
     void registerContext(SerializableContext sCtx) {
         sContexts.put(sCtx.ctxKey, sCtx);
-    }
-
-    /**
-     * Provides worker execution contexts which will be reschedule to recover the state.
-     *
-     * @param programFile  Program file
-     * @param deserializer Deserializer
-     * @return List of worker execution contexts
-     */
-    public synchronized List<WorkerExecutionContext> getExecutionContexts(ProgramFile programFile,
-                                                                          Deserializer deserializer) {
-        return sCurrentCtxKeys
-                .stream()
-                .map(sCtxKey -> sContexts.get(sCtxKey).getWorkerExecutionContext(programFile, this, deserializer))
-                .collect(Collectors.toList());
-
-    }
-
-    public synchronized List<State.AsyncNativeContext> getAsyncNativeContexts(ProgramFile programFile,
-                                                                              Deserializer deserializer) {
-        return sAsyncNativeContexts.values()
-                                   .stream()
-                                   .map(sCtx -> sCtx.getAsyncNativeContext(programFile, deserializer, this))
-                                   .collect(Collectors.toList());
     }
 
     public SerializableResponseContext populateRespContext(WorkerResponseContext respCtx,
@@ -321,10 +305,6 @@ public class SerializableState {
             deserializer.getRespContexts().put(respCtxKey, responseContext);
         }
         return responseContext;
-    }
-
-    public String serialize() {
-        return Serializer.getJsonSerializer().serialize(this);
     }
 
     ArrayList<Object> serializeRefFields(BRefType[] bRefFields, HashSet<String> updatedObjectSet) {

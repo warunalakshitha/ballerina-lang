@@ -79,7 +79,7 @@ public class RecoveryTask implements Runnable {
                         return;
                     }
                 }
-                // have to decrement ip as CPU class increments it as soon as instruction is fetched
+                // We have to decrement ip as CPU class increments it as soon as instruction is fetched
                 ctx.ip--;
                 // As we don't have any running context at this point, none of the contexts can run in caller.
                 // Even though sync functions run in caller under normal conditions, we have to override

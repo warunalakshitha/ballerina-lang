@@ -55,5 +55,4 @@ public abstract class SerializableResponseContext {
     public String getRespCtxKey() {
         return respCtxKey;
     }
-
 }

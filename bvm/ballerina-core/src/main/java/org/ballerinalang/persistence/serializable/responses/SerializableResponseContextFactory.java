@@ -41,8 +41,8 @@ public class SerializableResponseContextFactory {
                                                                  SerializableState state,
                                                                  HashSet<String> updatedObjectSet) {
         if (respCtx instanceof AsyncInvocableWorkerResponseContext) {
-            return new SerializableAsyncResponse(respCtxKey, (AsyncInvocableWorkerResponseContext) respCtx, state,
-                                                 updatedObjectSet);
+            return new SerializableAsyncResponse(respCtxKey, (AsyncInvocableWorkerResponseContext) respCtx,
+                                                 state, updatedObjectSet);
         } else if (respCtx instanceof ForkJoinWorkerResponseContext) {
             return new SerializableForkJoinResponse(respCtxKey, (ForkJoinWorkerResponseContext) respCtx);
         } else {
