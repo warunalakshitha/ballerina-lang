@@ -33,8 +33,8 @@ public abstract class BValueType implements BValue {
      * Returns the value of the specified number as an {@code int},
      * which may involve rounding or truncation.
      *
-     * @return  the numeric value represented by this object after conversion
-     *          to type {@code int}.
+     * @return the numeric value represented by this object after conversion
+     * to type {@code int}.
      */
     public abstract long intValue();
 
@@ -42,8 +42,8 @@ public abstract class BValueType implements BValue {
      * Returns the value of the specified number as an {@code byte},
      * which may involve rounding or truncation.
      *
-     * @return  the numeric value represented by this object after conversion
-     *          to type {@code byte}.
+     * @return the numeric value represented by this object after conversion
+     * to type {@code byte}.
      */
     public abstract byte byteValue();
 
@@ -51,14 +51,16 @@ public abstract class BValueType implements BValue {
      * Returns the value of the specified number as a {@code float},
      * which may involve rounding.
      *
-     * @return  the numeric value represented by this object after conversion
-     *          to type {@code float}.
+     * @return the numeric value represented by this object after conversion
+     * to type {@code float}.
      */
     public abstract double floatValue();
 
     public abstract boolean booleanValue();
+
     /**
      * Default BValueType toString implementation.
+     *
      * @return The string representation of this object
      */
     @Override
@@ -73,6 +75,8 @@ public abstract class BValueType implements BValue {
     public void seal(BType type) {
         if (type.getTag() == TypeTags.ANY_TAG) {
             this.setType(BTypes.typeAny);
+        } else if (type.getTag() == TypeTags.JSON_TAG) {
+            this.setType(BTypes.typeJSON);
         } else if (this.getType().getTag() != type.getTag()) {
             throw new BallerinaException("Error in sealing the value type: " + this.getType() +
                     " cannot sealed as " + type);
