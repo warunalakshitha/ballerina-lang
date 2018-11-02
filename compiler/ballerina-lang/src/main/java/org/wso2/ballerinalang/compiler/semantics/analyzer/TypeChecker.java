@@ -1785,6 +1785,19 @@ public class TypeChecker extends BLangNodeVisitor {
 
                     if (iExpr.argExprs.get(0) instanceof BLangTypedescExpr) {
                         sealType = ((BLangTypedescExpr) iExpr.argExprs.get(0)).resolvedType;
+                    } else if (iExpr.argExprs.get(0) instanceof BLangBracedOrTupleExpr) {
+                        List<BLangExpression> expressionList = ((BLangBracedOrTupleExpr) iExpr.argExprs.get(0)).
+                                getExpressions();
+                        List<BType> tupleTypeList = new ArrayList<>();
+                        for (BLangExpression expression : expressionList) {
+                            if (expression instanceof BLangTypedescExpr) {
+                                tupleTypeList.add(((BLangTypedescExpr) expression).resolvedType);
+                            } else {
+                                tupleTypeList.add(((BLangSimpleVarRef) expression).symbol.type);
+                            }
+                        }
+
+                        sealType = new BTupleType(tupleTypeList);
                     } else {
                         sealType = ((BLangSimpleVarRef) iExpr.argExprs.get(0)).symbol.type;
                     }
