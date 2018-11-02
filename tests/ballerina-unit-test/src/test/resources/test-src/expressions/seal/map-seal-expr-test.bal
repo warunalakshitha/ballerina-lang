@@ -1,4 +1,3 @@
-
 type Employee record {
     string name;
     string status;
@@ -14,8 +13,8 @@ type Teacher record {
 };
 
 type IntRecord record{
-   int a;
-   int b;
+    int a;
+    int b;
 };
 
 //----------------------------Map Seal -------------------------------------------------------------
@@ -166,6 +165,25 @@ function sealRecordMapToJSONMap() returns map<json> {
 
 }
 
+function sealJSONMapToRecordMap() returns map<Employee> {
+    map<json> teacherMap = { "a": { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" },
+        "b": { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College" } };
+    teacherMap.seal(map<Employee>);
+
+    return teacherMap;
+}
+
+function sealRecordTypeMultiDimensionMap() returns map<map<Employee>> {
+    Teacher p1 = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
+    Teacher p2 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College" };
+
+    map<Teacher> teacherMap = { "a": p1, "b": p2 };
+    map<map<Teacher>> multiMap = { "aa": teacherMap, "bb": teacherMap };
+
+    multiMap.seal(map<map<Employee>>);
+
+    return multiMap;
+}
 
 function sealAnyToIntMultiDimensionMap() returns map<map<map<int>>> {
     map<map<map<any>>> m = { "a": { "aa": { "aa": 11, "bb": 22 }, "bb": { "aa": 11, "bb": 22 } }, "b": { "aaa": { "aa":

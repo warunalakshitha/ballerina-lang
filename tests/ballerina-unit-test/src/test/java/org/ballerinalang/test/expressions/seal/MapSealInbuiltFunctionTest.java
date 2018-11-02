@@ -370,6 +370,88 @@ public class MapSealInbuiltFunctionTest {
         Assert.assertEquals(((BMap) mapValue.getMap().get("b")).getMap().size(), 5);
     }
 
+    @Test
+    public void testSealJSONMapToRecordMap() {
+
+        BValue[] results = BRunUtil.invoke(compileResult, "sealJSONMapToRecordMap");
+        BMap<String, BValue> employee0 = (BMap<String, BValue>) results[0];
+
+        Assert.assertEquals(results.length, 1);
+        Assert.assertEquals(employee0.size(), 2);
+
+        Assert.assertEquals(employee0.getType().getClass(), BMapType.class);
+        Assert.assertEquals(((BMapType) employee0.getType()).getConstrainedType().getClass(), BRecordType.class);
+        Assert.assertEquals(((BMapType) employee0.getType()).getConstrainedType().getName(), "Employee");
+
+        Assert.assertEquals(employee0.getMap().get("a").getType().getName(), "Employee");
+        Assert.assertEquals(((BValue)((BMap)employee0.getMap().get("a")).getMap().get("age")).getType().getClass(),
+                BAnyType.class);
+        Assert.assertEquals(((BValue)((BMap)employee0.getMap().get("a")).getMap().get("school")).getType().getClass(),
+                BAnyType.class);
+        Assert.assertEquals(((BValue)((BMap)employee0.getMap().get("a")).getMap().get("batch")).getType().getClass(),
+                BStringType.class);
+
+
+        Assert.assertEquals(employee0.getMap().get("b").getType().getName(), "Employee");
+        Assert.assertEquals(((BValue)((BMap)employee0.getMap().get("b")).getMap().get("age")).getType().getClass(),
+                BAnyType.class);
+        Assert.assertEquals(((BValue)((BMap)employee0.getMap().get("b")).getMap().get("school")).getType().getClass(),
+                BAnyType.class);
+        Assert.assertEquals(((BValue)((BMap)employee0.getMap().get("b")).getMap().get("batch")).getType().getClass(),
+                BStringType.class);
+    }
+
+    @Test
+    public void testSealRecordTypeMultiDimensionMap() {
+
+        BValue[] results = BRunUtil.invoke(compileResult, "sealRecordTypeMultiDimensionMap");
+        BMap<String, BValue> employee0 = (BMap<String, BValue>) results[0];
+
+        Assert.assertEquals(results.length, 1);
+        Assert.assertEquals(employee0.size(), 2);
+        Assert.assertEquals(employee0.getType().getClass(), BMapType.class);
+        Assert.assertEquals(((BMapType)employee0.getType()).getConstrainedType().getClass(), BMapType.class);
+        Assert.assertEquals(((BMapType) ((BMapType)employee0.getType()).getConstrainedType()).getConstrainedType().
+                getName(), "Employee");
+
+        Assert.assertEquals(employee0.getMap().get("aa").getType().getClass(), BMapType.class);
+        Assert.assertEquals(((BMapType) employee0.getMap().get("aa").getType()).getConstrainedType().getClass(),
+                BRecordType.class);
+        Assert.assertEquals(((BMapType) employee0.getMap().get("aa").getType()).getConstrainedType().getName(),
+                "Employee");
+
+        Assert.assertEquals(employee0.getMap().get("bb").getType().getClass(), BMapType.class);
+        Assert.assertEquals(((BMapType) employee0.getMap().get("bb").getType()).getConstrainedType().getClass(),
+                BRecordType.class);
+        Assert.assertEquals(((BMapType) employee0.getMap().get("bb").getType()).getConstrainedType().getName(),
+                "Employee");
+
+
+        Assert.assertEquals(((BMap)((BMap)employee0.getMap().get("bb")).getMap().get("a")).getType().getName(),
+                "Employee");
+        Assert.assertEquals(((BValue)(((BMap)((BMap)employee0.getMap().get("bb")).getMap().get("a"))).getMap().
+                        get("age")).getType().getClass(),
+                BAnyType.class);
+        Assert.assertEquals(((BValue)(((BMap)((BMap)employee0.getMap().get("bb")).getMap().get("a"))).getMap().
+                        get("school")).getType().getClass(),
+                BAnyType.class);
+        Assert.assertEquals(((BValue)(((BMap)((BMap)employee0.getMap().get("bb")).getMap().get("a"))).getMap().
+                        get("batch")).getType().getClass(),
+                BStringType.class);
+
+
+        Assert.assertEquals(((BMap)((BMap)employee0.getMap().get("bb")).getMap().get("b")).getType().getName(),
+                "Employee");
+        Assert.assertEquals(((BValue)(((BMap)((BMap)employee0.getMap().get("bb")).getMap().get("b"))).getMap().
+                        get("age")).getType().getClass(),
+                BAnyType.class);
+        Assert.assertEquals(((BValue)(((BMap)((BMap)employee0.getMap().get("bb")).getMap().get("b"))).getMap().
+                        get("school")).getType().getClass(),
+                BAnyType.class);
+        Assert.assertEquals(((BValue)(((BMap)((BMap)employee0.getMap().get("bb")).getMap().get("b"))).getMap().
+                        get("batch")).getType().getClass(),
+                BStringType.class);
+    }
 
     @Test
     public void testSealAnyToIntMultiDimensionMap() {
