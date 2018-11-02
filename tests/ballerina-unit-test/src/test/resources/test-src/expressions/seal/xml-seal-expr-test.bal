@@ -1,0 +1,9 @@
+
+//----------------------------XML Seal -------------------------------------------------------------
+function sealXMLToAny() returns any {
+
+    xml xmlValue = xml `<book>The Lost World</book>`;
+
+    xmlValue.seal(any);
+    return xmlValue;
+}
