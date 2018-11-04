@@ -44,7 +44,7 @@ public class SealInbuiltFunctionNegativeTest {
     @Test
     public void testSealNegativeTest() {
 
-        Assert.assertEquals(compileResult.getErrorCount(), 4);
+        Assert.assertEquals(compileResult.getErrorCount(), 5);
 
         //Negative test case to verify the unsupported type for seal operation.
         BAssertUtil.validateError(compileResult, 1,
@@ -57,9 +57,14 @@ public class SealInbuiltFunctionNegativeTest {
                 24, 5);
 
         //Negative test case to confirm primitive types are not supported for seal operation.
-        BAssertUtil.validateError(compileResult, 2,
+        BAssertUtil.validateError(compileResult, 3,
                 "function 'seal' defined on not supported type 'string'",
                 31, 5);
+
+        //Negative test case to confirm primitive types are not supported for seal operation.
+        BAssertUtil.validateError(compileResult, 4,
+                "function 'seal' defined on not supported type 'string[]'",
+                38, 5);
     }
 
 }

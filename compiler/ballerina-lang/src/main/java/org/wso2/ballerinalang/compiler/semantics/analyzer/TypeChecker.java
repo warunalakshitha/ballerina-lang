@@ -1776,7 +1776,7 @@ public class TypeChecker extends BLangNodeVisitor {
                 }
                 break;
             case SEAL:
-                if (canHaveSealInvocation(((iExpr).expr).type.tag)) {
+                if (canHaveSealInvocation(((iExpr).expr).type)) {
                     if (iExpr.argExprs.size() != 1 | iExpr.restArgs.size() != 0 | iExpr.namedArgs.size() != 0) {
                         dlog.error(iExpr.pos, DiagnosticCode.TOO_MANY_ARGS_FUNC_CALL, iExpr.name);
                         resultType = symTable.semanticError;
@@ -2514,9 +2514,14 @@ public class TypeChecker extends BLangNodeVisitor {
      * @param iExpr expression that 'seal' function is used
      * @return eligibility to use 'seal' funtion
      */
-    private boolean canHaveSealInvocation(int iExpr) {
-        switch (iExpr) {
+    private boolean canHaveSealInvocation(BType iExpr) {
+        switch (iExpr.tag) {
             case TypeTags.ARRAY:
+                // Primitive type array does not support seal because primitive arrays are not using ref registry.
+                int arrayConstraintTypeTag = ((BArrayType) iExpr).eType.tag;
+                return !(arrayConstraintTypeTag == TypeTags.INT || arrayConstraintTypeTag == TypeTags.BOOLEAN ||
+                        arrayConstraintTypeTag == TypeTags.FLOAT || arrayConstraintTypeTag == TypeTags.BYTE ||
+                        arrayConstraintTypeTag == TypeTags.STRING);
             case TypeTags.MAP:
             case TypeTags.RECORD:
             case TypeTags.OBJECT:
