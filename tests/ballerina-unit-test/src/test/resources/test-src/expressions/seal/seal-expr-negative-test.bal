@@ -39,3 +39,10 @@ function sealStringValueToAny() returns any {
 
     return stringArray;
 }
+
+function sealJSONToUnion() returns int|float|json {
+    json jsonVar = { name: "Raja", status: "single", batch: "LK2014", school: "Hindu College" };
+
+    jsonVar.seal(int|float|json);
+    return jsonVar;
+}
