@@ -1776,45 +1776,51 @@ public class TypeChecker extends BLangNodeVisitor {
                 }
                 break;
             case SEAL:
-                if (iExpr.argExprs.size() != 1 | iExpr.restArgs.size() != 0 | iExpr.namedArgs.size() != 0) {
-                    dlog.error(iExpr.pos, DiagnosticCode.TOO_MANY_ARGS_FUNC_CALL, iExpr.name);
-                    resultType = symTable.semanticError;
-                } else {
-                    iExpr.argExprs.get(0).accept(this);
-                    BType sealType;
+                if (canHaveSealInvocation(((iExpr).expr).type.tag)) {
+                    if (iExpr.argExprs.size() != 1 | iExpr.restArgs.size() != 0 | iExpr.namedArgs.size() != 0) {
+                        dlog.error(iExpr.pos, DiagnosticCode.TOO_MANY_ARGS_FUNC_CALL, iExpr.name);
+                        resultType = symTable.semanticError;
+                    } else {
+                        iExpr.argExprs.get(0).accept(this);
+                        BType sealType;
 
-                    if (iExpr.argExprs.get(0) instanceof BLangTypedescExpr) {
-                        sealType = ((BLangTypedescExpr) iExpr.argExprs.get(0)).resolvedType;
-                    } else if (iExpr.argExprs.get(0) instanceof BLangBracedOrTupleExpr) {
-                        List<BLangExpression> expressionList = ((BLangBracedOrTupleExpr) iExpr.argExprs.get(0)).
-                                getExpressions();
-                        List<BType> tupleTypeList = new ArrayList<>();
-                        for (BLangExpression expression : expressionList) {
-                            if (expression instanceof BLangTypedescExpr) {
-                                tupleTypeList.add(((BLangTypedescExpr) expression).resolvedType);
-                            } else {
-                                tupleTypeList.add(((BLangSimpleVarRef) expression).symbol.type);
+                        if (iExpr.argExprs.get(0) instanceof BLangTypedescExpr) {
+                            sealType = ((BLangTypedescExpr) iExpr.argExprs.get(0)).resolvedType;
+                        } else if (iExpr.argExprs.get(0) instanceof BLangBracedOrTupleExpr) {
+                            List<BLangExpression> expressionList = ((BLangBracedOrTupleExpr) iExpr.argExprs.get(0)).
+                                    getExpressions();
+                            List<BType> tupleTypeList = new ArrayList<>();
+                            for (BLangExpression expression : expressionList) {
+                                if (expression instanceof BLangTypedescExpr) {
+                                    tupleTypeList.add(((BLangTypedescExpr) expression).resolvedType);
+                                } else {
+                                    tupleTypeList.add(((BLangSimpleVarRef) expression).symbol.type);
+                                }
                             }
+
+                            sealType = new BTupleType(tupleTypeList);
+                        } else {
+                            sealType = ((BLangSimpleVarRef) iExpr.argExprs.get(0)).symbol.type;
                         }
 
-                        sealType = new BTupleType(tupleTypeList);
-                    } else {
-                        sealType = ((BLangSimpleVarRef) iExpr.argExprs.get(0)).symbol.type;
+                        if (types.isAssignable(((iExpr).expr).type, sealType) ||
+                                types.isAssignable(sealType, ((iExpr).expr).type) ||
+                                types.isSealable(((iExpr).expr).type, sealType) ||
+                                types.isSealable(sealType, ((iExpr).expr).type)) {
+                            // Set the return type based on the type passed as argument.
+                            iExpr.expr.type = sealType;
+                            (iExpr).expr.symbol.type = sealType;
+                            resultType = symTable.nilType;
+                        } else {
+                            dlog.error(iExpr.pos, DiagnosticCode.INCOMPATIBLE_SEAL_TYPE, iExpr.expr,
+                                    ((BLangSimpleVarRef) iExpr.expr).type, sealType);
+                            resultType = symTable.semanticError;
+                        }
                     }
-
-                    if (types.isAssignable(((iExpr).expr).type, sealType) ||
-                            types.isAssignable(sealType, ((iExpr).expr).type) ||
-                            types.isSealable(((iExpr).expr).type, sealType) ||
-                            types.isSealable(sealType, ((iExpr).expr).type)) {
-                        // Set the return type based on the type passed as argument.
-                        iExpr.expr.type = sealType;
-                        (iExpr).expr.symbol.type = sealType;
-                        resultType = symTable.nilType;
-                    } else {
-                        dlog.error(iExpr.pos, DiagnosticCode.INCOMPATIBLE_SEAL_TYPE, iExpr.expr,
-                                ((BLangSimpleVarRef) iExpr.expr).type, sealType);
-                        resultType = symTable.semanticError;
-                    }
+                } else {
+                    dlog.error(iExpr.pos, DiagnosticCode.FUNC_DEFINED_ON_NOT_SUPPORTED_TYPE,
+                            iExpr.name.value, iExpr.expr.type.toString());
+                    resultType = symTable.semanticError;
                 }
                 break;
             default:
@@ -2511,12 +2517,14 @@ public class TypeChecker extends BLangNodeVisitor {
     private boolean canHaveSealInvocation(int iExpr) {
         switch (iExpr) {
             case TypeTags.ARRAY:
-                return true;
             case TypeTags.MAP:
-                return true;
             case TypeTags.RECORD:
-                return true;
             case TypeTags.OBJECT:
+            case TypeTags.JSON:
+            case TypeTags.XML:
+            case TypeTags.UNION:
+            case TypeTags.TUPLE:
+            case TypeTags.ANY:
                 return true;
         }
         return false;
