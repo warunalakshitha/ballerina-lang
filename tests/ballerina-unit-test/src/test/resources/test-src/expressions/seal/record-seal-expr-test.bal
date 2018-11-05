@@ -92,3 +92,12 @@ function sealRecordToMapV3() returns map {
     return teacher;
 }
 
+//-------------------------------- Negative Test cases ------------------------------------------------------------
+function sealOpenRecordToMap() returns map<string> {
+
+    Teacher teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
+    teacher.seal(map<string>);
+
+    return teacher;
+}
+

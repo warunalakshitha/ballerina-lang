@@ -26,6 +26,7 @@ import org.ballerinalang.model.types.BMapType;
 import org.ballerinalang.model.types.BStringType;
 import org.ballerinalang.model.values.BMap;
 import org.ballerinalang.model.values.BValue;
+import org.ballerinalang.util.exceptions.BLangRuntimeException;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -205,6 +206,16 @@ public class RecordSealInbuiltFunctionTest {
 
         Assert.assertEquals(((BMap) mapValue0.get("emp")).size(), 3);
         Assert.assertEquals(mapValue0.get("emp").getType().getClass(), BAnyType.class);
+    }
+
+
+    //---------------------------------- Negative Test cases ----------------------------------------------
+
+    @Test(expectedExceptions = BLangRuntimeException.class,
+            expectedExceptionsMessageRegExp = "error: error, message: incompatible seal operation: 'Teacher' cannot " +
+                    "be sealed as 'map'.*")
+    public void testSealOpenRecordToMap() {
+        BRunUtil.invoke(compileResult, "sealOpenRecordToMap");
     }
 }
 
