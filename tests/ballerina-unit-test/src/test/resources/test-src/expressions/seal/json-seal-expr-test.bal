@@ -81,7 +81,8 @@ function sealJSONToMap() returns map {
 
 function sealJSONToMapV2() returns map {
 
-    json teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College", emp : { name: "John", status: "single", batch: "LK2014"} };
+    json teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College",
+        emp : { name: "John", status: "single", batch: "LK2014"} };
     teacher.seal(map);
 
     return teacher;
@@ -123,18 +124,6 @@ function sealConstraintJSONToConstraintJSON() returns json<Person> {
     return student;
 }
 
-function sealConstraintJSONToConstraintMap() returns map<Student> {
-
-    json<Student> student = { name: "Jon" };
-    student.status = "Single";
-    student.batch = "LK2014";
-    student.school = "Hindu College";
-
-    student.seal(map<Student>);
-
-    return student;
-}
-
 function sealConstraintJSONToConstraintMapV2() returns map {
 
     json<Student> student = { name: "Jon" };
@@ -170,4 +159,24 @@ function sealJSONArrayToAnyTypeArray() returns any []{
     jsonArray.seal(any []);
 
     return jsonArray;
+}
+
+//----------------------------- Negative Test cases ---------------------------------------------------------------
+
+function sealJSONToRecordNegative() returns Student {
+
+    json employee = { name: "John", age : 23, status: "single", batch: "LK2014", school: "Hindu College" };
+    employee.seal(Student);
+
+    return employee;
+
+}
+
+function sealJSONToMapNegative() returns map<string> {
+
+    json employee = { name: "John", age : 23, status: "single", batch: "LK2014", school: "Hindu College" };
+    employee.seal(map<string>);
+
+    return employee;
+
 }

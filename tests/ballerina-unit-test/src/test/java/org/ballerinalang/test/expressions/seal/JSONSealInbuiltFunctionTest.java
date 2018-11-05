@@ -27,6 +27,7 @@ import org.ballerinalang.model.types.BRecordType;
 import org.ballerinalang.model.types.BStringType;
 import org.ballerinalang.model.values.BMap;
 import org.ballerinalang.model.values.BValue;
+import org.ballerinalang.util.exceptions.BLangRuntimeException;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -118,16 +119,16 @@ public class JSONSealInbuiltFunctionTest {
         Assert.assertEquals(mapValue0.getType().getClass(), BMapType.class);
 
         Assert.assertEquals(mapValue0.get("name").stringValue(), "John");
-        Assert.assertEquals(mapValue0.get("name").getType().getClass(), BStringType.class);
+        Assert.assertEquals(mapValue0.get("name").getType().getClass(), BAnyType.class);
 
         Assert.assertEquals(mapValue0.get("status").stringValue(), "single");
-        Assert.assertEquals(mapValue0.get("status").getType().getClass(), BStringType.class);
+        Assert.assertEquals(mapValue0.get("status").getType().getClass(), BAnyType.class);
 
         Assert.assertEquals(mapValue0.get("batch").stringValue(), "LK2014");
-        Assert.assertEquals(mapValue0.get("batch").getType().getClass(), BStringType.class);
+        Assert.assertEquals(mapValue0.get("batch").getType().getClass(), BAnyType.class);
 
         Assert.assertEquals(mapValue0.get("school").stringValue(), "Hindu College");
-        Assert.assertEquals(mapValue0.get("school").getType().getClass(), BStringType.class);
+        Assert.assertEquals(mapValue0.get("school").getType().getClass(), BAnyType.class);
     }
 
     @Test
@@ -142,22 +143,22 @@ public class JSONSealInbuiltFunctionTest {
         Assert.assertEquals(mapValue0.getType().getClass(), BMapType.class);
 
         Assert.assertEquals(mapValue0.get("name").stringValue(), "Raja");
-        Assert.assertEquals(mapValue0.get("name").getType().getClass(), BStringType.class);
+        Assert.assertEquals(mapValue0.get("name").getType().getClass(), BAnyType.class);
 
         Assert.assertEquals(mapValue0.get("age").stringValue(), "25");
-        Assert.assertEquals(mapValue0.get("age").getType().getName(), "int");
+        Assert.assertEquals(mapValue0.get("age").getType().getClass(), BAnyType.class);
 
         Assert.assertEquals(mapValue0.get("status").stringValue(), "single");
-        Assert.assertEquals(mapValue0.get("status").getType().getClass(), BStringType.class);
+        Assert.assertEquals(mapValue0.get("status").getType().getClass(), BAnyType.class);
 
         Assert.assertEquals(mapValue0.get("batch").stringValue(), "LK2014");
-        Assert.assertEquals(mapValue0.get("batch").getType().getClass(), BStringType.class);
+        Assert.assertEquals(mapValue0.get("batch").getType().getClass(), BAnyType.class);
 
         Assert.assertEquals(mapValue0.get("school").stringValue(), "Hindu College");
-        Assert.assertEquals(mapValue0.get("school").getType().getClass(), BStringType.class);
+        Assert.assertEquals(mapValue0.get("school").getType().getClass(), BAnyType.class);
 
         Assert.assertEquals(((BMap) mapValue0.get("emp")).size(), 3);
-        Assert.assertEquals(mapValue0.get("emp").getType().getClass(), BJSONType.class);
+        Assert.assertEquals(mapValue0.get("emp").getType().getClass(), BAnyType.class);
     }
 
     @Test
@@ -211,24 +212,6 @@ public class JSONSealInbuiltFunctionTest {
     }
 
     @Test
-    public void testSealConstraintJSONToConstraintMap() {
-
-        BValue[] results = BRunUtil.invoke(compileResult, "sealConstraintJSONToConstraintMap");
-        BMap<String, BValue> mapValue0 = (BMap<String, BValue>) results[0];
-
-        Assert.assertEquals(results.length, 1);
-
-        Assert.assertEquals(mapValue0.getType().getClass(), BMapType.class);
-        Assert.assertEquals(((BMapType) mapValue0.getType()).getConstrainedType().getName(), "Student");
-
-        Assert.assertEquals((mapValue0.getMap()).size(), 4);
-        Assert.assertEquals(((LinkedHashMap) mapValue0.getMap()).get("batch").toString(), "LK2014");
-        Assert.assertEquals(((BValue) ((LinkedHashMap) mapValue0.getMap()).get("batch")).getType().getClass(),
-                BStringType.class);
-
-    }
-
-    @Test
     public void testSealConstraintJSONToConstraintMapV2() {
 
         BValue[] results = BRunUtil.invoke(compileResult, "sealConstraintJSONToConstraintMapV2");
@@ -242,7 +225,7 @@ public class JSONSealInbuiltFunctionTest {
         Assert.assertEquals((mapValue0.getMap()).size(), 4);
         Assert.assertEquals(((LinkedHashMap) mapValue0.getMap()).get("batch").toString(), "LK2014");
         Assert.assertEquals(((BValue) ((LinkedHashMap) mapValue0.getMap()).get("batch")).getType().getClass(),
-                BStringType.class);
+                BAnyType.class);
 
     }
 
@@ -303,5 +286,22 @@ public class JSONSealInbuiltFunctionTest {
         Assert.assertEquals(((LinkedHashMap) ((BMap) results[3]).getMap()).size(), 2);
         Assert.assertEquals(results[3].getType().getClass(), BAnyType.class);
     }
+
+    //----------------------------------- Negative Test cases ----------------------------------------------------
+
+    @Test(expectedExceptions = BLangRuntimeException.class,
+            expectedExceptionsMessageRegExp = "error: error, message: incompatible seal operation: 'json' value " +
+                    "cannot be sealed as 'Student'.*")
+    public void testSealJSONToRecordNegative() {
+        BRunUtil.invoke(compileResult, "sealJSONToRecordNegative");
+    }
+
+    @Test(expectedExceptions = BLangRuntimeException.class,
+            expectedExceptionsMessageRegExp = "error: error, message: incompatible seal operation: 'json' value " +
+                    "cannot be sealed as 'map'.*")
+    public void testSealJSONToMapNegative() {
+        BRunUtil.invoke(compileResult, "sealJSONToMapNegative");
+    }
+
 }
 
