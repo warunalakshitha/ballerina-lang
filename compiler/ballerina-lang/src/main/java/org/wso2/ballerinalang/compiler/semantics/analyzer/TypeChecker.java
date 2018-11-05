@@ -1804,11 +1804,7 @@ public class TypeChecker extends BLangNodeVisitor {
                         }
 
                         //It is not allowed to seal a variable to union type.
-                        if (sealType.tag != TypeTags.UNION &&
-                                (types.isAssignable(((iExpr).expr).type, sealType) ||
-                                        types.isAssignable(sealType, ((iExpr).expr).type) ||
-                                        types.isSealable(((iExpr).expr).type, sealType) ||
-                                        types.isSealable(sealType, ((iExpr).expr).type))) {
+                        if (sealType.tag != TypeTags.UNION && types.isSealable(iExpr.expr.type, sealType)) {
                             // Set the return type based on the type passed as argument.
                             iExpr.expr.type = sealType;
                             (iExpr).expr.symbol.type = sealType;

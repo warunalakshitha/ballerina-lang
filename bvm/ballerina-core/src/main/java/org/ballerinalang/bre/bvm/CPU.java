@@ -195,7 +195,7 @@ public class CPU {
                 if (debugEnabled && debug(ctx)) {
                     return;
                 }
-    
+
                 Instruction instruction = ctx.code[ctx.ip];
                 int opcode = instruction.getOpcode();
                 int[] operands = instruction.getOperands();
@@ -287,7 +287,7 @@ public class CPU {
                         i = operands[1];
                         sf.refRegs[i] = new BByteArray(((BlobCPEntry) ctx.constPool[cpIndex]).getValue());
                         break;
-    
+
                     case InstructionCodes.IMOVE:
                     case InstructionCodes.FMOVE:
                     case InstructionCodes.SMOVE:
@@ -309,7 +309,7 @@ public class CPU {
                     case InstructionCodes.JSONLOAD:
                         execLoadOpcodes(ctx, sf, opcode, operands);
                         break;
-    
+
                     case InstructionCodes.IASTORE:
                     case InstructionCodes.BIASTORE:
                     case InstructionCodes.FASTORE:
@@ -326,7 +326,7 @@ public class CPU {
                     case InstructionCodes.JSONSTORE:
                         execStoreOpcodes(ctx, sf, opcode, operands);
                         break;
-    
+
                     case InstructionCodes.IADD:
                     case InstructionCodes.FADD:
                     case InstructionCodes.SADD:
@@ -368,7 +368,7 @@ public class CPU {
                     case InstructionCodes.TYPE_TEST:
                         execBinaryOpCodes(ctx, sf, opcode, operands);
                         break;
-    
+
                     case InstructionCodes.LENGTHOF:
                         calculateLength(ctx, operands, sf);
                         break;
@@ -539,7 +539,7 @@ public class CPU {
                         sf.refRegs[j] = fPointer;
                         findAndAddAdditionalVarRegIndexes(ctx, operands, fPointer);
                         break;
-    
+
                     case InstructionCodes.I2ANY:
                     case InstructionCodes.BI2ANY:
                     case InstructionCodes.F2ANY:
@@ -565,7 +565,7 @@ public class CPU {
                     case InstructionCodes.O2JSON:
                         execTypeCastOpcodes(ctx, sf, opcode, operands);
                         break;
-    
+
                     case InstructionCodes.I2F:
                     case InstructionCodes.I2S:
                     case InstructionCodes.I2B:
@@ -593,7 +593,7 @@ public class CPU {
                     case InstructionCodes.ANY2SCONV:
                         execTypeConversionOpcodes(ctx, sf, opcode, operands);
                         break;
-    
+
                     case InstructionCodes.INEWARRAY:
                         i = operands[0];
                         j = operands[2];
@@ -822,7 +822,21 @@ public class CPU {
         BType sealType = ((TypeRefCPEntry) ctx.constPool[j]).getType();
 
         //mutate reference variable
-        sealValue.seal(sealType);
+        if (isSealable(sealValue, sealType)) {
+            try {
+                sealValue.seal(sealType);
+            } catch (BallerinaException e) {
+                ctx.setError(BLangVMErrors.createError(ctx,
+                        BLangExceptionHelper.getErrorMessage(RuntimeErrors.INCOMPATIBLE_SEAL_OPERATION,
+                                sealValue.getType(), sealType.getName())));
+                handleError(ctx);
+            }
+        } else {
+            ctx.setError(BLangVMErrors.createError(ctx,
+                    BLangExceptionHelper.getErrorMessage(RuntimeErrors.INCOMPATIBLE_SEAL_OPERATION, sealValue.getType(),
+                            sealType.getName())));
+            handleError(ctx);
+        }
     }
 
     /**
@@ -2856,7 +2870,7 @@ public class CPU {
         }
         return false;
     }
-    
+
     private static boolean checkUnionCast(BValue rhsValue, BType lhsType, List<TypePair> unresolvedTypes) {
         BUnionType unionType = (BUnionType) lhsType;
         for (BType memberType : unionType.getMemberTypes()) {
@@ -3024,9 +3038,9 @@ public class CPU {
             return true;
         }
 
-        return sourceType.equals(targetType);
+        return isAssignable(sourceType, targetType, unresolvedTypes);
     }
-    
+
     private static boolean checkTupleCast(BValue sourceValue, BType targetType, List<TypePair> unresolvedTypes) {
         BRefValueArray source = (BRefValueArray) sourceValue;
         BTupleType target = (BTupleType) targetType;
@@ -3405,7 +3419,7 @@ public class CPU {
             handleTypeConversionError(ctx, sf, j, errorMsg);
         }
     }
-    
+
     private static void convertArrayToJSON(WorkerExecutionContext ctx, int[] operands, WorkerData sf) {
         int i = operands[0];
         int j = operands[1];
@@ -3419,7 +3433,7 @@ public class CPU {
             handleTypeConversionError(ctx, sf, j, errorMsg);
         }
     }
-    
+
     private static void convertJSONToArray(WorkerExecutionContext ctx, int[] operands, WorkerData sf) {
         int i = operands[0];
         int cpIndex = operands[1];
@@ -3440,7 +3454,7 @@ public class CPU {
             handleTypeConversionError(ctx, sf, j, errorMsg);
         }
     }
-    
+
     private static void convertMapToJSON(WorkerExecutionContext ctx, int[] operands, WorkerData sf) {
         int i = operands[0];
         int cpIndex = operands[1];
@@ -3456,7 +3470,7 @@ public class CPU {
             handleTypeConversionError(ctx, sf, j, errorMsg);
         }
     }
-    
+
     private static void convertJSONToMap(WorkerExecutionContext ctx, int[] operands, WorkerData sf) {
         int i = operands[0];
         int cpIndex = operands[1];
@@ -3706,6 +3720,53 @@ public class CPU {
         }
 
         return checkCast(value, constraintType, new ArrayList<>());
+    }
+
+    private static boolean isSealable(BRefType<?> sealValue, BType sealType) {
+        return (isAssignable(sealValue.getType(), sealType, new ArrayList<>()) ||
+                isAssignable(sealType, sealValue.getType(), new ArrayList<>()) ||
+                isExprSealable(sealValue.getType(), sealType) ||
+                isExprSealable(sealType, sealValue.getType()));
+    }
+
+    private static boolean isExprSealable(BType source, BType target) {
+        if (target.getTag() == TypeTags.JSON_TAG) {
+            if (source.getTag() == TypeTags.JSON_TAG || source.getTag() == TypeTags.RECORD_TYPE_TAG ||
+                    source.getTag() == TypeTags.MAP_TAG) {
+                return true;
+            }
+        } else if (target.getTag() == TypeTags.RECORD_TYPE_TAG) {
+            if (source.getTag() == TypeTags.MAP_TAG) {
+                int mapConstraintTypeTag = ((BMapType) source).getConstrainedType().getTag();
+                if (mapConstraintTypeTag != TypeTags.ANY_TAG && ((BRecordType) target).sealed) {
+                    for (BField field : ((BStructureType) target).getFields()) {
+                        if (field.getFieldType().getTag() != mapConstraintTypeTag) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        } else if (target.getTag() == TypeTags.MAP_TAG) {
+            if (source.getTag() == TypeTags.MAP_TAG || source.getTag() == TypeTags.UNION_TAG) {
+                return true;
+            }
+        } else if (target.getTag() == TypeTags.ARRAY_TAG) {
+            if (source.getTag() == TypeTags.JSON_TAG ||
+                    ((BArrayType) source).getElementType().getTag() == TypeTags.JSON_TAG) {
+                return true;
+            }
+        } else if (target.getTag() == TypeTags.OBJECT_TYPE_TAG) {
+            if (source.getTag() == TypeTags.UNION_TAG) {
+                return true;
+            }
+        } else if (target.getTag() == TypeTags.TUPLE_TAG) {
+            if (source.getTag() == TypeTags.TUPLE_TAG) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static boolean isAssignable(BType sourceType, BType targetType, List<TypePair> unresolvedTypes) {
