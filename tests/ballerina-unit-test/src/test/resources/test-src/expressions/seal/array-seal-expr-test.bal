@@ -1,4 +1,10 @@
-import ballerina/io;
+type Student record {
+    string name;
+    string status;
+    string batch;
+    string school;
+    !...
+};
 
 type Employee record {
     string name;
@@ -59,6 +65,16 @@ function sealRecordToSimilarOpenRecordArray() returns Employee[] {
     Employee[] employeeArray = teacherArray.seal(Employee[]);
 
     return employeeArray;
+}
+
+function sealConstraintArrayToJSONArray() returns json{
+
+    Student [] studentArray = [{ name: "John", status: "single", batch: "LK2014", school: "Hindu College" },
+    { name: "Raja", status: "married", batch: "LK2014", school: "Hindu College" }];
+
+    json jsonArray = studentArray.seal(json);
+
+    return jsonArray;
 }
 
 

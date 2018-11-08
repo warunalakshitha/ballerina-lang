@@ -22,11 +22,15 @@ import org.ballerinalang.launcher.util.BRunUtil;
 import org.ballerinalang.launcher.util.CompileResult;
 import org.ballerinalang.model.types.BAnyType;
 import org.ballerinalang.model.types.BAnydataType;
+import org.ballerinalang.model.types.BJSONType;
+import org.ballerinalang.model.types.BStringType;
 import org.ballerinalang.model.values.BMap;
 import org.ballerinalang.model.values.BValue;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import java.util.LinkedHashMap;
 
 /**
  * Test cases for sealing Array type variables.
@@ -105,6 +109,29 @@ public class ArraySealInbuiltFunctionTest {
         Assert.assertEquals(mapValue1.getType().getName(), "Employee");
         Assert.assertEquals(mapValue1.getMap().get("age").getType().getClass(), BAnydataType.class);
         Assert.assertEquals(mapValue1.getMap().get("school").getType().getClass(), BAnydataType.class);
+    }
+
+    @Test
+    public void testSealConstraintArrayToJSONArray() {
+
+        BValue[] results = BRunUtil.invoke(compileResult, "sealConstraintArrayToJSONArray");
+        BMap<String, BValue> mapValue0 = (BMap<String, BValue>) results[0];
+        BMap<String, BValue> mapValue1 = (BMap<String, BValue>) results[1];
+
+        Assert.assertEquals(results.length, 2);
+
+        Assert.assertEquals(mapValue0.getType().getClass(), BJSONType.class);
+        Assert.assertEquals((mapValue0.getMap()).size(), 4);
+        Assert.assertEquals(((LinkedHashMap) mapValue0.getMap()).get("batch").toString(), "LK2014");
+        Assert.assertEquals(((BValue) ((LinkedHashMap) mapValue0.getMap()).get("batch")).getType().getClass(),
+                BStringType.class);
+
+        Assert.assertEquals(mapValue1.getType().getClass(), BJSONType.class);
+        Assert.assertEquals((mapValue1.getMap()).size(), 4);
+        Assert.assertEquals(((LinkedHashMap) mapValue1.getMap()).get("batch").toString(), "LK2014");
+        Assert.assertEquals(((BValue) ((LinkedHashMap) mapValue0.getMap()).get("batch")).getType().getClass(),
+                BStringType.class);
+
     }
 
 }
