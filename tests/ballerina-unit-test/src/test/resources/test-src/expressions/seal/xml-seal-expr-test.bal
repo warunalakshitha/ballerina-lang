@@ -7,3 +7,11 @@ function sealXMLToAny() returns any {
     any anyValue = xmlValue.seal(any);
     return anyValue;
 }
+
+function sealXMLToXML() returns xml {
+
+    xml xmlValue = xml `<book>The Lost World</book>`;
+
+    xml returnValue = xmlValue.seal(xml);
+    return returnValue;
+}
