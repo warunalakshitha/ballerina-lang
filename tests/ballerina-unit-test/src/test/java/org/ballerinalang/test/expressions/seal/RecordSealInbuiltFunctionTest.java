@@ -214,7 +214,7 @@ public class RecordSealInbuiltFunctionTest {
 
     @Test(expectedExceptions = BLangRuntimeException.class,
             expectedExceptionsMessageRegExp = "error: incompatible seal operation: 'Teacher' value " +
-                    "cannot be sealed as 'map'.*")
+                    "cannot be sealed as 'map<string>'.*")
     public void testSealOpenRecordToMap() {
         BRunUtil.invoke(compileResult, "sealOpenRecordToMap");
     }

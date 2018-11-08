@@ -299,7 +299,7 @@ public class JSONSealInbuiltFunctionTest {
 
     @Test(expectedExceptions = BLangRuntimeException.class,
             expectedExceptionsMessageRegExp = "error: incompatible seal operation: 'json' value " +
-                    "cannot be sealed as 'map'.*")
+                    "cannot be sealed as 'map<string>'.*")
     public void testSealJSONToMapNegative() {
         BRunUtil.invoke(compileResult, "sealJSONToMapNegative");
     }
