@@ -240,6 +240,44 @@ public class Types {
         return isAssignable(source, target, new ArrayList<>());
     }
 
+    boolean isSealable(BType source, BType target) {
+        return (isAssignable(source, target) || isAssignable(target, source) ||
+                isExprSealable(source, target) || isExprSealable(target, source));
+    }
+    
+    private boolean isExprSealable(BType source, BType target) {
+        if (target.tag == TypeTags.JSON) {
+            if (source.tag == TypeTags.JSON || source.tag == TypeTags.RECORD || source.tag == TypeTags.MAP) {
+                return true;
+            }
+        } else if (target.tag == TypeTags.RECORD) {
+            if (source.tag == TypeTags.MAP) {
+                int mapConstraintTypeTag = ((BMapType) source).constraint.tag;
+                if (mapConstraintTypeTag != TypeTags.ANY && ((BRecordType) target).sealed) {
+                    for (BField field : ((BStructureType) target).getFields()) {
+                        if (field.getType().tag != mapConstraintTypeTag) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        } else if (target.tag == TypeTags.MAP) {
+            if (source.tag == TypeTags.MAP || source.tag == TypeTags.UNION) {
+                return true;
+            }
+        } else if (target.tag == TypeTags.ARRAY) {
+            if (source.tag == TypeTags.JSON) {
+                return true;
+            }
+        } else if (target.tag == TypeTags.OBJECT) {
+            if (source.tag == TypeTags.UNION) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean isAssignable(BType source, BType target, List<TypePair> unresolvedTypes) {
         if (isSameType(source, target)) {
             return true;

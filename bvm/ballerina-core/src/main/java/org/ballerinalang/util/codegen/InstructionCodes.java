@@ -159,6 +159,8 @@ public interface InstructionCodes {
     int FPCALL = 122;
     int FPLOAD = 123;
     int VFPLOAD = 124;
+    
+    int CONVERT = 125;
 
     // Type Conversion related instructions
     int I2F = 130;

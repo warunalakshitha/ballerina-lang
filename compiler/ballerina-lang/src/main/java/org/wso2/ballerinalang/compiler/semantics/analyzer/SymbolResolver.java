@@ -56,8 +56,11 @@ import org.wso2.ballerinalang.compiler.semantics.model.types.BUnionType;
 import org.wso2.ballerinalang.compiler.tree.BLangFunction;
 import org.wso2.ballerinalang.compiler.tree.BLangNodeVisitor;
 import org.wso2.ballerinalang.compiler.tree.expressions.BLangArrowFunction;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangBracedOrTupleExpr;
 import org.wso2.ballerinalang.compiler.tree.expressions.BLangExpression;
 import org.wso2.ballerinalang.compiler.tree.expressions.BLangLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangSimpleVarRef;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangTypedescExpr;
 import org.wso2.ballerinalang.compiler.tree.types.BLangArrayType;
 import org.wso2.ballerinalang.compiler.tree.types.BLangBuiltInRefTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangConstrainedType;
@@ -274,6 +277,27 @@ public class SymbolResolver extends BLangNodeVisitor {
         return types.getConversionOperator(sourceType, targetType);
     }
 
+    public BSymbol resolveBuiltinConversionOperator(DiagnosticPos pos, Name name, List<BLangExpression> functionArgList,
+                                                    BType... args) {
+        BSymbol bSymbol;
+        BType sourceType = args[0];
+        BType targetType = getTargetType(pos, name, functionArgList);
+        if (!types.isSealable(sourceType, targetType)) {
+            if (targetType != symTable.semanticError) {
+                bSymbol = resolveConversionOperator(sourceType, targetType);
+            } else {
+                return symTable.notFoundSymbol;
+            }
+        } else {
+            return createSymbolForSealOperator(pos, name, functionArgList, args[0]);
+        }
+        BLangLiteral bLangLiteral = new BLangLiteral();
+        bLangLiteral.type = targetType;
+        bLangLiteral.value = targetType;
+        functionArgList.set(0, bLangLiteral);
+        return bSymbol;
+    }
+
     public BSymbol resolveBinaryOperator(OperatorKind opKind,
                                          BType lhsType,
                                          BType rhsType) {
@@ -285,7 +309,8 @@ public class SymbolResolver extends BLangNodeVisitor {
         return bSymbol;
     }
 
-    public BSymbol resolveBuiltinOperator(Name name, BType... args) {
+    BSymbol resolveBuiltinOperator(DiagnosticPos pos, Name name, List<BLangExpression> functionArgList,
+                                   BType... args) {
         BType type = args[0];
         switch (type.tag) {
             case TypeTags.RECORD:
@@ -310,8 +335,83 @@ public class SymbolResolver extends BLangNodeVisitor {
             argsList.add(args[i]);
         }
         BSymbol bSymbol = resolveOperator(name, argsList);
+        if (bSymbol == symTable.notFoundSymbol) {
+            if (name.getValue().equals("convert")) {
+                return createSymbolForSealOperator(pos, name, functionArgList, args[0]);
+            }
+        }
         return bSymbol;
     }
+
+    private BSymbol createSymbolForSealOperator(DiagnosticPos pos, Name name, List<BLangExpression> functionArgList,
+                                                BType sourceType) {
+     
+            if (functionArgList.size() != 1) {
+                dlog.error(pos, DiagnosticCode.TOO_MANY_ARGS_FUNC_CALL, name);
+                resultType = symTable.semanticError;
+            } else {
+                BLangExpression argumentExpression = functionArgList.get(0);
+                BType sealType;
+                if (argumentExpression instanceof BLangTypedescExpr) {
+                    sealType = ((BLangTypedescExpr) argumentExpression).resolvedType;
+                } else if (argumentExpression instanceof BLangBracedOrTupleExpr) {
+                    List<BLangExpression> expressionList = ((BLangBracedOrTupleExpr) argumentExpression).
+                                                                                                                getExpressions();
+                    List<BType> tupleTypeList = new ArrayList<>();
+                    for (BLangExpression expression : expressionList) {
+                        if (expression instanceof BLangTypedescExpr) {
+                            tupleTypeList.add(((BLangTypedescExpr) expression).resolvedType);
+                        } else {
+                            tupleTypeList.add(((BLangSimpleVarRef) expression).symbol.type);
+                        }
+                    }
+
+                    sealType = new BTupleType(tupleTypeList);
+                } else {
+                    sealType = ((BLangSimpleVarRef) argumentExpression).symbol.type;
+                }
+
+                //It is not allowed to seal a variable to union type.
+                if (sealType.tag != TypeTags.UNION) {
+                    List<BType> paramTypes = new ArrayList<>();
+                    paramTypes.add(symTable.typeDesc);
+                    return symTable.createOperator(name, paramTypes, sealType, InstructionCodes.CONVERT);
+                } else {
+                    dlog.error(pos, DiagnosticCode.INCOMPATIBLE_TYPES_CONVERSION, sourceType, sealType);
+                    resultType = symTable.semanticError;
+                }
+            }
+        return symTable.notFoundSymbol;
+    }
+
+    public BType getTargetType(DiagnosticPos pos, Name name, List<BLangExpression> functionArgList) {
+        if (functionArgList.size() != 1) {
+            dlog.error(pos, DiagnosticCode.TOO_MANY_ARGS_FUNC_CALL, name);
+            return symTable.semanticError;
+        } else {
+            BLangExpression argumentExpression = functionArgList.get(0);
+            if (argumentExpression instanceof BLangTypedescExpr) {
+                return ((BLangTypedescExpr) argumentExpression).resolvedType;
+            } else if (argumentExpression instanceof BLangBracedOrTupleExpr) {
+                List<BLangExpression> expressionList = ((BLangBracedOrTupleExpr) argumentExpression).
+                                                                                                            getExpressions();
+                List<BType> tupleTypeList = new ArrayList<>();
+                for (BLangExpression expression : expressionList) {
+                    if (expression instanceof BLangTypedescExpr) {
+                        tupleTypeList.add(((BLangTypedescExpr) expression).resolvedType);
+                    } else {
+                        tupleTypeList.add(((BLangSimpleVarRef) expression).symbol.type);
+                    }
+                }
+                return new BTupleType(tupleTypeList);
+            } else if (argumentExpression instanceof BLangSimpleVarRef) {
+                return ((BLangSimpleVarRef) argumentExpression).symbol.type;
+            } else {
+                return symTable.semanticError;
+            }
+        }
+    }
+
 
     private BSymbol getBinaryOpForNullChecks(OperatorKind opKind, BType lhsType,
                                              BType rhsType) {

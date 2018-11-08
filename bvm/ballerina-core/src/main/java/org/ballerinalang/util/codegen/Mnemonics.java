@@ -79,6 +79,7 @@ public class Mnemonics {
         mnemonics[InstructionCodes.PANIC] = "panic";
         mnemonics[InstructionCodes.REASON] = "reason";
         mnemonics[InstructionCodes.DETAIL] = "detail";
+        mnemonics[InstructionCodes.CONVERT] = "convert";
 
         mnemonics[InstructionCodes.MAPLOAD] = "mapload";
         mnemonics[InstructionCodes.MAPSTORE] = "mapstore";

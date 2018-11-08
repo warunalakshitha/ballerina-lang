@@ -28,6 +28,7 @@ import org.wso2.ballerinalang.compiler.semantics.model.symbols.BOperatorSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BPackageSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BTypeSymbol;
+import org.wso2.ballerinalang.compiler.semantics.model.symbols.BVarSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.SymTag;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BAnyType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BAnydataType;
@@ -58,6 +59,7 @@ import org.wso2.ballerinalang.programfile.InstructionCodes;
 import org.wso2.ballerinalang.util.Flags;
 import org.wso2.ballerinalang.util.Lists;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -446,6 +448,7 @@ public class SymbolTable {
         defineBuiltinMethod(BLangBuiltInMethod.IS_NAN, floatType, booleanType, InstructionCodes.NOP);
         defineBuiltinMethod(BLangBuiltInMethod.IS_FINITE, floatType, booleanType, InstructionCodes.NOP);
         defineBuiltinMethod(BLangBuiltInMethod.IS_INFINITE, floatType, booleanType, InstructionCodes.NOP);
+        
     }
 
     private void defineBuiltinMethod(BLangBuiltInMethod method, BType type, BType retType, int opcode) {
@@ -513,9 +516,12 @@ public class SymbolTable {
                 retType = unionType;
             }
         }
+        List<BVarSymbol> symbolList = Lists.of(new BVarSymbol(0, new Name("_"), rootPkgSymbol.pkgID, targetType,
+                                                              rootPkgSymbol));
         BInvokableType opType = new BInvokableType(paramTypes, retType, null);
         BConversionOperatorSymbol symbol = new BConversionOperatorSymbol(this.rootPkgSymbol.pkgID, opType,
                 this.rootPkgSymbol, implicit, safe, opcode);
+        symbol.params = symbolList;
         symbol.kind = SymbolKind.CONVERSION_OPERATOR;
         rootScope.define(symbol.name, symbol);
     }
@@ -527,5 +533,26 @@ public class SymbolTable {
         BInvokableType opType = new BInvokableType(paramTypes, retType, null);
         BOperatorSymbol symbol = new BOperatorSymbol(name, rootPkgSymbol.pkgID, opType, rootPkgSymbol, opcode);
         rootScope.define(name, symbol);
+    }
+
+    public BOperatorSymbol createOperator(Name name,
+                                          List<BType> paramTypes,
+                                          BType retType,
+                                          int opcode) {
+        BInvokableType opType = new BInvokableType(paramTypes, retType, null);
+        BOperatorSymbol symbol = new BOperatorSymbol(name, rootPkgSymbol.pkgID, opType, rootPkgSymbol, opcode);
+
+        List<BVarSymbol> symbolList = new ArrayList<>();
+        for (BType type : paramTypes) {
+            BVarSymbol targetVarSymbol = new BVarSymbol(0, new Name("_"), rootPkgSymbol.pkgID,
+                                                        type, rootPkgSymbol);
+
+            symbolList.add(targetVarSymbol);
+        }
+
+        symbol.params = symbolList;
+        symbol.retType = retType;
+        rootScope.define(name, symbol);
+        return symbol;
     }
 }
