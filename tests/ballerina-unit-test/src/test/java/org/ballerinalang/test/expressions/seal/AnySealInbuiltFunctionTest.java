@@ -21,6 +21,7 @@ import org.ballerinalang.launcher.util.BCompileUtil;
 import org.ballerinalang.launcher.util.BRunUtil;
 import org.ballerinalang.launcher.util.CompileResult;
 import org.ballerinalang.model.types.BAnyType;
+import org.ballerinalang.model.types.BAnydataType;
 import org.ballerinalang.model.types.BJSONType;
 import org.ballerinalang.model.types.BObjectType;
 import org.ballerinalang.model.types.BRecordType;
@@ -70,13 +71,13 @@ public class AnySealInbuiltFunctionTest {
 
         Assert.assertEquals(results.length, 1);
 
-        Assert.assertEquals(employee0.get("age").getType().getClass(), BAnyType.class);
+        Assert.assertEquals(employee0.get("age").getType().getClass(), BAnydataType.class);
         Assert.assertEquals(employee0.get("age").stringValue(), "25");
 
         Assert.assertEquals(employee0.get("batch").getType().getClass(), BStringType.class);
         Assert.assertEquals(employee0.get("batch").stringValue(), "LK2014");
 
-        Assert.assertEquals(employee0.get("school").getType().getClass(), BAnyType.class);
+        Assert.assertEquals(employee0.get("school").getType().getClass(), BAnydataType.class);
         Assert.assertEquals(employee0.get("school").stringValue(), "Hindu College");
     }
 

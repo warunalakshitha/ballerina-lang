@@ -21,17 +21,10 @@ import org.ballerinalang.launcher.util.BCompileUtil;
 import org.ballerinalang.launcher.util.BRunUtil;
 import org.ballerinalang.launcher.util.CompileResult;
 import org.ballerinalang.model.types.BAnyType;
-import org.ballerinalang.model.types.BJSONType;
-import org.ballerinalang.model.types.BMapType;
-import org.ballerinalang.model.types.BRecordType;
-import org.ballerinalang.model.types.BStringType;
-import org.ballerinalang.model.values.BMap;
 import org.ballerinalang.model.values.BValue;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import java.util.LinkedHashMap;
 
 /**
  * Test cases for sealing XML type variables.

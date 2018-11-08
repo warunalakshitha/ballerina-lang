@@ -367,8 +367,8 @@ public class BMap<K, V extends BValue> implements BRefType, BCollection, Seriali
 
                 } else {
                     if (!((BRecordType) type).sealed) {
-                        if (restFieldType.getTag() == TypeTags.ANY_TAG) {
-                            ((BValueType) valueEntry.getValue()).setType(BTypes.typeAny);
+                        if (restFieldType.getTag() == TypeTags.ANYDATA_TAG) {
+                            ((BValueType) valueEntry.getValue()).setType(BTypes.typeAnydata);
                         } else if (((BValue) valueEntry.getValue()).getType().getTag() != restFieldType.getTag()) {
                             throw new BallerinaException("Seal failed due to closed record type. Field " +
                                     fieldName + " does not belongs to the rest field type " + restFieldType);

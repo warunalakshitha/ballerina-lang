@@ -15,34 +15,35 @@ function sealStreamTypeVariable() returns stream<Person> {
     Employee e1 = { name: "Raja", age: 25, salary: 20000 };
     Employee e2 = { name: "Mohan", age: 45, salary: 10000 };
 
-    employeeStream.seal(stream<Person>);
+    stream<Person> personStream = employeeStream.seal(stream<Person>);
+    return personStream;
 }
 
 function seaWithInvalidNoOrParameters() returns json {
 
     json jsonValue = [1, false, null, "foo", { first: "John", last: "Pala" }];
-    jsonValue.seal(any, 34);
+    json returnValue = jsonValue.seal(any, 34);
 
-    return jsonValue;
+    return returnValue;
 }
 
 function sealStringValueToJson() returns json {
     string value = "mohan";
-    value.seal(json);
+    json jsonValue = value.seal(json);
 
-    return value;
+    return jsonValue;
 }
 
 function sealStringValueToAny() returns any {
     string[] stringArray = ["mohan", "mike"];
-    stringArray.seal(any);
+    any anyValue = stringArray.seal(any);
 
-    return stringArray;
+    return anyValue;
 }
 
 function sealJSONToUnion() returns int|float|json {
     json jsonVar = { name: "Raja", status: "single", batch: "LK2014", school: "Hindu College" };
 
-    jsonVar.seal(int|float|json);
-    return jsonVar;
+    int|float|json unionValue = jsonVar.seal(int|float|json);
+    return unionValue;
 }

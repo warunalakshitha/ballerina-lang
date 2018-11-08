@@ -9,22 +9,22 @@ function sealJSONToXML() returns xml {
 
     json jsonValue = { name: "Raja", age: 25, salary: 20000 };
 
-    jsonValue.seal(xml);
-    return jsonValue;
+    xml xmlValue = jsonValue.seal(xml);
+    return xmlValue;
 }
 
 function sealJSONToObject() returns EmployeeObj {
 
     json employee = { name: "John", age: 23 };
-    employee.seal(EmployeeObj);
+    EmployeeObj employeeObj = employee.seal(EmployeeObj);
 
-    return employee;
+    return employeeObj;
 }
 
-function sealJSONToTuple() returns (string,string) {
+function sealJSONToTuple() returns (string, string) {
 
-    json jsonValue = { name: "Raja", status: "single"};
-    jsonValue.seal((string,string));
+    json jsonValue = { name: "Raja", status: "single" };
+    (string, string) tupleValue = jsonValue.seal((string, string));
 
-    return jsonValue;
+    return tupleValue;
 }

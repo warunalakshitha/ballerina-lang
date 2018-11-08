@@ -1207,7 +1207,6 @@ public class PackageInfoReader {
                 case InstructionCodes.ARRAY2JSON:
                 case InstructionCodes.REASON:
                 case InstructionCodes.DETAIL:
-                case InstructionCodes.SEAL:
                     i = codeStream.readInt();
                     j = codeStream.readInt();
                     packageInfo.addInstruction(InstructionFactory.get(opcode, i, j));
@@ -1281,6 +1280,7 @@ public class PackageInfoReader {
                 case InstructionCodes.XMLLOAD:
                 case InstructionCodes.NEW_INT_RANGE:
                 case InstructionCodes.LENGTHOF:
+                case InstructionCodes.SEAL:
                 case InstructionCodes.NEWSTREAM:
                 case InstructionCodes.CHECKCAST:
                 case InstructionCodes.MAP2T:

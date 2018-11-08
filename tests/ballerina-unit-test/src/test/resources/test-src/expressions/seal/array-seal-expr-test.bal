@@ -23,9 +23,9 @@ function sealRecordToAnyArray() returns any[] {
     Teacher p2 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College" };
 
     Teacher[] teacherArray = [p1, p2];
-    teacherArray.seal(any[]);
+    any[] anyArray = teacherArray.seal(any[]);
 
-    return teacherArray;
+    return anyArray;
 }
 
 function sealAnyToRecordArray() returns Teacher[] {
@@ -33,8 +33,8 @@ function sealAnyToRecordArray() returns Teacher[] {
     Teacher p1 = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
     Teacher p2 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College" };
 
-    any[] teacherArray = [p1, p2];
-    teacherArray.seal(Teacher[]);
+    any[] anyArray = [p1, p2];
+    Teacher[] teacherArray = anyArray.seal(Teacher[]);
 
     return teacherArray;
 }
@@ -45,10 +45,9 @@ function sealAnyToSimilarOpenRecordArray() returns Employee[] {
     Teacher p2 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College" };
 
     any[] teacherArray = [p1, p2];
-    teacherArray.seal
-    (Employee[]);
+    Employee[] employeeArray = teacherArray.seal(Employee[]);
 
-    return teacherArray;
+    return employeeArray;
 }
 
 function sealRecordToSimilarOpenRecordArray() returns Employee[] {
@@ -57,9 +56,9 @@ function sealRecordToSimilarOpenRecordArray() returns Employee[] {
     Teacher p2 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College" };
 
     Teacher[] teacherArray = [p1, p2];
-    teacherArray.seal(Employee[]);
+    Employee[] employeeArray = teacherArray.seal(Employee[]);
 
-    return teacherArray;
+    return employeeArray;
 }
 
 

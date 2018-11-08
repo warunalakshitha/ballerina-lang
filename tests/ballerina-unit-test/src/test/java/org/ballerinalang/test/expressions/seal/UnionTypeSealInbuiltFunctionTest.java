@@ -21,6 +21,7 @@ import org.ballerinalang.launcher.util.BCompileUtil;
 import org.ballerinalang.launcher.util.BRunUtil;
 import org.ballerinalang.launcher.util.CompileResult;
 import org.ballerinalang.model.types.BAnyType;
+import org.ballerinalang.model.types.BAnydataType;
 import org.ballerinalang.model.types.BJSONType;
 import org.ballerinalang.model.types.BMapType;
 import org.ballerinalang.model.types.BRecordType;
@@ -65,7 +66,7 @@ public class UnionTypeSealInbuiltFunctionTest {
         Assert.assertEquals(employee0.get("batch").getType().getClass(), BStringType.class);
 
         Assert.assertEquals(employee0.get("school").stringValue(), "Hindu College");
-        Assert.assertEquals(employee0.get("school").getType().getClass(), BAnyType.class);
+        Assert.assertEquals(employee0.get("school").getType().getClass(), BAnydataType.class);
     }
 
     @Test
@@ -139,18 +140,18 @@ public class UnionTypeSealInbuiltFunctionTest {
 
         Assert.assertEquals(employee0.getMap().get("a").getType().getName(), "Employee");
         Assert.assertEquals(((BValue) ((BMap) employee0.getMap().get("a")).getMap().get("age")).getType().getClass(),
-                BAnyType.class);
+                BAnydataType.class);
         Assert.assertEquals(((BValue) ((BMap) employee0.getMap().get("a")).getMap().get("school")).getType().getClass(),
-                BAnyType.class);
+                BAnydataType.class);
         Assert.assertEquals(((BValue) ((BMap) employee0.getMap().get("a")).getMap().get("batch")).getType().getClass(),
                 BStringType.class);
 
 
         Assert.assertEquals(employee0.getMap().get("b").getType().getName(), "Employee");
         Assert.assertEquals(((BValue) ((BMap) employee0.getMap().get("b")).getMap().get("age")).getType().getClass(),
-                BAnyType.class);
+                BAnydataType.class);
         Assert.assertEquals(((BValue) ((BMap) employee0.getMap().get("b")).getMap().get("school")).getType().getClass(),
-                BAnyType.class);
+                BAnydataType.class);
         Assert.assertEquals(((BValue) ((BMap) employee0.getMap().get("b")).getMap().get("batch")).getType().getClass(),
                 BStringType.class);
     }

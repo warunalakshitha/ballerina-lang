@@ -18,16 +18,16 @@ type EmployeeObj object {
 
 function sealObjectsV1() returns EmployeeObj {
     PersonObj p = new PersonObj();
-    p.seal(EmployeeObj);
+    EmployeeObj employee = p.seal(EmployeeObj);
 
-    return p;
+    return employee;
 }
 
 function sealObjectsToAny() returns any {
     PersonObj p = new PersonObj();
-    p.seal(any);
+    any anyValue = p.seal(any);
 
-    return p;
+    return anyValue;
 }
 
 

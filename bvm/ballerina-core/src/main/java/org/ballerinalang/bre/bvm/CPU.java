@@ -819,14 +819,20 @@ public class CPU {
 
         int i = operands[0];
         int j = operands[1];
+        int k = operands[2];
 
         BRefType<?> sealValue = sf.refRegs[i];
         BType sealType = ((TypeRefCPEntry) ctx.constPool[j]).getType();
+
+        if(sealType.getTag() == TypeTags.UNION_TAG){
+            sealType = ((BUnionType) sealType).getMemberTypes().get(0);
+        }
 
         //mutate reference variable
         if (isSealable(sealValue, sealType)) {
             try {
                 sealValue.seal(sealType);
+                sf.refRegs[k] = sealValue;
             } catch (BallerinaException e) {
                 ctx.setError(BLangVMErrors.createError(ctx,
                         BLangExceptionHelper.getErrorMessage(RuntimeErrors.INCOMPATIBLE_SEAL_OPERATION,

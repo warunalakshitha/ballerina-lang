@@ -39,37 +39,37 @@ type EmployeeObj object {
 function sealUnionToRecord() returns Employee {
     int|float|Employee unionVar = { name: "Raja", status: "single", batch: "LK2014", school: "Hindu College" };
 
-    unionVar.seal(Employee);
-    return unionVar;
+    Employee employee = unionVar.seal(Employee);
+    return employee;
 }
 
 function sealUnionToJSON() returns json {
     int|float|json unionVar = { name: "Raja", status: "single", batch: "LK2014", school: "Hindu College" };
 
-    unionVar.seal(json);
-    return unionVar;
+    json jsonValue = unionVar.seal(json);
+    return jsonValue;
 }
 
 function sealUnionToObject() returns EmployeeObj {
     int|float|PersonObj unionVar = new PersonObj();
 
-    unionVar.seal(EmployeeObj);
-    return unionVar;
+    EmployeeObj employee = unionVar.seal(EmployeeObj);
+    return employee;
 }
 
 function sealUnionToXML() returns xml {
     int|float|xml unionVar = xml `<book>The Lost World</book>`;
 
-    unionVar.seal(xml);
-    return unionVar;
+    xml xmlValue = unionVar.seal(xml);
+    return xmlValue;
 }
 
 
 function sealUnionToIntMap() returns map<int> {
     int|float|map<int> unionVar = { "a": 1, "b": 2 };
 
-    unionVar.seal(map<int>);
-    return unionVar;
+    map<int> mapValue = unionVar.seal(map<int>);
+    return mapValue;
 }
 
 function sealUnionToConstraintMap() returns map<Employee> {
@@ -80,14 +80,14 @@ function sealUnionToConstraintMap() returns map<Employee> {
 
     int|float|map<Teacher> unionVar = teacherMap;
 
-    unionVar.seal(map<Employee>);
-    return unionVar;
+    map<Employee> mapValue = unionVar.seal(map<Employee>);
+    return mapValue;
 }
 
 function sealUnionToAny() returns any {
 
     int|float|string|boolean unionValue = "mohan";
-    unionValue.seal(any);
+    any anyValue = unionValue.seal(any);
 
-    return unionValue;
+    return anyValue;
 }

@@ -40,22 +40,22 @@ function sealTupleValueV1() returns (string, Teacher) {
     (string, Teacher) tupleValue = ("Mohan", { name: "Raja", age: 25, status: "single", batch: "LK2014", school:
     "Hindu College" });
 
-    tupleValue.seal((string, Teacher));
-    return tupleValue;
+    (string, Teacher) returnValue = tupleValue.seal((string, Teacher));
+    return returnValue;
 }
 
 function sealTupleValueV2() returns (string, Employee) {
     (string, Teacher) tupleValue = ("Mohan", { name: "Raja", age: 25, status: "single", batch: "LK2014", school:
     "Hindu College" });
 
-    tupleValue.seal((string, Employee));
-    return tupleValue;
+    (string, Employee) returnValue = tupleValue.seal((string, Employee));
+    return returnValue;
 }
 
 function sealTupleToAny() returns any {
     (string, Teacher) tupleValue = ("Mohan", { name: "Raja", age: 25, status: "single", batch: "LK2014", school:
     "Hindu College" });
 
-    tupleValue.seal(any);
-    return tupleValue;
+    any anyValue = tupleValue.seal(any);
+    return anyValue;
 }

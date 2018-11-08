@@ -4,6 +4,6 @@ function sealXMLToAny() returns any {
 
     xml xmlValue = xml `<book>The Lost World</book>`;
 
-    xmlValue.seal(any);
-    return xmlValue;
+    any anyValue = xmlValue.seal(any);
+    return anyValue;
 }

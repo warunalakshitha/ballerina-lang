@@ -96,7 +96,6 @@ public class BRefValueArray extends BNewArray implements Serializable {
     public void seal(BType type) {
         if (type.getTag() != TypeTags.ANY_TAG) {
             if ((this).arrayType.getTag() == TypeTags.TUPLE_TAG) {
-                System.out.println("");
                 BRefType<?>[] arrayValues = this.getValues();
                 for (int i = 0; i < this.size(); i++) {
                     arrayValues[i].seal(((BTupleType) type).getTupleTypes().get(i));

@@ -1,4 +1,3 @@
-
 type Student record {
     string name;
     string status;
@@ -34,70 +33,71 @@ type Teacher record {
 function testSealWithOpenRecords() returns Employee {
     Teacher t1 = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
 
-    t1.seal(Employee);
-    return t1;
+    Employee e = t1.seal(Employee);
+    return e;
 }
 
 function testSealWithOpenRecordsNonAssignable() returns Teacher {
     Employee e1 = { name: "Raja", status: "single", batch: "LK2014" };
 
-    e1.seal(Teacher);
-    return e1;
+    Teacher t = e1.seal(Teacher);
+    return t;
 }
 
 function testSealClosedRecordWithOpenRecord() returns Employee {
     Person p1 = { name: "Raja", status: "single", batch: "LK2014", school: "Hindu College" };
 
-    p1.seal(Employee);
-    return p1;
+    Employee e = p1.seal(Employee);
+    return e;
 }
 
 function sealRecordToAny() returns any {
     Teacher teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
-    teacher.seal(any);
+    any anyValue = teacher.seal(any);
 
-    return teacher;
+    return anyValue;
 }
 
 function sealRecordToJSON() returns json {
 
     Employee employee = { name: "John", status: "single", batch: "LK2014", school: "Hindu College" };
-    employee.seal(json);
+    json jsonValue = employee.seal(json);
 
-    return employee;
+    return jsonValue;
 }
 
 function sealRecordToMap() returns map {
 
     Employee employee = { name: "John", status: "single", batch: "LK2014", school: "Hindu College" };
-    employee.seal(map);
+    map mapValue = employee.seal(map);
 
-    return employee;
+    return mapValue;
 }
 
 function sealRecordToMapV2() returns map<string> {
 
     Employee employee = { name: "John", status: "single", batch: "LK2014", school: "Hindu College" };
-    employee.seal(map<string>);
+    map<string> mapValue = employee.seal(map<string>);
 
-    return employee;
+    return mapValue;
 }
 
 function sealRecordToMapV3() returns map {
 
-    Employee employee = { name: "John", status: "single", batch: "LK2014"};
-    Teacher teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College", emp : employee };
-    teacher.seal(map);
+    Employee employee = { name: "John", status: "single", batch: "LK2014" };
+    Teacher teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College", emp: employee
+    };
+    map mapValue = teacher.seal(map);
 
-    return teacher;
+    return mapValue;
 }
 
 //-------------------------------- Negative Test cases ------------------------------------------------------------
 function sealOpenRecordToMap() returns map<string> {
 
     Teacher teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
-    teacher.seal(map<string>);
+    map<string> mapValue = teacher.seal(map<string>);
 
-    return teacher;
+    return mapValue;
 }
 

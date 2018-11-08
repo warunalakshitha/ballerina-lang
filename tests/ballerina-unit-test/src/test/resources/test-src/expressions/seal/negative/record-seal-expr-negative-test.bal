@@ -39,53 +39,53 @@ function sealRecordToXML() returns xml {
 
     Employee employeeRecord = { name: "Raja", age: 25, salary: 20000 };
 
-    employeeRecord.seal(xml);
-    return employeeRecord;
+    xml xmlValue = employeeRecord.seal(xml);
+    return xmlValue;
 }
 
 function sealOpenRecordToClosedRecord() returns Employee {
 
     Teacher teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
-    teacher.seal(Employee);
+    Employee employee = teacher.seal(Employee);
 
-    return teacher;
+    return employee;
 }
 
 function sealClosedRecordToClosedRecord() returns Student {
 
     Person person = { name: "Raja", age: 25, batch: "LK2014", school: "Hindu College" };
-    person.seal(Student);
+    Student student = person.seal(Student);
 
-    return person;
+    return student;
 }
 
 function sealRecordToObject() returns TeacherObj {
 
     Teacher teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
-    teacher.seal(TeacherObj);
+    TeacherObj returnValue = teacher.seal(TeacherObj);
 
-    return teacher;
+    return returnValue;
 }
 
 function sealClosedRecordToMap() returns map<string> {
 
     Person person = { name: "Raja", age: 25, batch: "LK2014", school: "Hindu College" };
-    person.seal(map<string>);
+    map<string> mapValue = person.seal(map<string>);
 
-    return person;
+    return mapValue;
 }
 
 function sealRecordToArray() returns string[] {
     Employee e1 = { name: "Raja", status: "single", batch: "LK2014" };
-    e1.seal(string[]);
+    string[] stringArray = e1.seal(string[]);
 
-    return e1;
+    return stringArray;
 }
 
-function sealRecordToTuple() returns (string,string) {
+function sealRecordToTuple() returns (string, string) {
 
     Employee e1 = { name: "Raja", status: "single", batch: "LK2014" };
-    e1.seal((string,string));
+    (string, string) tupleValue = e1.seal((string, string));
 
-    return e1;
+    return tupleValue;
 }
