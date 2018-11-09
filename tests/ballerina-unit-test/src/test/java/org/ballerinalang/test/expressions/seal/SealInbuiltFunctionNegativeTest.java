@@ -103,7 +103,7 @@ public class SealInbuiltFunctionNegativeTest {
     @Test
     public void testRecordSealNegativeTest() {
 
-        Assert.assertEquals(recordNegativeTestCompileResult.getErrorCount(), 12);
+        Assert.assertEquals(recordNegativeTestCompileResult.getErrorCount(), 14);
 
         //Negative test case to confirm record cannot be sealed as xml.
         BAssertUtil.validateError(recordNegativeTestCompileResult, 0,
@@ -146,6 +146,11 @@ public class SealInbuiltFunctionNegativeTest {
                 "Incompatible seal type: type 'Employee' cannot be sealed as type" +
                         " '(string,string)'",
                 88, 35);
+
+        //Negative test case to confirm record(with  object) to anydata seal conversion.
+        BAssertUtil.validateError(recordNegativeTestCompileResult, 12,
+                "Incompatible seal type: type 'ExtendedEmployee' cannot be sealed as type 'anydata'",
+                109, 28);
 
     }
 
