@@ -64,7 +64,7 @@ function sealAnyMapToIntMap() returns map<int> {
 
 
 function sealAnyMapToStringMap() returns map<string> {
-    map<any> m = { "firstName": "mohan", "lastName": "raj" };
+    map<any> m = { firstName: "mohan", lastName: "raj" };
     map<string> mapValue = m.seal(map<string>);
 
     return mapValue;
@@ -72,7 +72,7 @@ function sealAnyMapToStringMap() returns map<string> {
 
 
 function sealAnyMapToStringMapWithoutExplicitConstraintType() returns map<string> {
-    map<any> m = { "firstName": "mohan", "lastName": "raj" };
+    map<any> m = { firstName: "mohan", lastName: "raj" };
     map<string> mapValue = m.seal(map<string>);
 
     return mapValue;
@@ -199,6 +199,16 @@ function sealIntToAnyMultiDimensionMap() returns map<map<map<any>>> {
     map<map<map<any>>> mapValue = m.seal(map<map<map<any>>>);
 
     return mapValue;
+}
+
+function sealConstraintMapToAnydata() returns anydata {
+    Teacher p1 = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
+    Teacher p2 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College" };
+
+    map<Teacher> teacherMap = { "a": p1, "b": p2 };
+    anydata anydataValue = teacherMap.seal(anydata);
+
+    return anydataValue;
 }
 
 //---------------------------------- Negative Test cases -----------------------------------------------------------
