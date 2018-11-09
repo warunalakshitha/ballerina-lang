@@ -91,3 +91,25 @@ function sealUnionToAny() returns any {
 
     return anyValue;
 }
+
+function sealUnionToTuple() returns (string, string) {
+
+    int|float|(string, string) unionVar = ("mohan", "LK2014");
+    (string, string) tupleValue = unionVar.seal((string, string));
+
+    return tupleValue;
+}
+
+//-------------------- Negative Test cases ---------------------------------------------------
+
+function sealNegativeUnionToConstraintMap() returns map<Person> {
+    Teacher p1 = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
+    Teacher p2 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College" };
+
+    map<Teacher> teacherMap = { "a": p1, "b": p2 };
+
+    int|float|map<Teacher> unionVar = teacherMap;
+
+    map<Person> mapValue = unionVar.seal(map<Person>);
+    return mapValue;
+}
