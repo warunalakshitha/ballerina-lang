@@ -47,3 +47,19 @@ function sealJSONToUnion() returns int|float|json {
     int|float|json unionValue = jsonVar.seal(int|float|json);
     return unionValue;
 }
+
+function sealAnyToString() returns string? {
+    any value = "mohan";
+    string? stringValue = value.seal(string);
+
+    return stringValue;
+}
+
+
+function sealJSONArrayToPrimitiveTypeArray() returns int []{
+
+    json intArray = [1, 2, 3, 4];
+    int [] returnArray = intArray.seal(int []);
+
+    return returnArray;
+}

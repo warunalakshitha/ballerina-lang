@@ -71,7 +71,7 @@ public class SealInbuiltFunctionNegativeTest {
     @Test
     public void testSealNegativeTest() {
 
-        Assert.assertEquals(compileResult.getErrorCount(), 10);
+        Assert.assertEquals(compileResult.getErrorCount(), 14);
 
         //Negative test case to verify the unsupported type for seal operation.
         BAssertUtil.validateError(compileResult, 0,
@@ -98,6 +98,16 @@ public class SealInbuiltFunctionNegativeTest {
                 "Incompatible seal type: type 'json' cannot be sealed as type " +
                         "'int|float|json'",
                 47, 33);
+
+        //Negative test case to confirm values cannot be sealed as primitive type.
+        BAssertUtil.validateError(compileResult, 10,
+                "Incompatible seal type: type 'any' cannot be sealed as type 'string'",
+                53, 27);
+
+        //Negative test case to confirm values cannot be sealed as primitive type arrays.
+        BAssertUtil.validateError(compileResult, 12,
+                "Incompatible seal type: type 'json' cannot be sealed as type 'int[]'",
+                62, 26);
     }
 
     @Test

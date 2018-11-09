@@ -289,7 +289,7 @@ public class SymbolResolver extends BLangNodeVisitor {
     }
 
     BSymbol resolveBuiltinOperator(DiagnosticPos pos, Name name, List<BLangExpression> functionArgList,
-                                          BType... args) {
+                                   BType... args) {
         BType type = args[0];
         switch (type.tag) {
             case TypeTags.RECORD:
@@ -351,7 +351,7 @@ public class SymbolResolver extends BLangNodeVisitor {
                 }
 
                 //It is not allowed to seal a variable to union type.
-                if (sealType.tag != TypeTags.UNION && types.isSealable(sourceType, sealType)) {
+                if (isSealSupportedTargetType(sealType) && types.isSealable(sourceType, sealType)) {
                     List<BType> paramTypes = new ArrayList<>();
                     paramTypes.add(symTable.typeDesc);
                     return symTable.createOperator(name, paramTypes, sealType, InstructionCodes.SEAL);
@@ -975,7 +975,7 @@ public class SymbolResolver extends BLangNodeVisitor {
      * Returns the eligibility to use 'seal' inbuilt function against the respective expression.
      *
      * @param type expression that 'seal' function is used
-     * @return eligibility to use 'seal' funtion
+     * @return eligibility to use 'seal' function
      */
     private boolean canHaveSealInvocation(BType type) {
         switch (type.tag) {
@@ -997,5 +997,31 @@ public class SymbolResolver extends BLangNodeVisitor {
                 return true;
         }
         return false;
+    }
+
+    /**
+     * Returns the eligibility whether seal can be performed on given target type.
+     *
+     * @param targetType target type used for the seal operation
+     * @return eligibility to use as the target type for 'seal' function
+     */
+    private boolean isSealSupportedTargetType(BType targetType) {
+        switch (targetType.tag) {
+            case TypeTags.INT:
+            case TypeTags.STRING:
+            case TypeTags.BOOLEAN:
+            case TypeTags.BYTE:
+            case TypeTags.FLOAT:
+            case TypeTags.UNION:
+                return false;
+            case TypeTags.ARRAY:
+                // Primitive type array does not support seal because primitive arrays are not using ref registry.
+                int arrayConstraintTypeTag = ((BArrayType) targetType).eType.tag;
+                return !(arrayConstraintTypeTag == TypeTags.INT || arrayConstraintTypeTag == TypeTags.BOOLEAN ||
+                        arrayConstraintTypeTag == TypeTags.FLOAT || arrayConstraintTypeTag == TypeTags.BYTE ||
+                        arrayConstraintTypeTag == TypeTags.STRING);
+        }
+
+        return true;
     }
 }

@@ -145,14 +145,6 @@ function sealJSONArrayToConstraintArray() returns Student []{
     return studentArray;
 }
 
-function sealJSONArrayToPrimitiveTypeArray() returns int []{
-
-    json intArray = [1, 2, 3, 4];
-    int [] returnArray = intArray.seal(int []);
-
-    return returnArray;
-}
-
 function sealJSONArrayToAnyTypeArray() returns any []{
 
     json jsonArray =  [1, false, "foo", { first: "John", last: "Pala" }];
