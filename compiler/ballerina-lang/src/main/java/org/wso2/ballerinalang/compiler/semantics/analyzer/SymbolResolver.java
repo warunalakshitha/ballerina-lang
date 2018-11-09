@@ -993,6 +993,7 @@ public class SymbolResolver extends BLangNodeVisitor {
             case TypeTags.UNION:
             case TypeTags.TUPLE:
             case TypeTags.ANY:
+            case TypeTags.ANYDATA:
                 return true;
         }
         return false;
