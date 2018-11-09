@@ -20,7 +20,6 @@ package org.ballerinalang.test.expressions.seal;
 import org.ballerinalang.launcher.util.BCompileUtil;
 import org.ballerinalang.launcher.util.BRunUtil;
 import org.ballerinalang.launcher.util.CompileResult;
-import org.ballerinalang.model.types.BAnyType;
 import org.ballerinalang.model.types.BAnydataType;
 import org.ballerinalang.model.types.BRecordType;
 import org.ballerinalang.model.types.BStringType;
