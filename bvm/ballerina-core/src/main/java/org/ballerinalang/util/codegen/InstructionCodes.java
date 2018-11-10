@@ -173,6 +173,8 @@ public interface InstructionCodes {
     int FPLOAD = 130;
     int VFPLOAD = 131;
 
+    int CLONE = 125;
+
     // Type Conversion related instructions
     int I2F = 132;
     int I2S = 133;
