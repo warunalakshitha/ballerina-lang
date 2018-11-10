@@ -23,7 +23,6 @@ import org.ballerinalang.model.tree.NodeKind;
 import org.ballerinalang.model.tree.OperatorKind;
 import org.ballerinalang.model.types.TypeKind;
 import org.ballerinalang.util.diagnostic.DiagnosticCode;
-import org.wso2.ballerinalang.compiler.semantics.model.BLangBuiltInMethod;
 import org.wso2.ballerinalang.compiler.semantics.model.Scope;
 import org.wso2.ballerinalang.compiler.semantics.model.Scope.ScopeEntry;
 import org.wso2.ballerinalang.compiler.semantics.model.SymbolEnv;
@@ -57,8 +56,11 @@ import org.wso2.ballerinalang.compiler.semantics.model.types.BUnionType;
 import org.wso2.ballerinalang.compiler.tree.BLangFunction;
 import org.wso2.ballerinalang.compiler.tree.BLangNodeVisitor;
 import org.wso2.ballerinalang.compiler.tree.expressions.BLangArrowFunction;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangBracedOrTupleExpr;
 import org.wso2.ballerinalang.compiler.tree.expressions.BLangExpression;
 import org.wso2.ballerinalang.compiler.tree.expressions.BLangLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangSimpleVarRef;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangTypedescExpr;
 import org.wso2.ballerinalang.compiler.tree.types.BLangArrayType;
 import org.wso2.ballerinalang.compiler.tree.types.BLangBuiltInRefTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangConstrainedType;
@@ -287,7 +289,9 @@ public class SymbolResolver extends BLangNodeVisitor {
         return bSymbol;
     }
 
-    public BSymbol resolveBuiltinOperator(DiagnosticPos pos, BLangBuiltInMethod method, BType... args) {
+
+    BSymbol resolveBuiltinOperator(DiagnosticPos pos, Name name, List<BLangExpression> functionArgList,
+                                   BType... args) {
         BType type = args[0];
         switch (type.tag) {
             case TypeTags.RECORD:
@@ -310,19 +314,69 @@ public class SymbolResolver extends BLangNodeVisitor {
         List<BType> argsList = Lists.of(type);
         List<BType> paramTypes = Arrays.asList(args).subList(1, args.length);
         argsList.addAll(paramTypes);
-        Name name = names.fromString(method.getName());
         BSymbol bSymbol = resolveOperator(name, argsList);
 
-        if (bSymbol == symTable.notFoundSymbol && method == BLangBuiltInMethod.CLONE) {
-            BType cloneType = args[0];
-            if (types.isAnydata(cloneType) && cloneType != symTable.nilType) {
-                BInvokableType opType = new BInvokableType(paramTypes, cloneType, null);
-                return new BOperatorSymbol(name, null, opType, null, InstructionCodes.CLONE);
-            } else {
-                dlog.error(pos, DiagnosticCode.INVALID_USAGE_OF_CLONE, cloneType);
+        if (bSymbol == symTable.notFoundSymbol) {
+            if (name.getValue().equals("clone")) {
+                BType cloneType = args[0];
+                if (types.isAnydata(cloneType) && cloneType != symTable.nilType) {
+                    BInvokableType opType = new BInvokableType(paramTypes, cloneType, null);
+                    return new BOperatorSymbol(name, null, opType, null, InstructionCodes.CLONE);
+                } else {
+                    dlog.error(pos, DiagnosticCode.INVALID_USAGE_OF_CLONE, cloneType);
+                }
+            } else if (name.getValue().equals("seal")) {
+                return createSymbolForSealOperator(pos, name, functionArgList, args[0]);
             }
+          
         }
         return bSymbol;
+    }
+
+    private BSymbol createSymbolForSealOperator(DiagnosticPos pos, Name name, List<BLangExpression> functionArgList,
+                                                BType sourceType) {
+        if (canHaveSealInvocation(sourceType)) {
+            if (functionArgList.size() != 1) {
+                dlog.error(pos, DiagnosticCode.TOO_MANY_ARGS_FUNC_CALL, name);
+                resultType = symTable.semanticError;
+            } else {
+                BLangExpression argumentExpression = functionArgList.get(0);
+                BType sealType;
+                if (argumentExpression instanceof BLangTypedescExpr) {
+                    sealType = ((BLangTypedescExpr) argumentExpression).resolvedType;
+                } else if (argumentExpression instanceof BLangBracedOrTupleExpr) {
+                    List<BLangExpression> expressionList = ((BLangBracedOrTupleExpr) argumentExpression).
+                            getExpressions();
+                    List<BType> tupleTypeList = new ArrayList<>();
+                    for (BLangExpression expression : expressionList) {
+                        if (expression instanceof BLangTypedescExpr) {
+                            tupleTypeList.add(((BLangTypedescExpr) expression).resolvedType);
+                        } else {
+                            tupleTypeList.add(((BLangSimpleVarRef) expression).symbol.type);
+                        }
+                    }
+
+                    sealType = new BTupleType(tupleTypeList);
+                } else {
+                    sealType = ((BLangSimpleVarRef) argumentExpression).symbol.type;
+                }
+
+                //It is not allowed to seal a variable to union type.
+                if (isSealSupportedTargetType(sealType) && types.isSealable(sourceType, sealType)) {
+                    List<BType> paramTypes = new ArrayList<>();
+                    paramTypes.add(symTable.typeDesc);
+                    return symTable.createOperator(name, paramTypes, sealType, InstructionCodes.SEAL);
+                } else {
+                    dlog.error(pos, DiagnosticCode.INCOMPATIBLE_SEAL_TYPE, sourceType, sealType);
+                    resultType = symTable.semanticError;
+                }
+            }
+        } else {
+            dlog.error(pos, DiagnosticCode.FUNC_DEFINED_ON_NOT_SUPPORTED_TYPE, name, sourceType.toString());
+            resultType = symTable.semanticError;
+        }
+
+        return symTable.notFoundSymbol;
     }
 
     private BSymbol getBinaryOpForNullChecks(OperatorKind opKind, BType lhsType,
@@ -816,7 +870,7 @@ public class SymbolResolver extends BLangNodeVisitor {
         if (symbol == symTable.notFoundSymbol) {
             // 3) Lookup the root scope for types such as 'error'
             symbol = lookupMemberSymbol(userDefinedTypeNode.pos, symTable.rootScope, this.env, typeName,
-                                        SymTag.VARIABLE_NAME);
+                    SymTag.VARIABLE_NAME);
         }
 
         if (this.env.logErrors && symbol == symTable.notFoundSymbol) {
@@ -926,5 +980,59 @@ public class SymbolResolver extends BLangNodeVisitor {
                 && env.enclInvokable.symbol.receiverSymbol != null
                 && env.enclInvokable.symbol.receiverSymbol.type.tsymbol == symbol.owner
                 || isMemberAllowed(env.enclEnv, symbol));
+    }
+
+    /**
+     * Returns the eligibility to use 'seal' inbuilt function against the respective expression.
+     *
+     * @param type expression that 'seal' function is used
+     * @return eligibility to use 'seal' function
+     */
+    private boolean canHaveSealInvocation(BType type) {
+        switch (type.tag) {
+            case TypeTags.ARRAY:
+                // Primitive type array does not support seal because primitive arrays are not using ref registry.
+                int arrayConstraintTypeTag = ((BArrayType) type).eType.tag;
+                return !(arrayConstraintTypeTag == TypeTags.INT || arrayConstraintTypeTag == TypeTags.BOOLEAN ||
+                        arrayConstraintTypeTag == TypeTags.FLOAT || arrayConstraintTypeTag == TypeTags.BYTE ||
+                        arrayConstraintTypeTag == TypeTags.STRING);
+            case TypeTags.MAP:
+            case TypeTags.RECORD:
+            case TypeTags.OBJECT:
+            case TypeTags.JSON:
+            case TypeTags.XML:
+            case TypeTags.UNION:
+            case TypeTags.TUPLE:
+            case TypeTags.ANY:
+            case TypeTags.ANYDATA:
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns the eligibility whether seal can be performed on given target type.
+     *
+     * @param targetType target type used for the seal operation
+     * @return eligibility to use as the target type for 'seal' function
+     */
+    private boolean isSealSupportedTargetType(BType targetType) {
+        switch (targetType.tag) {
+            case TypeTags.INT:
+            case TypeTags.STRING:
+            case TypeTags.BOOLEAN:
+            case TypeTags.BYTE:
+            case TypeTags.FLOAT:
+            case TypeTags.UNION:
+                return false;
+            case TypeTags.ARRAY:
+                // Primitive type array does not support seal because primitive arrays are not using ref registry.
+                int arrayConstraintTypeTag = ((BArrayType) targetType).eType.tag;
+                return !(arrayConstraintTypeTag == TypeTags.INT || arrayConstraintTypeTag == TypeTags.BOOLEAN ||
+                        arrayConstraintTypeTag == TypeTags.FLOAT || arrayConstraintTypeTag == TypeTags.BYTE ||
+                        arrayConstraintTypeTag == TypeTags.STRING);
+        }
+
+        return true;
     }
 }

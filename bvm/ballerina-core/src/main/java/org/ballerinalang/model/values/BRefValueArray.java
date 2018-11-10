@@ -17,6 +17,7 @@
 */
 package org.ballerinalang.model.values;
 
+import org.ballerinalang.bre.bvm.CPU;
 import org.ballerinalang.model.types.BArrayType;
 import org.ballerinalang.model.types.BTupleType;
 import org.ballerinalang.model.types.BType;
@@ -31,6 +32,7 @@ import org.wso2.ballerinalang.compiler.util.BArrayState;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -94,6 +96,37 @@ public class BRefValueArray extends BNewArray implements Serializable {
     }
 
     @Override
+    public void seal(BType type) {
+        if (type.getTag() != TypeTags.ANY_TAG) {
+            if (type.getTag() == TypeTags.ANYDATA_TAG) {
+                if (!CPU.isAssignable(this.getType(), type, new ArrayList<>())) {
+                    throw new BallerinaException("Error in sealing the value type: " + this.getType() +
+                            " cannot sealed as " + type);
+                }
+            } else if (type.getTag() == TypeTags.TUPLE_TAG) {
+                BRefType<?>[] arrayValues = this.getValues();
+                for (int i = 0; i < this.size(); i++) {
+                    arrayValues[i].seal(((BTupleType) type).getTupleTypes().get(i));
+                }
+
+            } else if (type.getTag() == TypeTags.JSON_TAG) {
+                BRefType<?>[] arrayValues = this.getValues();
+                for (int i = 0; i < this.size(); i++) {
+                    arrayValues[i].seal(type);
+                }
+            } else {
+                BType arrayElementType = ((BArrayType) type).getElementType();
+                BRefType<?>[] arrayValues = this.getValues();
+                for (int i = 0; i < this.size(); i++) {
+                    arrayValues[i].seal(arrayElementType);
+                }
+            }
+        }
+        this.arrayType = type;
+    }
+
+
+    @Override
     public void grow(int newLength) {
         values = Arrays.copyOf(values, newLength);
     }
@@ -137,7 +170,7 @@ public class BRefValueArray extends BNewArray implements Serializable {
     public BRefType<?>[] getValues() {
         return values;
     }
-    
+
     @Override
     public String toString() {
         return stringValue();

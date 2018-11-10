@@ -80,7 +80,8 @@ public interface InstructionCodes {
     int BASTORE = 51;
     int RASTORE = 52;
     int JSONASTORE = 53;
-
+    
+    int SEAL = 54;
     int BIAND = 55;
     int IAND = 56;
     int BIOR = 57;
@@ -92,6 +93,7 @@ public interface InstructionCodes {
     int BGSTORE = 62;
     int RGSTORE = 63;
 
+    int CLONE = 64;
     int ERROR = 65;
     int PANIC = 66;
     int REASON = 67;
@@ -172,8 +174,6 @@ public interface InstructionCodes {
     int FPCALL = 129;
     int FPLOAD = 130;
     int VFPLOAD = 131;
-
-    int CLONE = 125;
 
     // Type Conversion related instructions
     int I2F = 132;
