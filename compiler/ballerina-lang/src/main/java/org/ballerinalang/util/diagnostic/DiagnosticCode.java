@@ -322,7 +322,7 @@ public enum DiagnosticCode {
     UNNECESSARY_CONDITION("unnecessary.condition"),
 
     INVALID_USAGE_OF_CLONE("clone.invocation.invalid"),
-    ;
+    INCOMPATIBLE_SEAL_TYPE("incompatible.seal.type");
 
     private String value;
 
