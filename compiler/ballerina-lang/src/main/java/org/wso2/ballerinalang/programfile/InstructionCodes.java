@@ -219,9 +219,9 @@ public interface InstructionCodes {
     int ANY2S = 170;
     int ANY2B = 171;
     int ANY2D = 172;
-    int ANY2JSON = 173;
-    int ANY2XML = 174;
-    int ANY2MAP = 175;
+  //  int ANY2JSON = 173;
+//    int ANY2XML = 174;
+//    int ANY2MAP = 175;
     int ANY2STM = 176;
     int ANY2DT = 177;
     int ANY2SCONV = 178;
@@ -232,7 +232,7 @@ public interface InstructionCodes {
     int ANY2C = 183;
     int CHECKCAST = 184;
 
-    int ANY2TYPE = 185;
+  //  int ANY2TYPE = 185;
 
     int LOCK = 186;
     int UNLOCK = 187;

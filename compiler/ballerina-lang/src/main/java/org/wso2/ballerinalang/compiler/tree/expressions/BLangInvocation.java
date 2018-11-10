@@ -225,6 +225,7 @@ public class BLangInvocation extends BLangAccessExpression implements Invocation
             this.async = iExpr.async;
             this.builtInMethod = builtInFunction;
             this.impConversionExpr = iExpr.impConversionExpr;
+            this.symbol = iExpr.symbol;
         }
 
         @Override

@@ -32,6 +32,7 @@ import org.ballerinalang.model.types.TypeKind;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.SymbolResolver;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.TaintAnalyzer;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.Types;
+import org.wso2.ballerinalang.compiler.semantics.model.BLangBuiltInMethod;
 import org.wso2.ballerinalang.compiler.semantics.model.Scope;
 import org.wso2.ballerinalang.compiler.semantics.model.SymbolEnv;
 import org.wso2.ballerinalang.compiler.semantics.model.SymbolTable;
@@ -2753,6 +2754,24 @@ public class Desugar extends BLangNodeVisitor {
                                                                                 binaryExprNegInf, symTable.booleanType,
                                                                                 OperatorKind.OR, orSymbol);
                 result = rewriteExpr(binaryExprInf);
+                break;
+            case CONVERT:
+                if (iExpr.symbol instanceof BConversionOperatorSymbol) {
+                    result = new BLangBuiltInMethodInvocation(iExpr, iExpr.builtInMethod);
+                } else {
+                    BType varRefType = iExpr.expr.type;
+                    List<BType> args = Lists.of(varRefType);
+                    BInvokableType opType = new BInvokableType(args, varRefType, null);
+                    BOperatorSymbol cloneSymbol =
+                            new BOperatorSymbol(names.fromString(BLangBuiltInMethod.CLONE.getName()), null, opType,
+                                                null, InstructionCodes.CLONE);
+                    BLangInvocation.BLangBuiltInMethodInvocation cloneInvocation =
+                            ASTBuilderUtil.createBuiltInMethod(iExpr.pos, iExpr.expr, cloneSymbol, new ArrayList<>(),
+                                                               symResolver, BLangBuiltInMethod.CLONE);
+                    result = ASTBuilderUtil.createBuiltInMethod(iExpr.pos, cloneInvocation,
+                                                                (BInvokableSymbol) iExpr.symbol, iExpr.requiredArgs,
+                                                                symResolver, BLangBuiltInMethod.SEAL);
+                }
                 break;
             default:
                 result = new BLangBuiltInMethodInvocation(iExpr, iExpr.builtInMethod);

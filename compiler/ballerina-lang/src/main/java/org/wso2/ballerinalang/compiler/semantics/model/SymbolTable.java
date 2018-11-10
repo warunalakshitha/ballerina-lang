@@ -444,10 +444,10 @@ public class SymbolTable {
         defineConversionOperator(anyType, decimalType, false, InstructionCodes.CHECKCAST);
         defineConversionOperator(anyType, stringType, false, InstructionCodes.CHECKCAST);
         defineConversionOperator(anyType, booleanType, false, InstructionCodes.CHECKCAST);
-        defineConversionOperator(anyType, typeDesc, false, InstructionCodes.ANY2TYPE);
-        defineConversionOperator(anyType, jsonType, false, InstructionCodes.ANY2JSON);
-        defineConversionOperator(anyType, xmlType, false, InstructionCodes.ANY2XML);
-        defineConversionOperator(anyType, mapType, false, InstructionCodes.ANY2MAP);
+//        defineConversionOperator(anyType, typeDesc, false, InstructionCodes.ANY2TYPE);
+//        defineConversionOperator(anyType, jsonType, false, InstructionCodes.ANY2JSON);
+//        defineConversionOperator(anyType, xmlType, false, InstructionCodes.ANY2XML);
+//        defineConversionOperator(anyType, mapType, false, InstructionCodes.ANY2MAP);
         defineConversionOperator(anyType, tableType, false, InstructionCodes.ANY2DT);
         defineConversionOperator(anyType, streamType, false, InstructionCodes.ANY2STM);
         defineConversionOperator(anydataType, intType, false, InstructionCodes.CHECKCAST);
@@ -456,8 +456,8 @@ public class SymbolTable {
         defineConversionOperator(anydataType, decimalType, false, InstructionCodes.CHECKCAST);
         defineConversionOperator(anydataType, stringType, false, InstructionCodes.CHECKCAST);
         defineConversionOperator(anydataType, booleanType, false, InstructionCodes.CHECKCAST);
-        defineConversionOperator(anydataType, jsonType, false, InstructionCodes.ANY2JSON);
-        defineConversionOperator(anydataType, xmlType, false, InstructionCodes.ANY2XML);
+//        defineConversionOperator(anydataType, jsonType, false, InstructionCodes.ANY2JSON);
+//        defineConversionOperator(anydataType, xmlType, false, InstructionCodes.ANY2XML);
         defineConversionOperator(anydataType, tableType, false, InstructionCodes.ANY2DT);
 
         defineConversionOperator(jsonType, intType, false, InstructionCodes.CHECKCAST);
@@ -595,10 +595,13 @@ public class SymbolTable {
                 retType = unionType;
             }
         }
+        List<BVarSymbol> symbolList = Lists.of(new BVarSymbol(0, new Name("_"), rootPkgSymbol.pkgID, targetType,
+                                                              rootPkgSymbol));
         BInvokableType opType = new BInvokableType(paramTypes, retType, null);
         BConversionOperatorSymbol symbol = new BConversionOperatorSymbol(this.rootPkgSymbol.pkgID, opType,
                 this.rootPkgSymbol, implicit, safe, opcode);
         symbol.kind = SymbolKind.CONVERSION_OPERATOR;
+        symbol.params = symbolList;
         rootScope.define(symbol.name, symbol);
     }
 

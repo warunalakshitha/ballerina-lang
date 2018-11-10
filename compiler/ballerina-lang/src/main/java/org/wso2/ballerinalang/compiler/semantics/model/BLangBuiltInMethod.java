@@ -42,6 +42,8 @@ public enum BLangBuiltInMethod {
     
     SEAL("seal"),
 
+    CONVERT("convert"),
+
     UNDEFINED("$undefined");
 
     private String name;

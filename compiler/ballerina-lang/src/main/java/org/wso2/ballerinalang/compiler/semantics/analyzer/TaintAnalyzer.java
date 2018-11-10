@@ -988,6 +988,8 @@ public class TaintAnalyzer extends BLangNodeVisitor {
                 this.taintedStatus = TaintedStatus.UNTAINTED;
                 break;
             case CLONE:
+            case SEAL:
+            case CONVERT:
                 invocationExpr.expr.accept(this);
                 break;
             case REASON:

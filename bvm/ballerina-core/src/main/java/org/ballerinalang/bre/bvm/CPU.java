@@ -580,10 +580,10 @@ public class CPU {
                     case InstructionCodes.ANY2D:
                     case InstructionCodes.ARRAY2JSON:
                     case InstructionCodes.JSON2ARRAY:
-                    case InstructionCodes.ANY2JSON:
-                    case InstructionCodes.ANY2XML:
-                    case InstructionCodes.ANY2MAP:
-                    case InstructionCodes.ANY2TYPE:
+//                    case InstructionCodes.ANY2JSON:
+//                    case InstructionCodes.ANY2XML:
+//                    case InstructionCodes.ANY2MAP:
+//                    case InstructionCodes.ANY2TYPE:
                     case InstructionCodes.ANY2E:
                     case InstructionCodes.ANY2T:
                     case InstructionCodes.ANY2C:
@@ -2256,18 +2256,18 @@ public class CPU {
                 j = operands[1];
                 sf.refRegs[j] = new BDecimal(((BValueType) sf.refRegs[i]).decimalValue());
                 break;
-            case InstructionCodes.ANY2JSON:
-                handleAnyToRefTypeCast(ctx, sf, operands, BTypes.typeJSON);
-                break;
-            case InstructionCodes.ANY2XML:
-                handleAnyToRefTypeCast(ctx, sf, operands, BTypes.typeXML);
-                break;
-            case InstructionCodes.ANY2MAP:
-                handleAnyToRefTypeCast(ctx, sf, operands, BTypes.typeMap);
-                break;
-            case InstructionCodes.ANY2TYPE:
-                handleAnyToRefTypeCast(ctx, sf, operands, BTypes.typeDesc);
-                break;
+//            case InstructionCodes.ANY2JSON:
+//                handleAnyToRefTypeCast(ctx, sf, operands, BTypes.typeJSON);
+//                break;
+//            case InstructionCodes.ANY2XML:
+//                handleAnyToRefTypeCast(ctx, sf, operands, BTypes.typeXML);
+//                break;
+//            case InstructionCodes.ANY2MAP:
+//                handleAnyToRefTypeCast(ctx, sf, operands, BTypes.typeMap);
+//                break;
+//            case InstructionCodes.ANY2TYPE:
+//                handleAnyToRefTypeCast(ctx, sf, operands, BTypes.typeDesc);
+//                break;
             case InstructionCodes.ANY2DT:
                 handleAnyToRefTypeCast(ctx, sf, operands, BTypes.typeTable);
                 break;

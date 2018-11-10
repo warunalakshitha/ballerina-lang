@@ -214,12 +214,12 @@ public class Mnemonics {
         mnemonics[InstructionCodes.ANY2S] = "any2s";
         mnemonics[InstructionCodes.ANY2B] = "any2b";
         mnemonics[InstructionCodes.ANY2D] = "any2d";
-        mnemonics[InstructionCodes.ANY2JSON] = "any2json";
-        mnemonics[InstructionCodes.ANY2XML] = "any2xml";
-        mnemonics[InstructionCodes.ANY2TYPE] = "any2type";
+//        mnemonics[InstructionCodes.ANY2JSON] = "any2json";
+//        mnemonics[InstructionCodes.ANY2XML] = "any2xml";
+//        mnemonics[InstructionCodes.ANY2TYPE] = "any2type";
         mnemonics[InstructionCodes.ANY2E] = "any2e";
         mnemonics[InstructionCodes.ANY2T] = "any2t";
-        mnemonics[InstructionCodes.ANY2MAP] = "any2map";
+//        mnemonics[InstructionCodes.ANY2MAP] = "any2map";
         mnemonics[InstructionCodes.CHECKCAST] = "checkcast";
         mnemonics[InstructionCodes.DT2JSON] = "dt2json";
         mnemonics[InstructionCodes.DT2XML] = "dt2xml";
