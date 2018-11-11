@@ -22,6 +22,7 @@ import org.ballerinalang.launcher.util.BRunUtil;
 import org.ballerinalang.launcher.util.CompileResult;
 import org.ballerinalang.model.types.BAnyType;
 import org.ballerinalang.model.types.BStringType;
+import org.ballerinalang.model.types.TypeTags;
 import org.ballerinalang.model.values.BMap;
 import org.ballerinalang.model.values.BValue;
 import org.testng.Assert;
@@ -53,7 +54,7 @@ public class ObjectSealInbuiltFunctionTest {
 
         Assert.assertEquals(results.length, 1);
 
-        Assert.assertEquals(mapValue.getMap().get("age").getType().getName(), "int");
+        Assert.assertEquals(mapValue.getMap().get("age").getType().getTag(), TypeTags.INT_TAG);
         Assert.assertEquals(mapValue.get("age").stringValue(), "10");
 
         Assert.assertEquals(mapValue.get("year").getType().getClass(), BAnyType.class);
@@ -72,10 +73,10 @@ public class ObjectSealInbuiltFunctionTest {
         Assert.assertEquals(results.length, 1);
         Assert.assertEquals(mapValue.getType().getClass(), BAnyType.class);
 
-        Assert.assertEquals(mapValue.getMap().get("age").getType().getName(), "int");
+        Assert.assertEquals(mapValue.getMap().get("age").getType().getTag(), TypeTags.INT_TAG);
         Assert.assertEquals(mapValue.get("age").stringValue(), "10");
 
-        Assert.assertEquals(mapValue.get("year").getType().getName(), "int");
+        Assert.assertEquals(mapValue.get("year").getType().getTag(), TypeTags.INT_TAG);
         Assert.assertEquals(mapValue.get("year").stringValue(), "2014");
 
         Assert.assertEquals(mapValue.get("month").getType().getClass(), BStringType.class);
