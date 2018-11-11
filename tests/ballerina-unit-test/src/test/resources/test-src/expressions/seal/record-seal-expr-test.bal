@@ -28,6 +28,21 @@ type Teacher record {
     string school;
 };
 
+type NonAcademicStaff record {
+    string name;
+    int age;
+    string status;
+    string batch;
+    string...
+};
+
+type AcademicStaff record {
+    string name;
+    string status;
+    string batch;
+    int...
+};
+
 type ExtendedEmployee record {
     string name;
     string status;
@@ -43,21 +58,21 @@ type Address object {
 
 //-----------------------Record Seal -------------------------------------------------------------------
 
-function testSealWithOpenRecords() returns Employee {
+function sealWithOpenRecords() returns Employee {
     Teacher t1 = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
 
     Employee e = t1.seal(Employee);
     return e;
 }
 
-function testSealWithOpenRecordsNonAssignable() returns Teacher {
+function sealWithOpenRecordsNonAssignable() returns Teacher {
     Employee e1 = { name: "Raja", status: "single", batch: "LK2014" };
 
     Teacher t = e1.seal(Teacher);
     return t;
 }
 
-function testSealClosedRecordWithOpenRecord() returns Employee {
+function sealClosedRecordWithOpenRecord() returns Employee {
     Person p1 = { name: "Raja", status: "single", batch: "LK2014", school: "Hindu College" };
 
     Employee e = p1.seal(Employee);
@@ -120,6 +135,38 @@ function sealExtendedRecordToAny() returns any {
     return anyValue;
 }
 
+function sealFunctionReferenceWithOpenRecords() returns Employee {
+
+    Employee e = getTeacherRecord().seal(Employee);
+    return e;
+}
+
+function getTeacherRecord() returns Teacher {
+    Teacher t1 = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
+    return t1;
+}
+
+
+//function sealOpenRecordToTypeClosedRecord() returns NonAcademicStaff {
+//    //Teacher teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
+//    //NonAcademicStaff returnValue = teacher.seal(NonAcademicStaff);
+//
+//    Teacher teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
+//    NonAcademicStaff returnValue = teacher;
+//
+//    return returnValue;
+//}
+
+//-------------------------------- Negative Test cases ------------------------------------------------------------
+
+function sealOpenRecordToMap() returns map<string> {
+
+    Teacher teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
+    map<string> mapValue = teacher.seal(map<string>);
+
+    return mapValue;
+}
+
 function sealExtendedRecordToOpenRecord() returns Employee {
     Address addressObj = new Address();
     ExtendedEmployee extendedEmployee = { name: "Raja", status: "single", batch: "LK2014", address:addressObj};
@@ -128,14 +175,12 @@ function sealExtendedRecordToOpenRecord() returns Employee {
     return employee;
 }
 
-//-------------------------------- Negative Test cases ------------------------------------------------------------
-function sealOpenRecordToMap() returns map<string> {
-
-    Teacher teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
-    map<string> mapValue = teacher.seal(map<string>);
-
-    return mapValue;
-}
+//function sealNegativeOpenRecordToTypeClosedRecord() returns AcademicStaff {
+//    Teacher teacher = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
+//    AcademicStaff returnValue = teacher.seal(AcademicStaff);
+//
+//    return returnValue;
+//}
 
 
 

@@ -308,7 +308,9 @@ public enum DiagnosticCode {
     INCOMPATIBLE_TYPE_CHECK("incompatible.type.check"),
     UNNECESSARY_CONDITION("unnecessary.condition"),
 
+    // Seal inbuilt function related codes
     INCOMPATIBLE_SEAL_TYPE("incompatible.seal.type"),
+    INVALID_ARG_FOR_FUNC_CALL("invalid.arg.function.call"),
     ;
 
     private String value;

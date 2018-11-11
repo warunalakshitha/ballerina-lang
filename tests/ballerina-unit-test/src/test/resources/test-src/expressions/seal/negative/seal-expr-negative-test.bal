@@ -63,3 +63,35 @@ function sealJSONArrayToPrimitiveTypeArray() returns int []{
 
     return returnArray;
 }
+
+function seaWithInvalidTypedesc() returns json {
+
+    json jsonValue = [1, false, null, "foo", { first: "John", last: "Pala" }];
+    json returnValue = jsonValue.seal(TestType);
+
+    return returnValue;
+}
+
+//function seaWithInvalidTypedesc() returns any {
+//
+//    //json jsonValue = [1, false, null, "foo", { first: "John", last: "Pala" }];
+//    //any anyValue = "mohan";
+//    //json returnValue = jsonValue.seal(anyValue);
+//    any returnValue = getJSON().seal(any);
+//
+//    return returnValue;
+//}
+
+//function seaWithInvalidTypedescV2() returns json {
+//
+//    json jsonValue = [1, false, null, "foo", { first: "John", last: "Pala" }];
+//    json returnValue = jsonValue.seal("mohan");
+//
+//    return returnValue;
+//}
+
+function getJSON() returns json {
+    json jsonValue = [1, false, null, "foo", { first: "John", last: "Pala" }];
+    return jsonValue;
+
+}

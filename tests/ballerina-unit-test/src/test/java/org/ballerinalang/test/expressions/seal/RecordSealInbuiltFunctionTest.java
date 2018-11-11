@@ -54,7 +54,7 @@ public class RecordSealInbuiltFunctionTest {
     @Test
     public void testSealOpenRecords() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "testSealWithOpenRecords");
+        BValue[] results = BRunUtil.invoke(compileResult, "sealWithOpenRecords");
         BMap<String, BValue> employee0 = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -72,7 +72,7 @@ public class RecordSealInbuiltFunctionTest {
     @Test
     public void testSealOpenRecordsNonAssignable() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "testSealWithOpenRecordsNonAssignable");
+        BValue[] results = BRunUtil.invoke(compileResult, "sealWithOpenRecordsNonAssignable");
         BMap<String, BValue> employee0 = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -87,7 +87,7 @@ public class RecordSealInbuiltFunctionTest {
     @Test
     public void testSealClosedRecordWithOpenRecord() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "testSealClosedRecordWithOpenRecord");
+        BValue[] results = BRunUtil.invoke(compileResult, "sealClosedRecordWithOpenRecord");
         BMap<String, BValue> employee0 = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -233,6 +233,43 @@ public class RecordSealInbuiltFunctionTest {
         Assert.assertEquals(mapValue.getType().getClass(), BAnyType.class);
     }
 
+    @Test
+    public void testSealFunctionReferenceWithOpenRecords() {
+
+        BValue[] results = BRunUtil.invoke(compileResult, "sealFunctionReferenceWithOpenRecords");
+        BMap<String, BValue> employee0 = (BMap<String, BValue>) results[0];
+
+        Assert.assertEquals(results.length, 1);
+
+        Assert.assertEquals(employee0.get("age").getType().getClass(), BAnydataType.class);
+        Assert.assertEquals(employee0.get("age").stringValue(), "25");
+
+        Assert.assertEquals(employee0.get("batch").getType().getClass(), BStringType.class);
+        Assert.assertEquals(employee0.get("batch").stringValue(), "LK2014");
+
+        Assert.assertEquals(employee0.get("school").getType().getClass(), BAnydataType.class);
+        Assert.assertEquals(employee0.get("school").stringValue(), "Hindu College");
+    }
+
+//    @Test
+//    public void testSealOpenRecordToTypeClosedRecord() {
+//
+//        BValue[] results = BRunUtil.invoke(compileResult, "sealOpenRecordToTypeClosedRecord");
+//        BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
+//
+//        Assert.assertEquals(results.length, 1);
+//        Assert.assertEquals(mapValue.size(), 5);
+//
+//        Assert.assertEquals(mapValue.getType().getClass(), BRecordType.class);
+//        Assert.assertEquals(mapValue.getType().getName(), "NonAcademicStaff");
+//
+//        Assert.assertEquals(mapValue.get("batch").getType().getClass(), BStringType.class);
+//        Assert.assertEquals(mapValue.get("batch").stringValue(), "LK2014");
+//
+//        Assert.assertEquals(mapValue.get("school").getType().getClass(), BStringType.class);
+//        Assert.assertEquals(mapValue.get("school").stringValue(), "Hindu College");
+//    }
+
     //---------------------------------- Negative Test cases ----------------------------------------------
 
     @Test(expectedExceptions = BLangRuntimeException.class,
@@ -248,5 +285,12 @@ public class RecordSealInbuiltFunctionTest {
     public void testSealExtendedRecordToOpenRecord() {
         BRunUtil.invoke(compileResult, "sealExtendedRecordToOpenRecord");
     }
+
+//    @Test(expectedExceptions = BLangRuntimeException.class,
+//            expectedExceptionsMessageRegExp = "error: incompatible seal operation: 'Teacher' value cannot be sealed " +
+//                    "as 'AcademicStaff'.*")
+//    public void testSealNegativeOpenRecordToTypeClosedRecord() {
+//        BRunUtil.invoke(compileResult, "sealNegativeOpenRecordToTypeClosedRecord");
+//    }
 }
 
