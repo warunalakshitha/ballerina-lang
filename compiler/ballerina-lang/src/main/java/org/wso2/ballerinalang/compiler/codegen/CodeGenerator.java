@@ -1250,8 +1250,9 @@ public class CodeGenerator extends BLangNodeVisitor {
             Operand typeCPIndex = getTypeCPIndex(iExpr.expr.type);
             emit(InstructionCodes.LENGTHOF, iExpr.expr.regIndex, typeCPIndex, regIndex);
         } else if (iExpr.builtInMethod == BLangBuiltInMethod.STAMP) {
+            genNode(iExpr.requiredArgs.get(0), this.env);
             Operand typeCPIndex = getTypeCPIndex(iExpr.type);
-            emit(InstructionCodes.STAMP, iExpr.expr.regIndex, typeCPIndex, regIndex);
+            emit(InstructionCodes.STAMP, iExpr.requiredArgs.get(0).regIndex, typeCPIndex, regIndex);
         }
     }
 
@@ -3473,8 +3474,8 @@ public class CodeGenerator extends BLangNodeVisitor {
         operands[1] = nextIndex;
         operands[2] = typeCPIndex;
         operands[3] = getOperand(2);
-        operands[4] = getOperand(((BVarSymbol) fpExpr.expr.symbol).type.tag);
-        operands[5] = getOperand(((BVarSymbol) fpExpr.expr.symbol).varIndex.value);
+        operands[4] = getOperand(((BVarSymbol) ((BLangVariableReference)fpExpr.expr).symbol).type.tag);
+        operands[5] = getOperand(((BVarSymbol) ((BLangVariableReference)fpExpr.expr).symbol).varIndex.value);
         return operands;
     }
 

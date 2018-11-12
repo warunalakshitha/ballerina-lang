@@ -309,7 +309,8 @@ public enum DiagnosticCode {
     UNNECESSARY_CONDITION("unnecessary.condition"),
 
     // Seal inbuilt function related codes
-    INCOMPATIBLE_SEAL_TYPE("incompatible.stamp.type"),
+    INCOMPATIBLE_STAMP_TYPE("incompatible.stamp.type"),
+    NOT_SUPPORTED_SOURCE_TYPE_FOR_STAMP("not.supported.source.for.stamp")
     ;
 
     private String value;

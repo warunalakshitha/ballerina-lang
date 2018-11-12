@@ -90,15 +90,15 @@ public class MapStampInbuiltFunctionTest {
     }
 
     @Test
-    public void testStampIntMapToAny() {
+    public void testStampIntMapToAnydata() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampIntMapToAny");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampIntMapToAnydata");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
         Assert.assertEquals(mapValue.size(), 2);
 
-        Assert.assertEquals(mapValue.getType().getClass(), BAnyType.class);
+        Assert.assertEquals(mapValue.getType().getClass(), BAnydataType.class);
     }
 
 
@@ -116,26 +116,26 @@ public class MapStampInbuiltFunctionTest {
     }
 
     @Test
-    public void testStampIntMapToAnyMap() {
+    public void testStampIntMapToAnydataMap() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampIntMapToAnyMap");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampIntMapToAnydataMap");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
         Assert.assertEquals(mapValue.size(), 2);
 
-        Assert.assertEquals(mapValue.get("a").getType().getClass(), BAnyType.class);
+        Assert.assertEquals(mapValue.get("a").getType().getClass(), BAnydataType.class);
         Assert.assertEquals(mapValue.get("a").stringValue(), "1");
 
-        Assert.assertEquals(mapValue.get("b").getType().getClass(), BAnyType.class);
+        Assert.assertEquals(mapValue.get("b").getType().getClass(), BAnydataType.class);
         Assert.assertEquals(mapValue.get("b").stringValue(), "2");
     }
 
 
     @Test
-    public void testStampAnyMapToIntMap() {
+    public void testStampAnydataMapToIntMap() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampAnyMapToIntMap");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampAnydataMapToIntMap");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -149,9 +149,9 @@ public class MapStampInbuiltFunctionTest {
     }
 
     @Test
-    public void testStampAnyMapToStringMap() {
+    public void testStampAnydataMapToStringMap() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampAnyMapToStringMap");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampAnydataMapToStringMap");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -165,9 +165,9 @@ public class MapStampInbuiltFunctionTest {
     }
 
     @Test
-    public void testStampAnyToIntMapWithoutExplicitConstraintType() {
+    public void testStampAnydataToIntMapWithoutExplicitConstraintType() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampAnyMapToStringMapWithoutExplicitConstraintType");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampAnydataMapToStringMapWithoutExplicitConstraintType");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -181,9 +181,9 @@ public class MapStampInbuiltFunctionTest {
     }
 
     @Test
-    public void testStampAnyMapToRecord() {
+    public void testStampAnydataMapToRecord() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampAnyMapToRecord");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampAnydataMapToRecord");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -210,9 +210,9 @@ public class MapStampInbuiltFunctionTest {
     }
 
     @Test
-    public void testStampAnyMapToJSON() {
+    public void testStampAnydataMapToJSON() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampAnyMapToJSON");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampAnydataMapToJSON");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -238,15 +238,15 @@ public class MapStampInbuiltFunctionTest {
     }
 
     @Test
-    public void testStampAnyMapToAny() {
+    public void testStampAnydataMapToAnydata() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampAnyMapToAny");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampAnydataMapToAnydata");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
         Assert.assertEquals(mapValue.size(), 5);
 
-        Assert.assertEquals(mapValue.getType().getClass(), BAnyType.class);
+        Assert.assertEquals(mapValue.getType().getClass(), BAnydataType.class);
 
         Assert.assertEquals(mapValue.get("name").stringValue(), "Raja");
         Assert.assertEquals(mapValue.get("name").getType().getClass(), BStringType.class);
@@ -260,9 +260,9 @@ public class MapStampInbuiltFunctionTest {
     }
 
     @Test
-    public void testStampAnyMapToSimilarOpenRecordMap() {
+    public void testStampAnydataMapToSimilarOpenRecordMap() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampAnyMapToSimilarOpenRecordMap");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampAnydataMapToSimilarOpenRecordMap");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -282,9 +282,9 @@ public class MapStampInbuiltFunctionTest {
     }
 
     @Test
-    public void testStampAnyMapToRecordMap() {
+    public void testStampAnydataMapToRecordMap() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampAnyMapToRecordMap");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampAnydataMapToRecordMap");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -298,9 +298,9 @@ public class MapStampInbuiltFunctionTest {
     }
 
     @Test
-    public void testStampAnyMapToJSONMap() {
+    public void testStampAnydataMapToJSONMap() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampAnyMapToJSONMap");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampAnydataMapToJSONMap");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -315,18 +315,18 @@ public class MapStampInbuiltFunctionTest {
 
 
     @Test
-    public void testStampRecordMapToAnyMap() {
+    public void testStampRecordMapToAnydataMap() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampRecordMapToAnyMap");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampRecordMapToAnydataMap");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
         Assert.assertEquals(mapValue.size(), 2);
 
-        Assert.assertEquals(mapValue.getMap().get("a").getType().getClass(), BAnyType.class);
+        Assert.assertEquals(mapValue.getMap().get("a").getType().getClass(), BAnydataType.class);
         Assert.assertEquals(((BMap) mapValue.getMap().get("a")).getMap().size(), 5);
 
-        Assert.assertEquals(mapValue.getMap().get("b").getType().getClass(), BAnyType.class);
+        Assert.assertEquals(mapValue.getMap().get("b").getType().getClass(), BAnydataType.class);
         Assert.assertEquals(((BMap) mapValue.getMap().get("b")).getMap().size(), 5);
     }
 
@@ -455,9 +455,9 @@ public class MapStampInbuiltFunctionTest {
     }
 
     @Test
-    public void testStampAnyToIntMultiDimensionMap() {
+    public void testStampAnydataToIntMultiDimensionMap() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampAnyToIntMultiDimensionMap");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampAnydataToIntMultiDimensionMap");
         BMap<String, BValue> mapValue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -471,9 +471,9 @@ public class MapStampInbuiltFunctionTest {
     }
 
     @Test
-    public void testStampIntToAnyMultiDimensionMap() {
+    public void testStampIntToAnydataMultiDimensionMap() {
 
-        BValue[] results = BRunUtil.invoke(compileResult, "stampIntToAnyMultiDimensionMap");
+        BValue[] results = BRunUtil.invoke(compileResult, "stampIntToAnydataMultiDimensionMap");
         BMap<String, BValue> mapVaue = (BMap<String, BValue>) results[0];
 
         Assert.assertEquals(results.length, 1);
@@ -481,7 +481,7 @@ public class MapStampInbuiltFunctionTest {
         Assert.assertEquals(mapVaue.getMap().size(), 2);
 
         Assert.assertEquals(((BValue) ((BMap) ((BMap) mapVaue.getMap().get("a")).getMap().get("aa")).
-                getMap().get("aa")).getType().getClass(), BAnyType.class);
+                getMap().get("aa")).getType().getClass(), BAnydataType.class);
         Assert.assertEquals(((BValue) ((BMap) ((BMap) mapVaue.getMap().get("a")).getMap().get("aa")).
                 getMap().get("aa")).stringValue(), "11");
     }

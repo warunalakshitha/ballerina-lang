@@ -1713,6 +1713,18 @@ public class BLangParserListener extends BallerinaParserBaseListener {
         this.pkgBuilder.createInvocationNode(getCurrentPos(ctx), getWS(ctx), invocation, argsAvailable, safeNavigate);
     }
 
+    @Override
+    public void exitTypeDescExprInvocationReference(BallerinaParser.TypeDescExprInvocationReferenceContext ctx) {
+        if (ctx.exception != null) {
+            return;
+        }
+
+        boolean argsAvailable = ctx.invocation().invocationArgList() != null;
+        String invocation = ctx.invocation().anyIdentifierName().getText();
+        boolean safeNavigate = ctx.invocation().NOT() != null;
+        this.pkgBuilder.createInvocationNode(getCurrentPos(ctx), getWS(ctx), invocation, argsAvailable, safeNavigate);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -1984,11 +1996,8 @@ public class BLangParserListener extends BallerinaParserBaseListener {
         this.pkgBuilder.createBinaryExpr(getCurrentPos(ctx), getWS(ctx), ctx.getChild(1).getText());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void exitTypeAccessExpression(BallerinaParser.TypeAccessExpressionContext ctx) {
+    public void exitTypeDescExpression(BallerinaParser.TypeDescExpressionContext ctx) {
         if (ctx.exception != null) {
             return;
         }
