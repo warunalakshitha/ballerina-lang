@@ -315,7 +315,7 @@ public class SymbolResolver extends BLangNodeVisitor {
         }
         BSymbol bSymbol = resolveOperator(name, argsList);
         if (bSymbol == symTable.notFoundSymbol) {
-            if (name.getValue().equals("seal")) {
+            if (name.getValue().equals("stamp")) {
                 return createSymbolForSealOperator(pos, name, functionArgList, args[0]);
             }
         }
@@ -361,7 +361,7 @@ public class SymbolResolver extends BLangNodeVisitor {
                 if (isSealSupportedTargetType(sealType) && types.isSealable(sourceType, sealType)) {
                     List<BType> paramTypes = new ArrayList<>();
                     paramTypes.add(symTable.typeDesc);
-                    return symTable.createOperator(name, paramTypes, sealType, InstructionCodes.SEAL);
+                    return symTable.createOperator(name, paramTypes, sealType, InstructionCodes.STAMP);
                 } else {
                     dlog.error(pos, DiagnosticCode.INCOMPATIBLE_SEAL_TYPE, sourceType, sealType);
                     resultType = symTable.semanticError;

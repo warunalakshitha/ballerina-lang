@@ -490,7 +490,7 @@ public class CPU {
                     case InstructionCodes.DETAIL:
                         handleErrorBuiltinMethods(opcode, operands, sf);
                         break;
-                    case InstructionCodes.SEAL:
+                    case InstructionCodes.STAMP:
                         handleSealBuildInMethod(ctx, operands, sf);
                         break;
                     case InstructionCodes.FPCALL:
@@ -835,13 +835,13 @@ public class CPU {
                 sf.refRegs[k] = sealValue;
             } catch (BallerinaException e) {
                 ctx.setError(BLangVMErrors.createError(ctx,
-                        BLangExceptionHelper.getErrorMessage(RuntimeErrors.INCOMPATIBLE_SEAL_OPERATION,
+                        BLangExceptionHelper.getErrorMessage(RuntimeErrors.INCOMPATIBLE_STAMP_OPERATION,
                                 sealValue.getType(), sealType)));
                 handleError(ctx);
             }
         } else {
             ctx.setError(BLangVMErrors.createError(ctx,
-                    BLangExceptionHelper.getErrorMessage(RuntimeErrors.INCOMPATIBLE_SEAL_OPERATION, sealValue.getType(),
+                    BLangExceptionHelper.getErrorMessage(RuntimeErrors.INCOMPATIBLE_STAMP_OPERATION, sealValue.getType(),
                             sealType)));
             handleError(ctx);
         }

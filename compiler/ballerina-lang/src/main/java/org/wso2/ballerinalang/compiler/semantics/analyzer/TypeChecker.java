@@ -1797,7 +1797,7 @@ public class TypeChecker extends BLangNodeVisitor {
                                                    BType... args) {
         Name funcName = names.fromString(iExpr.name.value);
 
-        if(iExpr.name.value.equals("seal")) {
+        if(iExpr.name.value.equals("stamp")) {
             List<BLangExpression> functionArgList = iExpr.argExprs;
             checkExpr(functionArgList.get(0), env, symTable.noType);
         }

@@ -309,8 +309,7 @@ public enum DiagnosticCode {
     UNNECESSARY_CONDITION("unnecessary.condition"),
 
     // Seal inbuilt function related codes
-    INCOMPATIBLE_SEAL_TYPE("incompatible.seal.type"),
-    INVALID_ARG_FOR_FUNC_CALL("invalid.arg.function.call"),
+    INCOMPATIBLE_SEAL_TYPE("incompatible.stamp.type"),
     ;
 
     private String value;
