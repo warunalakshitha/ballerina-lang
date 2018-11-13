@@ -444,10 +444,10 @@ public class SymbolTable {
         defineConversionOperator(anyType, decimalType, false, InstructionCodes.CHECKCAST);
         defineConversionOperator(anyType, stringType, false, InstructionCodes.CHECKCAST);
         defineConversionOperator(anyType, booleanType, false, InstructionCodes.CHECKCAST);
-//        defineConversionOperator(anyType, typeDesc, false, InstructionCodes.ANY2TYPE);
-//        defineConversionOperator(anyType, jsonType, false, InstructionCodes.ANY2JSON);
-//        defineConversionOperator(anyType, xmlType, false, InstructionCodes.ANY2XML);
-//        defineConversionOperator(anyType, mapType, false, InstructionCodes.ANY2MAP);
+        defineConversionOperator(anyType, typeDesc, false, InstructionCodes.ANY2TYPE);
+        defineConversionOperator(anyType, jsonType, false, InstructionCodes.ANY2JSON);
+        defineConversionOperator(anyType, xmlType, false, InstructionCodes.ANY2XML);
+        defineConversionOperator(anyType, mapType, false, InstructionCodes.ANY2MAP);
         defineConversionOperator(anyType, tableType, false, InstructionCodes.ANY2DT);
         defineConversionOperator(anyType, streamType, false, InstructionCodes.ANY2STM);
         defineConversionOperator(anydataType, intType, false, InstructionCodes.CHECKCAST);

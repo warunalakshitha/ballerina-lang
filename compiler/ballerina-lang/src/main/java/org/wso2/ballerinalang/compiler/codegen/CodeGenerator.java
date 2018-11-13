@@ -1268,7 +1268,7 @@ public class CodeGenerator extends BLangNodeVisitor {
             emit(InstructionCodes.SEAL, iExpr.expr.regIndex, typeCPIndex, regIndex);
         } else if (iExpr.builtInMethod == BLangBuiltInMethod.CONVERT) {
             if (iExpr.symbol instanceof BConversionOperatorSymbol) {
-                emitConversionInstruction(iExpr, iExpr.expr, (BConversionOperatorSymbol) iExpr.symbol);
+                emitConversionInstruction(iExpr, iExpr.expr, (BConversionOperatorSymbol) iExpr.symbol, iExpr.expr.type);
             }
         }		         
     }
@@ -1317,7 +1317,7 @@ public class CodeGenerator extends BLangNodeVisitor {
     }
 
     public void visit(BLangTypeConversionExpr convExpr) {
-        emitConversionInstruction(convExpr, convExpr.expr, convExpr.conversionSymbol);
+        emitConversionInstruction(convExpr, convExpr.expr, convExpr.conversionSymbol, convExpr.targetType);
     }
 
     public void visit(BLangRecordLiteral recordLiteral) {
@@ -1878,7 +1878,7 @@ public class CodeGenerator extends BLangNodeVisitor {
     }
 
     private void emitConversionInstruction(BLangExpression convExpr, BLangExpression expr,
-                                           BConversionOperatorSymbol symbol) {
+                                           BConversionOperatorSymbol symbol, BType targetType) {
         int opcode = symbol.opcode;
         // Figure out the reg index of the result value
         BType castExprType = convExpr.type;
@@ -1901,7 +1901,7 @@ public class CodeGenerator extends BLangNodeVisitor {
                 opcode == InstructionCodes.JSON2ARRAY ||
                 opcode == InstructionCodes.O2JSON ||
                 opcode == InstructionCodes.CHECKCAST) {
-            Operand typeCPIndex = getTypeCPIndex(expr.type);
+            Operand typeCPIndex = getTypeCPIndex(targetType);
             emit(opcode, expr.regIndex, typeCPIndex, convExprRegIndex);
         } else {
             emit(opcode, expr.regIndex, convExprRegIndex);
@@ -3498,8 +3498,8 @@ public class CodeGenerator extends BLangNodeVisitor {
         operands[1] = nextIndex;
         operands[2] = typeCPIndex;
         operands[3] = getOperand(2);
-        operands[4] = getOperand(((BVarSymbol) fpExpr.expr.symbol).type.tag);
-        operands[5] = getOperand(((BVarSymbol) fpExpr.expr.symbol).varIndex.value);
+        operands[4] = getOperand(((BVarSymbol) ((BLangVariableReference) fpExpr.expr).symbol).type.tag);
+        operands[5] = getOperand(((BVarSymbol) ((BLangVariableReference) fpExpr.expr).symbol).varIndex.value);
         return operands;
     }
 

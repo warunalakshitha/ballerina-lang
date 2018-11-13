@@ -214,6 +214,10 @@ public class Types {
         }
     }
 
+    public boolean isCloneable(BType type) {
+        return isAnydata(type) && type != symTable.nilType;
+    }
+
     private boolean isAnydata(Collection<BType> types) {
         return types.stream().allMatch(this::isAnydata);
     }

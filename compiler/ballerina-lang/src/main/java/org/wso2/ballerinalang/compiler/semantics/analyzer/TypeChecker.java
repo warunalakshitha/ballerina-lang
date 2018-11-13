@@ -686,7 +686,7 @@ public class TypeChecker extends BLangNodeVisitor {
 
     public void visit(BLangFieldBasedAccess fieldAccessExpr) {
         // First analyze the variable reference expression.
-        fieldAccessExpr.expr.lhsVar = fieldAccessExpr.lhsVar;
+        ((BLangVariableReference) fieldAccessExpr.expr).lhsVar = fieldAccessExpr.lhsVar;
         BType varRefType = getTypeOfExprInFieldAccess(fieldAccessExpr.expr);
 
         // Accessing all fields using * is only supported for XML.
@@ -722,7 +722,7 @@ public class TypeChecker extends BLangNodeVisitor {
 
     public void visit(BLangIndexBasedAccess indexBasedAccessExpr) {
         // First analyze the variable reference expression.
-        indexBasedAccessExpr.expr.lhsVar = indexBasedAccessExpr.lhsVar;
+        ((BLangVariableReference) indexBasedAccessExpr.expr).lhsVar = indexBasedAccessExpr.lhsVar;
         checkExpr(indexBasedAccessExpr.expr, this.env, symTable.noType);
 
         BType varRefType = indexBasedAccessExpr.expr.type;
@@ -1922,13 +1922,13 @@ public class TypeChecker extends BLangNodeVisitor {
     private void checkActionInvocationExpr(BLangInvocation iExpr, BType conType) {
         BType actualType = symTable.semanticError;
         if (conType == symTable.semanticError || conType.tag != TypeTags.OBJECT
-                || iExpr.expr.symbol.tag != SymTag.ENDPOINT) {
+                ||  ((BLangVariableReference) iExpr.expr).symbol.tag != SymTag.ENDPOINT) {
             dlog.error(iExpr.pos, DiagnosticCode.INVALID_ACTION_INVOCATION);
             resultType = actualType;
             return;
         }
 
-        final BEndpointVarSymbol epSymbol = (BEndpointVarSymbol) iExpr.expr.symbol;
+        final BEndpointVarSymbol epSymbol = (BEndpointVarSymbol)  ((BLangVariableReference) iExpr.expr).symbol;
         if (!epSymbol.interactable) {
             dlog.error(iExpr.pos, DiagnosticCode.ENDPOINT_NOT_SUPPORT_INTERACTIONS, epSymbol.name);
             resultType = actualType;

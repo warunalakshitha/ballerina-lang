@@ -320,7 +320,7 @@ public class SymbolResolver extends BLangNodeVisitor {
         if (bSymbol == symTable.notFoundSymbol) {
             if (name.getValue().equals("clone")) {
                 BType cloneType = args[0];
-                if (types.isAnydata(cloneType) && cloneType != symTable.nilType) {
+                if (types.isCloneable(cloneType)) {
                     BInvokableType opType = new BInvokableType(paramTypes, cloneType, null);
                     return new BOperatorSymbol(name, null, opType, null, InstructionCodes.CLONE);
                 } else {
@@ -329,7 +329,7 @@ public class SymbolResolver extends BLangNodeVisitor {
             } else if (name.getValue().equals("seal")) {
                 return createSymbolForSealOperator(pos, name, functionArgList, args[0]);
             } else if (name.getValue().equals(BLangBuiltInMethod.CONVERT.getName())) {
-                    return createSymbolForConvertOperator(pos, name, functionArgList, args[0]);
+                return createSymbolForConvertOperator(pos, name, functionArgList, args[0]);
             }
         }
         return bSymbol;
@@ -367,14 +367,10 @@ public class SymbolResolver extends BLangNodeVisitor {
         BType targetType = getTargetType(pos, name, functionArgList);
         if (targetType != symTable.semanticError) {
             // First check both source and target types are sealable.
-            if (canHaveSealInvocation(sourceType)) {
-                //It is not allowed to seal a variable to union type.
-                if (isSealSupportedTargetType(targetType) &&
-                        types.isSealable(sourceType, targetType)) {
-                    List<BType> paramTypes = new ArrayList<>();
-                    paramTypes.add(symTable.typeDesc);
-                    return symTable.createOperator(name, paramTypes, targetType, InstructionCodes.SEAL);
-                }
+            if (canHaveConvertInvocation(sourceType, targetType)) {
+                List<BType> paramTypes = new ArrayList<>();
+                paramTypes.add(symTable.typeDesc);
+                return symTable.createOperator(name, paramTypes, targetType, InstructionCodes.SEAL);
             }
             // Else lookup for built-in type conversion operator symbol
             BSymbol symbol = resolveConversionOperator(sourceType, targetType);
@@ -386,7 +382,7 @@ public class SymbolResolver extends BLangNodeVisitor {
                 return symbol;
             }
         }
-        dlog.error(pos, DiagnosticCode.FUNC_DEFINED_ON_NOT_SUPPORTED_TYPE, name, sourceType.toString());
+        dlog.error(pos, DiagnosticCode.INCOMPATIBLE_TYPES_CONVERSION, sourceType, targetType);
         resultType = symTable.semanticError;
         return symTable.notFoundSymbol;
     }
@@ -1074,5 +1070,10 @@ public class SymbolResolver extends BLangNodeVisitor {
         }
 
         return true;
+    }
+
+    public boolean canHaveConvertInvocation(BType sourceType, BType targetType) {
+        return types.isCloneable(sourceType) && canHaveSealInvocation(sourceType) &&
+                isSealSupportedTargetType(targetType) && types.isSealable(sourceType, targetType);
     }
 }
