@@ -1,4 +1,4 @@
-// Generated from BallerinaLexer.g4 by ANTLR 4.5.3
+// Generated from /home/waruna/dev/ballerina/git/ballerina-lang/compiler/ballerina-lang/src/main/resources/grammar/BallerinaLexer.g4 by ANTLR 4.5.3
 package org.wso2.ballerinalang.compiler.parser.antlr4;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
@@ -17,59 +17,59 @@ public class BallerinaLexer extends Lexer {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		IMPORT=1, AS=2, PUBLIC=3, PRIVATE=4, EXTERN=5, SERVICE=6, RESOURCE=7,
-		FUNCTION=8, OBJECT=9, RECORD=10, ANNOTATION=11, PARAMETER=12, TRANSFORMER=13,
-		WORKER=14, ENDPOINT=15, BIND=16, XMLNS=17, RETURNS=18, VERSION=19, DEPRECATED=20,
-		CHANNEL=21, ABSTRACT=22, FROM=23, ON=24, SELECT=25, GROUP=26, BY=27, HAVING=28,
-		ORDER=29, WHERE=30, FOLLOWED=31, INTO=32, SET=33, FOR=34, WINDOW=35, QUERY=36,
-		EXPIRED=37, CURRENT=38, EVENTS=39, EVERY=40, WITHIN=41, LAST=42, FIRST=43,
-		SNAPSHOT=44, OUTPUT=45, INNER=46, OUTER=47, RIGHT=48, LEFT=49, FULL=50,
-		UNIDIRECTIONAL=51, REDUCE=52, SECOND=53, MINUTE=54, HOUR=55, DAY=56, MONTH=57,
-		YEAR=58, SECONDS=59, MINUTES=60, HOURS=61, DAYS=62, MONTHS=63, YEARS=64,
-		FOREVER=65, LIMIT=66, ASCENDING=67, DESCENDING=68, TYPE_INT=69, TYPE_BYTE=70,
-		TYPE_FLOAT=71, TYPE_DECIMAL=72, TYPE_BOOL=73, TYPE_STRING=74, TYPE_ERROR=75,
-		TYPE_MAP=76, TYPE_JSON=77, TYPE_XML=78, TYPE_TABLE=79, TYPE_STREAM=80,
-		TYPE_ANY=81, TYPE_DESC=82, TYPE=83, TYPE_FUTURE=84, TYPE_ANYDATA=85, VAR=86,
-		NEW=87, IF=88, MATCH=89, ELSE=90, FOREACH=91, WHILE=92, CONTINUE=93, BREAK=94,
-		FORK=95, JOIN=96, SOME=97, ALL=98, TIMEOUT=99, TRY=100, CATCH=101, FINALLY=102,
-		THROW=103, PANIC=104, TRAP=105, RETURN=106, TRANSACTION=107, ABORT=108,
-		RETRY=109, ONRETRY=110, RETRIES=111, ONABORT=112, ONCOMMIT=113, LENGTHOF=114,
-		WITH=115, IN=116, LOCK=117, UNTAINT=118, START=119, AWAIT=120, BUT=121,
-		CHECK=122, DONE=123, SCOPE=124, COMPENSATION=125, COMPENSATE=126, PRIMARYKEY=127,
-		IS=128, SEMICOLON=129, COLON=130, DOUBLE_COLON=131, DOT=132, COMMA=133,
-		LEFT_BRACE=134, RIGHT_BRACE=135, LEFT_PARENTHESIS=136, RIGHT_PARENTHESIS=137,
-		LEFT_BRACKET=138, RIGHT_BRACKET=139, QUESTION_MARK=140, ASSIGN=141, ADD=142,
-		SUB=143, MUL=144, DIV=145, MOD=146, NOT=147, EQUAL=148, NOT_EQUAL=149,
-		GT=150, LT=151, GT_EQUAL=152, LT_EQUAL=153, AND=154, OR=155, REF_EQUAL=156,
-		REF_NOT_EQUAL=157, BIT_AND=158, BIT_XOR=159, BIT_COMPLEMENT=160, RARROW=161,
-		LARROW=162, AT=163, BACKTICK=164, RANGE=165, ELLIPSIS=166, PIPE=167, EQUAL_GT=168,
-		ELVIS=169, COMPOUND_ADD=170, COMPOUND_SUB=171, COMPOUND_MUL=172, COMPOUND_DIV=173,
-		COMPOUND_BIT_AND=174, COMPOUND_BIT_OR=175, COMPOUND_BIT_XOR=176, COMPOUND_LEFT_SHIFT=177,
-		COMPOUND_RIGHT_SHIFT=178, COMPOUND_LOGICAL_SHIFT=179, HALF_OPEN_RANGE=180,
-		DecimalIntegerLiteral=181, HexIntegerLiteral=182, BinaryIntegerLiteral=183,
-		HexadecimalFloatingPointLiteral=184, DecimalFloatingPointNumber=185, BooleanLiteral=186,
-		QuotedStringLiteral=187, SymbolicStringLiteral=188, Base16BlobLiteral=189,
-		Base64BlobLiteral=190, NullLiteral=191, Identifier=192, XMLLiteralStart=193,
-		StringTemplateLiteralStart=194, DocumentationLineStart=195, ParameterDocumentationStart=196,
-		ReturnParameterDocumentationStart=197, DeprecatedTemplateStart=198, ExpressionEnd=199,
-		WS=200, NEW_LINE=201, LINE_COMMENT=202, VARIABLE=203, MODULE=204, ReferenceType=205,
-		DocumentationText=206, SingleBacktickStart=207, DoubleBacktickStart=208,
-		TripleBacktickStart=209, DefinitionReference=210, DocumentationEscapedCharacters=211,
-		DocumentationSpace=212, DocumentationEnd=213, ParameterName=214, DescriptionSeparator=215,
-		DocumentationParamEnd=216, SingleBacktickContent=217, SingleBacktickEnd=218,
-		DoubleBacktickContent=219, DoubleBacktickEnd=220, TripleBacktickContent=221,
-		TripleBacktickEnd=222, XML_COMMENT_START=223, CDATA=224, DTD=225, EntityRef=226,
-		CharRef=227, XML_TAG_OPEN=228, XML_TAG_OPEN_SLASH=229, XML_TAG_SPECIAL_OPEN=230,
-		XMLLiteralEnd=231, XMLTemplateText=232, XMLText=233, XML_TAG_CLOSE=234,
-		XML_TAG_SPECIAL_CLOSE=235, XML_TAG_SLASH_CLOSE=236, SLASH=237, QNAME_SEPARATOR=238,
-		EQUALS=239, DOUBLE_QUOTE=240, SINGLE_QUOTE=241, XMLQName=242, XML_TAG_WS=243,
-		XMLTagExpressionStart=244, DOUBLE_QUOTE_END=245, XMLDoubleQuotedTemplateString=246,
-		XMLDoubleQuotedString=247, SINGLE_QUOTE_END=248, XMLSingleQuotedTemplateString=249,
-		XMLSingleQuotedString=250, XMLPIText=251, XMLPITemplateText=252, XMLCommentText=253,
-		XMLCommentTemplateText=254, TripleBackTickInlineCodeEnd=255, TripleBackTickInlineCode=256,
-		DoubleBackTickInlineCodeEnd=257, DoubleBackTickInlineCode=258, SingleBackTickInlineCodeEnd=259,
-		SingleBackTickInlineCode=260, DeprecatedTemplateEnd=261, SBDeprecatedInlineCodeStart=262,
-		DBDeprecatedInlineCodeStart=263, TBDeprecatedInlineCodeStart=264, DeprecatedTemplateText=265,
+		IMPORT=1, AS=2, PUBLIC=3, PRIVATE=4, EXTERN=5, SERVICE=6, RESOURCE=7, 
+		FUNCTION=8, OBJECT=9, RECORD=10, ANNOTATION=11, PARAMETER=12, TRANSFORMER=13, 
+		WORKER=14, ENDPOINT=15, BIND=16, XMLNS=17, RETURNS=18, VERSION=19, DEPRECATED=20, 
+		CHANNEL=21, ABSTRACT=22, FROM=23, ON=24, SELECT=25, GROUP=26, BY=27, HAVING=28, 
+		ORDER=29, WHERE=30, FOLLOWED=31, INTO=32, SET=33, FOR=34, WINDOW=35, QUERY=36, 
+		EXPIRED=37, CURRENT=38, EVENTS=39, EVERY=40, WITHIN=41, LAST=42, FIRST=43, 
+		SNAPSHOT=44, OUTPUT=45, INNER=46, OUTER=47, RIGHT=48, LEFT=49, FULL=50, 
+		UNIDIRECTIONAL=51, REDUCE=52, SECOND=53, MINUTE=54, HOUR=55, DAY=56, MONTH=57, 
+		YEAR=58, SECONDS=59, MINUTES=60, HOURS=61, DAYS=62, MONTHS=63, YEARS=64, 
+		FOREVER=65, LIMIT=66, ASCENDING=67, DESCENDING=68, TYPE_INT=69, TYPE_BYTE=70, 
+		TYPE_FLOAT=71, TYPE_DECIMAL=72, TYPE_BOOL=73, TYPE_STRING=74, TYPE_ERROR=75, 
+		TYPE_MAP=76, TYPE_JSON=77, TYPE_XML=78, TYPE_TABLE=79, TYPE_STREAM=80, 
+		TYPE_ANY=81, TYPE_DESC=82, TYPE=83, TYPE_FUTURE=84, TYPE_ANYDATA=85, VAR=86, 
+		NEW=87, IF=88, MATCH=89, ELSE=90, FOREACH=91, WHILE=92, CONTINUE=93, BREAK=94, 
+		FORK=95, JOIN=96, SOME=97, ALL=98, TIMEOUT=99, TRY=100, CATCH=101, FINALLY=102, 
+		THROW=103, PANIC=104, TRAP=105, RETURN=106, TRANSACTION=107, ABORT=108, 
+		RETRY=109, ONRETRY=110, RETRIES=111, ONABORT=112, ONCOMMIT=113, LENGTHOF=114, 
+		WITH=115, IN=116, LOCK=117, UNTAINT=118, START=119, AWAIT=120, BUT=121, 
+		CHECK=122, DONE=123, SCOPE=124, COMPENSATION=125, COMPENSATE=126, PRIMARYKEY=127, 
+		IS=128, SEMICOLON=129, COLON=130, DOUBLE_COLON=131, DOT=132, COMMA=133, 
+		LEFT_BRACE=134, RIGHT_BRACE=135, LEFT_PARENTHESIS=136, RIGHT_PARENTHESIS=137, 
+		LEFT_BRACKET=138, RIGHT_BRACKET=139, QUESTION_MARK=140, ASSIGN=141, ADD=142, 
+		SUB=143, MUL=144, DIV=145, MOD=146, NOT=147, EQUAL=148, NOT_EQUAL=149, 
+		GT=150, LT=151, GT_EQUAL=152, LT_EQUAL=153, AND=154, OR=155, REF_EQUAL=156, 
+		REF_NOT_EQUAL=157, BIT_AND=158, BIT_XOR=159, BIT_COMPLEMENT=160, RARROW=161, 
+		LARROW=162, AT=163, BACKTICK=164, RANGE=165, ELLIPSIS=166, PIPE=167, EQUAL_GT=168, 
+		ELVIS=169, COMPOUND_ADD=170, COMPOUND_SUB=171, COMPOUND_MUL=172, COMPOUND_DIV=173, 
+		COMPOUND_BIT_AND=174, COMPOUND_BIT_OR=175, COMPOUND_BIT_XOR=176, COMPOUND_LEFT_SHIFT=177, 
+		COMPOUND_RIGHT_SHIFT=178, COMPOUND_LOGICAL_SHIFT=179, HALF_OPEN_RANGE=180, 
+		DecimalIntegerLiteral=181, HexIntegerLiteral=182, BinaryIntegerLiteral=183, 
+		HexadecimalFloatingPointLiteral=184, DecimalFloatingPointNumber=185, BooleanLiteral=186, 
+		QuotedStringLiteral=187, SymbolicStringLiteral=188, Base16BlobLiteral=189, 
+		Base64BlobLiteral=190, NullLiteral=191, Identifier=192, XMLLiteralStart=193, 
+		StringTemplateLiteralStart=194, DocumentationLineStart=195, ParameterDocumentationStart=196, 
+		ReturnParameterDocumentationStart=197, DeprecatedTemplateStart=198, ExpressionEnd=199, 
+		WS=200, NEW_LINE=201, LINE_COMMENT=202, VARIABLE=203, MODULE=204, ReferenceType=205, 
+		DocumentationText=206, SingleBacktickStart=207, DoubleBacktickStart=208, 
+		TripleBacktickStart=209, DefinitionReference=210, DocumentationEscapedCharacters=211, 
+		DocumentationSpace=212, DocumentationEnd=213, ParameterName=214, DescriptionSeparator=215, 
+		DocumentationParamEnd=216, SingleBacktickContent=217, SingleBacktickEnd=218, 
+		DoubleBacktickContent=219, DoubleBacktickEnd=220, TripleBacktickContent=221, 
+		TripleBacktickEnd=222, XML_COMMENT_START=223, CDATA=224, DTD=225, EntityRef=226, 
+		CharRef=227, XML_TAG_OPEN=228, XML_TAG_OPEN_SLASH=229, XML_TAG_SPECIAL_OPEN=230, 
+		XMLLiteralEnd=231, XMLTemplateText=232, XMLText=233, XML_TAG_CLOSE=234, 
+		XML_TAG_SPECIAL_CLOSE=235, XML_TAG_SLASH_CLOSE=236, SLASH=237, QNAME_SEPARATOR=238, 
+		EQUALS=239, DOUBLE_QUOTE=240, SINGLE_QUOTE=241, XMLQName=242, XML_TAG_WS=243, 
+		XMLTagExpressionStart=244, DOUBLE_QUOTE_END=245, XMLDoubleQuotedTemplateString=246, 
+		XMLDoubleQuotedString=247, SINGLE_QUOTE_END=248, XMLSingleQuotedTemplateString=249, 
+		XMLSingleQuotedString=250, XMLPIText=251, XMLPITemplateText=252, XMLCommentText=253, 
+		XMLCommentTemplateText=254, TripleBackTickInlineCodeEnd=255, TripleBackTickInlineCode=256, 
+		DoubleBackTickInlineCodeEnd=257, DoubleBackTickInlineCode=258, SingleBackTickInlineCodeEnd=259, 
+		SingleBackTickInlineCode=260, DeprecatedTemplateEnd=261, SBDeprecatedInlineCodeStart=262, 
+		DBDeprecatedInlineCodeStart=263, TBDeprecatedInlineCodeStart=264, DeprecatedTemplateText=265, 
 		StringTemplateLiteralEnd=266, StringTemplateExpressionStart=267, StringTemplateText=268;
 	public static final int MARKDOWN_DOCUMENTATION = 1;
 	public static final int MARKDOWN_DOCUMENTATION_PARAM = 2;
@@ -88,165 +88,165 @@ public class BallerinaLexer extends Lexer {
 	public static final int DEPRECATED_TEMPLATE = 15;
 	public static final int STRING_TEMPLATE = 16;
 	public static String[] modeNames = {
-		"DEFAULT_MODE", "MARKDOWN_DOCUMENTATION", "MARKDOWN_DOCUMENTATION_PARAM",
-		"SINGLE_BACKTICKED_DOCUMENTATION", "DOUBLE_BACKTICKED_DOCUMENTATION",
-		"TRIPLE_BACKTICKED_DOCUMENTATION", "XML", "XML_TAG", "DOUBLE_QUOTED_XML_STRING",
-		"SINGLE_QUOTED_XML_STRING", "XML_PI", "XML_COMMENT", "TRIPLE_BACKTICK_INLINE_CODE",
-		"DOUBLE_BACKTICK_INLINE_CODE", "SINGLE_BACKTICK_INLINE_CODE", "DEPRECATED_TEMPLATE",
+		"DEFAULT_MODE", "MARKDOWN_DOCUMENTATION", "MARKDOWN_DOCUMENTATION_PARAM", 
+		"SINGLE_BACKTICKED_DOCUMENTATION", "DOUBLE_BACKTICKED_DOCUMENTATION", 
+		"TRIPLE_BACKTICKED_DOCUMENTATION", "XML", "XML_TAG", "DOUBLE_QUOTED_XML_STRING", 
+		"SINGLE_QUOTED_XML_STRING", "XML_PI", "XML_COMMENT", "TRIPLE_BACKTICK_INLINE_CODE", 
+		"DOUBLE_BACKTICK_INLINE_CODE", "SINGLE_BACKTICK_INLINE_CODE", "DEPRECATED_TEMPLATE", 
 		"STRING_TEMPLATE"
 	};
 
 	public static final String[] ruleNames = {
-		"IMPORT", "AS", "PUBLIC", "PRIVATE", "EXTERN", "SERVICE", "RESOURCE",
-		"FUNCTION", "OBJECT", "RECORD", "ANNOTATION", "PARAMETER", "TRANSFORMER",
-		"WORKER", "ENDPOINT", "BIND", "XMLNS", "RETURNS", "VERSION", "DEPRECATED",
-		"CHANNEL", "ABSTRACT", "FROM", "ON", "SELECT", "GROUP", "BY", "HAVING",
-		"ORDER", "WHERE", "FOLLOWED", "INTO", "SET", "FOR", "WINDOW", "QUERY",
-		"EXPIRED", "CURRENT", "EVENTS", "EVERY", "WITHIN", "LAST", "FIRST", "SNAPSHOT",
-		"OUTPUT", "INNER", "OUTER", "RIGHT", "LEFT", "FULL", "UNIDIRECTIONAL",
-		"REDUCE", "SECOND", "MINUTE", "HOUR", "DAY", "MONTH", "YEAR", "SECONDS",
-		"MINUTES", "HOURS", "DAYS", "MONTHS", "YEARS", "FOREVER", "LIMIT", "ASCENDING",
-		"DESCENDING", "TYPE_INT", "TYPE_BYTE", "TYPE_FLOAT", "TYPE_DECIMAL", "TYPE_BOOL",
-		"TYPE_STRING", "TYPE_ERROR", "TYPE_MAP", "TYPE_JSON", "TYPE_XML", "TYPE_TABLE",
-		"TYPE_STREAM", "TYPE_ANY", "TYPE_DESC", "TYPE", "TYPE_FUTURE", "TYPE_ANYDATA",
-		"VAR", "NEW", "IF", "MATCH", "ELSE", "FOREACH", "WHILE", "CONTINUE", "BREAK",
-		"FORK", "JOIN", "SOME", "ALL", "TIMEOUT", "TRY", "CATCH", "FINALLY", "THROW",
-		"PANIC", "TRAP", "RETURN", "TRANSACTION", "ABORT", "RETRY", "ONRETRY",
-		"RETRIES", "ONABORT", "ONCOMMIT", "LENGTHOF", "WITH", "IN", "LOCK", "UNTAINT",
-		"START", "AWAIT", "BUT", "CHECK", "DONE", "SCOPE", "COMPENSATION", "COMPENSATE",
-		"PRIMARYKEY", "IS", "SEMICOLON", "COLON", "DOUBLE_COLON", "DOT", "COMMA",
-		"LEFT_BRACE", "RIGHT_BRACE", "LEFT_PARENTHESIS", "RIGHT_PARENTHESIS",
-		"LEFT_BRACKET", "RIGHT_BRACKET", "QUESTION_MARK", "HASH", "ASSIGN", "ADD",
-		"SUB", "MUL", "DIV", "MOD", "NOT", "EQUAL", "NOT_EQUAL", "GT", "LT", "GT_EQUAL",
-		"LT_EQUAL", "AND", "OR", "REF_EQUAL", "REF_NOT_EQUAL", "BIT_AND", "BIT_XOR",
-		"BIT_COMPLEMENT", "RARROW", "LARROW", "AT", "BACKTICK", "RANGE", "ELLIPSIS",
-		"PIPE", "EQUAL_GT", "ELVIS", "COMPOUND_ADD", "COMPOUND_SUB", "COMPOUND_MUL",
-		"COMPOUND_DIV", "COMPOUND_BIT_AND", "COMPOUND_BIT_OR", "COMPOUND_BIT_XOR",
-		"COMPOUND_LEFT_SHIFT", "COMPOUND_RIGHT_SHIFT", "COMPOUND_LOGICAL_SHIFT",
-		"HALF_OPEN_RANGE", "DecimalIntegerLiteral", "HexIntegerLiteral", "BinaryIntegerLiteral",
-		"DecimalNumeral", "Digits", "Digit", "NonZeroDigit", "HexNumeral", "DottedHexNumber",
-		"DottedDecimalNumber", "HexDigits", "HexDigit", "BinaryNumeral", "BinaryDigits",
-		"BinaryDigit", "HexadecimalFloatingPointLiteral", "DecimalFloatingPointNumber",
-		"ExponentPart", "ExponentIndicator", "SignedInteger", "Sign", "HexIndicator",
-		"HexFloatingPointNumber", "BinaryExponent", "BinaryExponentIndicator",
-		"BooleanLiteral", "QuotedStringLiteral", "SymbolicStringLiteral", "UndelimeteredInitialChar",
-		"UndelimeteredFollowingChar", "StringCharacters", "StringCharacter", "EscapeSequence",
-		"UnicodeEscape", "Base16BlobLiteral", "HexGroup", "Base64BlobLiteral",
-		"Base64Group", "PaddedBase64Group", "Base64Char", "PaddingChar", "NullLiteral",
-		"Identifier", "Letter", "LetterOrDigit", "XMLLiteralStart", "StringTemplateLiteralStart",
-		"DocumentationLineStart", "ParameterDocumentationStart", "ReturnParameterDocumentationStart",
-		"DeprecatedTemplateStart", "ExpressionEnd", "WS", "NEW_LINE", "LINE_COMMENT",
-		"IdentifierLiteral", "IdentifierLiteralChar", "IdentifierLiteralEscapeSequence",
-		"VARIABLE", "MODULE", "ReferenceType", "DocumentationText", "SingleBacktickStart",
-		"DoubleBacktickStart", "TripleBacktickStart", "DefinitionReference", "DocumentationTextCharacter",
-		"DocumentationEscapedCharacters", "DocumentationSpace", "DocumentationEnd",
-		"ParameterName", "DescriptionSeparator", "DocumentationParamEnd", "SingleBacktickContent",
-		"SingleBacktickEnd", "DoubleBacktickContent", "DoubleBacktickEnd", "TripleBacktickContent",
-		"TripleBacktickEnd", "XML_COMMENT_START", "CDATA", "DTD", "EntityRef",
-		"CharRef", "XML_WS", "XML_TAG_OPEN", "XML_TAG_OPEN_SLASH", "XML_TAG_SPECIAL_OPEN",
-		"XMLLiteralEnd", "ExpressionStart", "XMLTemplateText", "XMLText", "XMLTextChar",
-		"XMLEscapedSequence", "XMLBracesSequence", "XML_TAG_CLOSE", "XML_TAG_SPECIAL_CLOSE",
-		"XML_TAG_SLASH_CLOSE", "SLASH", "QNAME_SEPARATOR", "EQUALS", "DOUBLE_QUOTE",
-		"SINGLE_QUOTE", "XMLQName", "XML_TAG_WS", "XMLTagExpressionStart", "HEXDIGIT",
-		"DIGIT", "NameChar", "NameStartChar", "DOUBLE_QUOTE_END", "XMLDoubleQuotedTemplateString",
-		"XMLDoubleQuotedString", "XMLDoubleQuotedStringChar", "SINGLE_QUOTE_END",
-		"XMLSingleQuotedTemplateString", "XMLSingleQuotedString", "XMLSingleQuotedStringChar",
-		"XML_PI_END", "XMLPIText", "XMLPITemplateText", "XMLPITextFragment", "XMLPIChar",
-		"XMLPIAllowedSequence", "XMLPISpecialSequence", "XML_COMMENT_END", "XMLCommentText",
-		"XMLCommentTemplateText", "XMLCommentTextFragment", "XMLCommentChar",
-		"XMLCommentAllowedSequence", "XMLCommentSpecialSequence", "TripleBackTickInlineCodeEnd",
-		"TripleBackTickInlineCode", "TripleBackTickInlineCodeChar", "DoubleBackTickInlineCodeEnd",
-		"DoubleBackTickInlineCode", "DoubleBackTickInlineCodeChar", "SingleBackTickInlineCodeEnd",
-		"SingleBackTickInlineCode", "SingleBackTickInlineCodeChar", "DeprecatedTemplateEnd",
-		"SBDeprecatedInlineCodeStart", "DBDeprecatedInlineCodeStart", "TBDeprecatedInlineCodeStart",
-		"DeprecatedTemplateText", "DeprecatedTemplateStringChar", "DeprecatedBackTick",
-		"DeprecatedEscapedSequence", "DeprecatedValidCharSequence", "StringTemplateLiteralEnd",
-		"StringTemplateExpressionStart", "StringTemplateText", "StringTemplateStringChar",
+		"IMPORT", "AS", "PUBLIC", "PRIVATE", "EXTERN", "SERVICE", "RESOURCE", 
+		"FUNCTION", "OBJECT", "RECORD", "ANNOTATION", "PARAMETER", "TRANSFORMER", 
+		"WORKER", "ENDPOINT", "BIND", "XMLNS", "RETURNS", "VERSION", "DEPRECATED", 
+		"CHANNEL", "ABSTRACT", "FROM", "ON", "SELECT", "GROUP", "BY", "HAVING", 
+		"ORDER", "WHERE", "FOLLOWED", "INTO", "SET", "FOR", "WINDOW", "QUERY", 
+		"EXPIRED", "CURRENT", "EVENTS", "EVERY", "WITHIN", "LAST", "FIRST", "SNAPSHOT", 
+		"OUTPUT", "INNER", "OUTER", "RIGHT", "LEFT", "FULL", "UNIDIRECTIONAL", 
+		"REDUCE", "SECOND", "MINUTE", "HOUR", "DAY", "MONTH", "YEAR", "SECONDS", 
+		"MINUTES", "HOURS", "DAYS", "MONTHS", "YEARS", "FOREVER", "LIMIT", "ASCENDING", 
+		"DESCENDING", "TYPE_INT", "TYPE_BYTE", "TYPE_FLOAT", "TYPE_DECIMAL", "TYPE_BOOL", 
+		"TYPE_STRING", "TYPE_ERROR", "TYPE_MAP", "TYPE_JSON", "TYPE_XML", "TYPE_TABLE", 
+		"TYPE_STREAM", "TYPE_ANY", "TYPE_DESC", "TYPE", "TYPE_FUTURE", "TYPE_ANYDATA", 
+		"VAR", "NEW", "IF", "MATCH", "ELSE", "FOREACH", "WHILE", "CONTINUE", "BREAK", 
+		"FORK", "JOIN", "SOME", "ALL", "TIMEOUT", "TRY", "CATCH", "FINALLY", "THROW", 
+		"PANIC", "TRAP", "RETURN", "TRANSACTION", "ABORT", "RETRY", "ONRETRY", 
+		"RETRIES", "ONABORT", "ONCOMMIT", "LENGTHOF", "WITH", "IN", "LOCK", "UNTAINT", 
+		"START", "AWAIT", "BUT", "CHECK", "DONE", "SCOPE", "COMPENSATION", "COMPENSATE", 
+		"PRIMARYKEY", "IS", "SEMICOLON", "COLON", "DOUBLE_COLON", "DOT", "COMMA", 
+		"LEFT_BRACE", "RIGHT_BRACE", "LEFT_PARENTHESIS", "RIGHT_PARENTHESIS", 
+		"LEFT_BRACKET", "RIGHT_BRACKET", "QUESTION_MARK", "HASH", "ASSIGN", "ADD", 
+		"SUB", "MUL", "DIV", "MOD", "NOT", "EQUAL", "NOT_EQUAL", "GT", "LT", "GT_EQUAL", 
+		"LT_EQUAL", "AND", "OR", "REF_EQUAL", "REF_NOT_EQUAL", "BIT_AND", "BIT_XOR", 
+		"BIT_COMPLEMENT", "RARROW", "LARROW", "AT", "BACKTICK", "RANGE", "ELLIPSIS", 
+		"PIPE", "EQUAL_GT", "ELVIS", "COMPOUND_ADD", "COMPOUND_SUB", "COMPOUND_MUL", 
+		"COMPOUND_DIV", "COMPOUND_BIT_AND", "COMPOUND_BIT_OR", "COMPOUND_BIT_XOR", 
+		"COMPOUND_LEFT_SHIFT", "COMPOUND_RIGHT_SHIFT", "COMPOUND_LOGICAL_SHIFT", 
+		"HALF_OPEN_RANGE", "DecimalIntegerLiteral", "HexIntegerLiteral", "BinaryIntegerLiteral", 
+		"DecimalNumeral", "Digits", "Digit", "NonZeroDigit", "HexNumeral", "DottedHexNumber", 
+		"DottedDecimalNumber", "HexDigits", "HexDigit", "BinaryNumeral", "BinaryDigits", 
+		"BinaryDigit", "HexadecimalFloatingPointLiteral", "DecimalFloatingPointNumber", 
+		"ExponentPart", "ExponentIndicator", "SignedInteger", "Sign", "HexIndicator", 
+		"HexFloatingPointNumber", "BinaryExponent", "BinaryExponentIndicator", 
+		"BooleanLiteral", "QuotedStringLiteral", "SymbolicStringLiteral", "UndelimeteredInitialChar", 
+		"UndelimeteredFollowingChar", "StringCharacters", "StringCharacter", "EscapeSequence", 
+		"UnicodeEscape", "Base16BlobLiteral", "HexGroup", "Base64BlobLiteral", 
+		"Base64Group", "PaddedBase64Group", "Base64Char", "PaddingChar", "NullLiteral", 
+		"Identifier", "Letter", "LetterOrDigit", "XMLLiteralStart", "StringTemplateLiteralStart", 
+		"DocumentationLineStart", "ParameterDocumentationStart", "ReturnParameterDocumentationStart", 
+		"DeprecatedTemplateStart", "ExpressionEnd", "WS", "NEW_LINE", "LINE_COMMENT", 
+		"IdentifierLiteral", "IdentifierLiteralChar", "IdentifierLiteralEscapeSequence", 
+		"VARIABLE", "MODULE", "ReferenceType", "DocumentationText", "SingleBacktickStart", 
+		"DoubleBacktickStart", "TripleBacktickStart", "DefinitionReference", "DocumentationTextCharacter", 
+		"DocumentationEscapedCharacters", "DocumentationSpace", "DocumentationEnd", 
+		"ParameterName", "DescriptionSeparator", "DocumentationParamEnd", "SingleBacktickContent", 
+		"SingleBacktickEnd", "DoubleBacktickContent", "DoubleBacktickEnd", "TripleBacktickContent", 
+		"TripleBacktickEnd", "XML_COMMENT_START", "CDATA", "DTD", "EntityRef", 
+		"CharRef", "XML_WS", "XML_TAG_OPEN", "XML_TAG_OPEN_SLASH", "XML_TAG_SPECIAL_OPEN", 
+		"XMLLiteralEnd", "ExpressionStart", "XMLTemplateText", "XMLText", "XMLTextChar", 
+		"XMLEscapedSequence", "XMLBracesSequence", "XML_TAG_CLOSE", "XML_TAG_SPECIAL_CLOSE", 
+		"XML_TAG_SLASH_CLOSE", "SLASH", "QNAME_SEPARATOR", "EQUALS", "DOUBLE_QUOTE", 
+		"SINGLE_QUOTE", "XMLQName", "XML_TAG_WS", "XMLTagExpressionStart", "HEXDIGIT", 
+		"DIGIT", "NameChar", "NameStartChar", "DOUBLE_QUOTE_END", "XMLDoubleQuotedTemplateString", 
+		"XMLDoubleQuotedString", "XMLDoubleQuotedStringChar", "SINGLE_QUOTE_END", 
+		"XMLSingleQuotedTemplateString", "XMLSingleQuotedString", "XMLSingleQuotedStringChar", 
+		"XML_PI_END", "XMLPIText", "XMLPITemplateText", "XMLPITextFragment", "XMLPIChar", 
+		"XMLPIAllowedSequence", "XMLPISpecialSequence", "XML_COMMENT_END", "XMLCommentText", 
+		"XMLCommentTemplateText", "XMLCommentTextFragment", "XMLCommentChar", 
+		"XMLCommentAllowedSequence", "XMLCommentSpecialSequence", "TripleBackTickInlineCodeEnd", 
+		"TripleBackTickInlineCode", "TripleBackTickInlineCodeChar", "DoubleBackTickInlineCodeEnd", 
+		"DoubleBackTickInlineCode", "DoubleBackTickInlineCodeChar", "SingleBackTickInlineCodeEnd", 
+		"SingleBackTickInlineCode", "SingleBackTickInlineCodeChar", "DeprecatedTemplateEnd", 
+		"SBDeprecatedInlineCodeStart", "DBDeprecatedInlineCodeStart", "TBDeprecatedInlineCodeStart", 
+		"DeprecatedTemplateText", "DeprecatedTemplateStringChar", "DeprecatedBackTick", 
+		"DeprecatedEscapedSequence", "DeprecatedValidCharSequence", "StringTemplateLiteralEnd", 
+		"StringTemplateExpressionStart", "StringTemplateText", "StringTemplateStringChar", 
 		"StringLiteralEscapedSequence", "StringTemplateValidCharSequence"
 	};
 
 	private static final String[] _LITERAL_NAMES = {
-		null, "'import'", "'as'", "'public'", "'private'", "'extern'", "'service'",
-		"'resource'", "'function'", "'object'", "'record'", "'annotation'", "'parameter'",
-		"'transformer'", "'worker'", "'endpoint'", "'bind'", "'xmlns'", "'returns'",
-		"'version'", "'deprecated'", "'channel'", "'abstract'", "'from'", "'on'",
-		null, "'group'", "'by'", "'having'", "'order'", "'where'", "'followed'",
-		"'into'", "'set'", "'for'", "'window'", "'query'", "'expired'", "'current'",
-		null, "'every'", "'within'", null, null, "'snapshot'", null, "'inner'",
-		"'outer'", "'right'", "'left'", "'full'", "'unidirectional'", "'reduce'",
-		null, null, null, null, null, null, null, null, null, null, null, null,
-		"'forever'", "'limit'", "'ascending'", "'descending'", "'int'", "'byte'",
-		"'float'", "'decimal'", "'boolean'", "'string'", "'error'", "'map'", "'json'",
-		"'xml'", "'table'", "'stream'", "'any'", "'typedesc'", "'type'", "'future'",
-		"'anydata'", "'var'", "'new'", "'if'", "'match'", "'else'", "'foreach'",
-		"'while'", "'continue'", "'break'", "'fork'", "'join'", "'some'", "'all'",
-		"'timeout'", "'try'", "'catch'", "'finally'", "'throw'", "'panic'", "'trap'",
-		"'return'", "'transaction'", "'abort'", "'retry'", "'onretry'", "'retries'",
-		"'onabort'", "'oncommit'", "'lengthof'", "'with'", "'in'", "'lock'", "'untaint'",
-		"'start'", "'await'", "'but'", "'check'", "'done'", "'scope'", "'compensation'",
-		"'compensate'", "'primarykey'", "'is'", "';'", "':'", "'::'", "'.'", "','",
-		"'{'", "'}'", "'('", "')'", "'['", "']'", "'?'", "'='", "'+'", "'-'",
-		"'*'", "'/'", "'%'", "'!'", "'=='", "'!='", "'>'", "'<'", "'>='", "'<='",
-		"'&&'", "'||'", "'==='", "'!=='", "'&'", "'^'", "'~'", "'->'", "'<-'",
-		"'@'", "'`'", "'..'", "'...'", "'|'", "'=>'", "'?:'", "'+='", "'-='",
-		"'*='", "'/='", "'&='", "'|='", "'^='", "'<<='", "'>>='", "'>>>='", "'..<'",
-		null, null, null, null, null, null, null, null, null, null, "'null'",
-		null, null, null, null, null, null, null, null, null, null, null, "'variable'",
-		"'module'", null, null, null, null, null, null, null, null, null, null,
-		null, null, null, null, null, null, null, null, "'<!--'", null, null,
-		null, null, null, "'</'", null, null, null, null, null, "'?>'", "'/>'",
+		null, "'import'", "'as'", "'public'", "'private'", "'extern'", "'service'", 
+		"'resource'", "'function'", "'object'", "'record'", "'annotation'", "'parameter'", 
+		"'transformer'", "'worker'", "'endpoint'", "'bind'", "'xmlns'", "'returns'", 
+		"'version'", "'deprecated'", "'channel'", "'abstract'", "'from'", "'on'", 
+		null, "'group'", "'by'", "'having'", "'order'", "'where'", "'followed'", 
+		"'into'", "'set'", "'for'", "'window'", "'query'", "'expired'", "'current'", 
+		null, "'every'", "'within'", null, null, "'snapshot'", null, "'inner'", 
+		"'outer'", "'right'", "'left'", "'full'", "'unidirectional'", "'reduce'", 
+		null, null, null, null, null, null, null, null, null, null, null, null, 
+		"'forever'", "'limit'", "'ascending'", "'descending'", "'int'", "'byte'", 
+		"'float'", "'decimal'", "'boolean'", "'string'", "'error'", "'map'", "'json'", 
+		"'xml'", "'table'", "'stream'", "'any'", "'typedesc'", "'type'", "'future'", 
+		"'anydata'", "'var'", "'new'", "'if'", "'match'", "'else'", "'foreach'", 
+		"'while'", "'continue'", "'break'", "'fork'", "'join'", "'some'", "'all'", 
+		"'timeout'", "'try'", "'catch'", "'finally'", "'throw'", "'panic'", "'trap'", 
+		"'return'", "'transaction'", "'abort'", "'retry'", "'onretry'", "'retries'", 
+		"'onabort'", "'oncommit'", "'lengthof'", "'with'", "'in'", "'lock'", "'untaint'", 
+		"'start'", "'await'", "'but'", "'check'", "'done'", "'scope'", "'compensation'", 
+		"'compensate'", "'primarykey'", "'is'", "';'", "':'", "'::'", "'.'", "','", 
+		"'{'", "'}'", "'('", "')'", "'['", "']'", "'?'", "'='", "'+'", "'-'", 
+		"'*'", "'/'", "'%'", "'!'", "'=='", "'!='", "'>'", "'<'", "'>='", "'<='", 
+		"'&&'", "'||'", "'==='", "'!=='", "'&'", "'^'", "'~'", "'->'", "'<-'", 
+		"'@'", "'`'", "'..'", "'...'", "'|'", "'=>'", "'?:'", "'+='", "'-='", 
+		"'*='", "'/='", "'&='", "'|='", "'^='", "'<<='", "'>>='", "'>>>='", "'..<'", 
+		null, null, null, null, null, null, null, null, null, null, "'null'", 
+		null, null, null, null, null, null, null, null, null, null, null, "'variable'", 
+		"'module'", null, null, null, null, null, null, null, null, null, null, 
+		null, null, null, null, null, null, null, null, "'<!--'", null, null, 
+		null, null, null, "'</'", null, null, null, null, null, "'?>'", "'/>'", 
 		null, null, null, "'\"'", "'''"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
-		null, "IMPORT", "AS", "PUBLIC", "PRIVATE", "EXTERN", "SERVICE", "RESOURCE",
-		"FUNCTION", "OBJECT", "RECORD", "ANNOTATION", "PARAMETER", "TRANSFORMER",
-		"WORKER", "ENDPOINT", "BIND", "XMLNS", "RETURNS", "VERSION", "DEPRECATED",
-		"CHANNEL", "ABSTRACT", "FROM", "ON", "SELECT", "GROUP", "BY", "HAVING",
-		"ORDER", "WHERE", "FOLLOWED", "INTO", "SET", "FOR", "WINDOW", "QUERY",
-		"EXPIRED", "CURRENT", "EVENTS", "EVERY", "WITHIN", "LAST", "FIRST", "SNAPSHOT",
-		"OUTPUT", "INNER", "OUTER", "RIGHT", "LEFT", "FULL", "UNIDIRECTIONAL",
-		"REDUCE", "SECOND", "MINUTE", "HOUR", "DAY", "MONTH", "YEAR", "SECONDS",
-		"MINUTES", "HOURS", "DAYS", "MONTHS", "YEARS", "FOREVER", "LIMIT", "ASCENDING",
-		"DESCENDING", "TYPE_INT", "TYPE_BYTE", "TYPE_FLOAT", "TYPE_DECIMAL", "TYPE_BOOL",
-		"TYPE_STRING", "TYPE_ERROR", "TYPE_MAP", "TYPE_JSON", "TYPE_XML", "TYPE_TABLE",
-		"TYPE_STREAM", "TYPE_ANY", "TYPE_DESC", "TYPE", "TYPE_FUTURE", "TYPE_ANYDATA",
-		"VAR", "NEW", "IF", "MATCH", "ELSE", "FOREACH", "WHILE", "CONTINUE", "BREAK",
-		"FORK", "JOIN", "SOME", "ALL", "TIMEOUT", "TRY", "CATCH", "FINALLY", "THROW",
-		"PANIC", "TRAP", "RETURN", "TRANSACTION", "ABORT", "RETRY", "ONRETRY",
-		"RETRIES", "ONABORT", "ONCOMMIT", "LENGTHOF", "WITH", "IN", "LOCK", "UNTAINT",
-		"START", "AWAIT", "BUT", "CHECK", "DONE", "SCOPE", "COMPENSATION", "COMPENSATE",
-		"PRIMARYKEY", "IS", "SEMICOLON", "COLON", "DOUBLE_COLON", "DOT", "COMMA",
-		"LEFT_BRACE", "RIGHT_BRACE", "LEFT_PARENTHESIS", "RIGHT_PARENTHESIS",
-		"LEFT_BRACKET", "RIGHT_BRACKET", "QUESTION_MARK", "ASSIGN", "ADD", "SUB",
-		"MUL", "DIV", "MOD", "NOT", "EQUAL", "NOT_EQUAL", "GT", "LT", "GT_EQUAL",
-		"LT_EQUAL", "AND", "OR", "REF_EQUAL", "REF_NOT_EQUAL", "BIT_AND", "BIT_XOR",
-		"BIT_COMPLEMENT", "RARROW", "LARROW", "AT", "BACKTICK", "RANGE", "ELLIPSIS",
-		"PIPE", "EQUAL_GT", "ELVIS", "COMPOUND_ADD", "COMPOUND_SUB", "COMPOUND_MUL",
-		"COMPOUND_DIV", "COMPOUND_BIT_AND", "COMPOUND_BIT_OR", "COMPOUND_BIT_XOR",
-		"COMPOUND_LEFT_SHIFT", "COMPOUND_RIGHT_SHIFT", "COMPOUND_LOGICAL_SHIFT",
-		"HALF_OPEN_RANGE", "DecimalIntegerLiteral", "HexIntegerLiteral", "BinaryIntegerLiteral",
-		"HexadecimalFloatingPointLiteral", "DecimalFloatingPointNumber", "BooleanLiteral",
-		"QuotedStringLiteral", "SymbolicStringLiteral", "Base16BlobLiteral", "Base64BlobLiteral",
-		"NullLiteral", "Identifier", "XMLLiteralStart", "StringTemplateLiteralStart",
-		"DocumentationLineStart", "ParameterDocumentationStart", "ReturnParameterDocumentationStart",
-		"DeprecatedTemplateStart", "ExpressionEnd", "WS", "NEW_LINE", "LINE_COMMENT",
-		"VARIABLE", "MODULE", "ReferenceType", "DocumentationText", "SingleBacktickStart",
-		"DoubleBacktickStart", "TripleBacktickStart", "DefinitionReference", "DocumentationEscapedCharacters",
-		"DocumentationSpace", "DocumentationEnd", "ParameterName", "DescriptionSeparator",
-		"DocumentationParamEnd", "SingleBacktickContent", "SingleBacktickEnd",
-		"DoubleBacktickContent", "DoubleBacktickEnd", "TripleBacktickContent",
-		"TripleBacktickEnd", "XML_COMMENT_START", "CDATA", "DTD", "EntityRef",
-		"CharRef", "XML_TAG_OPEN", "XML_TAG_OPEN_SLASH", "XML_TAG_SPECIAL_OPEN",
-		"XMLLiteralEnd", "XMLTemplateText", "XMLText", "XML_TAG_CLOSE", "XML_TAG_SPECIAL_CLOSE",
-		"XML_TAG_SLASH_CLOSE", "SLASH", "QNAME_SEPARATOR", "EQUALS", "DOUBLE_QUOTE",
-		"SINGLE_QUOTE", "XMLQName", "XML_TAG_WS", "XMLTagExpressionStart", "DOUBLE_QUOTE_END",
-		"XMLDoubleQuotedTemplateString", "XMLDoubleQuotedString", "SINGLE_QUOTE_END",
-		"XMLSingleQuotedTemplateString", "XMLSingleQuotedString", "XMLPIText",
-		"XMLPITemplateText", "XMLCommentText", "XMLCommentTemplateText", "TripleBackTickInlineCodeEnd",
-		"TripleBackTickInlineCode", "DoubleBackTickInlineCodeEnd", "DoubleBackTickInlineCode",
-		"SingleBackTickInlineCodeEnd", "SingleBackTickInlineCode", "DeprecatedTemplateEnd",
-		"SBDeprecatedInlineCodeStart", "DBDeprecatedInlineCodeStart", "TBDeprecatedInlineCodeStart",
-		"DeprecatedTemplateText", "StringTemplateLiteralEnd", "StringTemplateExpressionStart",
+		null, "IMPORT", "AS", "PUBLIC", "PRIVATE", "EXTERN", "SERVICE", "RESOURCE", 
+		"FUNCTION", "OBJECT", "RECORD", "ANNOTATION", "PARAMETER", "TRANSFORMER", 
+		"WORKER", "ENDPOINT", "BIND", "XMLNS", "RETURNS", "VERSION", "DEPRECATED", 
+		"CHANNEL", "ABSTRACT", "FROM", "ON", "SELECT", "GROUP", "BY", "HAVING", 
+		"ORDER", "WHERE", "FOLLOWED", "INTO", "SET", "FOR", "WINDOW", "QUERY", 
+		"EXPIRED", "CURRENT", "EVENTS", "EVERY", "WITHIN", "LAST", "FIRST", "SNAPSHOT", 
+		"OUTPUT", "INNER", "OUTER", "RIGHT", "LEFT", "FULL", "UNIDIRECTIONAL", 
+		"REDUCE", "SECOND", "MINUTE", "HOUR", "DAY", "MONTH", "YEAR", "SECONDS", 
+		"MINUTES", "HOURS", "DAYS", "MONTHS", "YEARS", "FOREVER", "LIMIT", "ASCENDING", 
+		"DESCENDING", "TYPE_INT", "TYPE_BYTE", "TYPE_FLOAT", "TYPE_DECIMAL", "TYPE_BOOL", 
+		"TYPE_STRING", "TYPE_ERROR", "TYPE_MAP", "TYPE_JSON", "TYPE_XML", "TYPE_TABLE", 
+		"TYPE_STREAM", "TYPE_ANY", "TYPE_DESC", "TYPE", "TYPE_FUTURE", "TYPE_ANYDATA", 
+		"VAR", "NEW", "IF", "MATCH", "ELSE", "FOREACH", "WHILE", "CONTINUE", "BREAK", 
+		"FORK", "JOIN", "SOME", "ALL", "TIMEOUT", "TRY", "CATCH", "FINALLY", "THROW", 
+		"PANIC", "TRAP", "RETURN", "TRANSACTION", "ABORT", "RETRY", "ONRETRY", 
+		"RETRIES", "ONABORT", "ONCOMMIT", "LENGTHOF", "WITH", "IN", "LOCK", "UNTAINT", 
+		"START", "AWAIT", "BUT", "CHECK", "DONE", "SCOPE", "COMPENSATION", "COMPENSATE", 
+		"PRIMARYKEY", "IS", "SEMICOLON", "COLON", "DOUBLE_COLON", "DOT", "COMMA", 
+		"LEFT_BRACE", "RIGHT_BRACE", "LEFT_PARENTHESIS", "RIGHT_PARENTHESIS", 
+		"LEFT_BRACKET", "RIGHT_BRACKET", "QUESTION_MARK", "ASSIGN", "ADD", "SUB", 
+		"MUL", "DIV", "MOD", "NOT", "EQUAL", "NOT_EQUAL", "GT", "LT", "GT_EQUAL", 
+		"LT_EQUAL", "AND", "OR", "REF_EQUAL", "REF_NOT_EQUAL", "BIT_AND", "BIT_XOR", 
+		"BIT_COMPLEMENT", "RARROW", "LARROW", "AT", "BACKTICK", "RANGE", "ELLIPSIS", 
+		"PIPE", "EQUAL_GT", "ELVIS", "COMPOUND_ADD", "COMPOUND_SUB", "COMPOUND_MUL", 
+		"COMPOUND_DIV", "COMPOUND_BIT_AND", "COMPOUND_BIT_OR", "COMPOUND_BIT_XOR", 
+		"COMPOUND_LEFT_SHIFT", "COMPOUND_RIGHT_SHIFT", "COMPOUND_LOGICAL_SHIFT", 
+		"HALF_OPEN_RANGE", "DecimalIntegerLiteral", "HexIntegerLiteral", "BinaryIntegerLiteral", 
+		"HexadecimalFloatingPointLiteral", "DecimalFloatingPointNumber", "BooleanLiteral", 
+		"QuotedStringLiteral", "SymbolicStringLiteral", "Base16BlobLiteral", "Base64BlobLiteral", 
+		"NullLiteral", "Identifier", "XMLLiteralStart", "StringTemplateLiteralStart", 
+		"DocumentationLineStart", "ParameterDocumentationStart", "ReturnParameterDocumentationStart", 
+		"DeprecatedTemplateStart", "ExpressionEnd", "WS", "NEW_LINE", "LINE_COMMENT", 
+		"VARIABLE", "MODULE", "ReferenceType", "DocumentationText", "SingleBacktickStart", 
+		"DoubleBacktickStart", "TripleBacktickStart", "DefinitionReference", "DocumentationEscapedCharacters", 
+		"DocumentationSpace", "DocumentationEnd", "ParameterName", "DescriptionSeparator", 
+		"DocumentationParamEnd", "SingleBacktickContent", "SingleBacktickEnd", 
+		"DoubleBacktickContent", "DoubleBacktickEnd", "TripleBacktickContent", 
+		"TripleBacktickEnd", "XML_COMMENT_START", "CDATA", "DTD", "EntityRef", 
+		"CharRef", "XML_TAG_OPEN", "XML_TAG_OPEN_SLASH", "XML_TAG_SPECIAL_OPEN", 
+		"XMLLiteralEnd", "XMLTemplateText", "XMLText", "XML_TAG_CLOSE", "XML_TAG_SPECIAL_CLOSE", 
+		"XML_TAG_SLASH_CLOSE", "SLASH", "QNAME_SEPARATOR", "EQUALS", "DOUBLE_QUOTE", 
+		"SINGLE_QUOTE", "XMLQName", "XML_TAG_WS", "XMLTagExpressionStart", "DOUBLE_QUOTE_END", 
+		"XMLDoubleQuotedTemplateString", "XMLDoubleQuotedString", "SINGLE_QUOTE_END", 
+		"XMLSingleQuotedTemplateString", "XMLSingleQuotedString", "XMLPIText", 
+		"XMLPITemplateText", "XMLCommentText", "XMLCommentTemplateText", "TripleBackTickInlineCodeEnd", 
+		"TripleBackTickInlineCode", "DoubleBackTickInlineCodeEnd", "DoubleBackTickInlineCode", 
+		"SingleBackTickInlineCodeEnd", "SingleBackTickInlineCode", "DeprecatedTemplateEnd", 
+		"SBDeprecatedInlineCodeStart", "DBDeprecatedInlineCodeStart", "TBDeprecatedInlineCodeStart", 
+		"DeprecatedTemplateText", "StringTemplateLiteralEnd", "StringTemplateExpressionStart", 
 		"StringTemplateText"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
@@ -398,182 +398,182 @@ public class BallerinaLexer extends Lexer {
 	private void FROM_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 0:
-			 inTableSqlQuery = true; inSiddhiInsertQuery = true; inSiddhiOutputRateLimit = true;
+			 inTableSqlQuery = true; inSiddhiInsertQuery = true; inSiddhiOutputRateLimit = true; 
 			break;
 		}
 	}
 	private void SELECT_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 1:
-			 inTableSqlQuery = false;
+			 inTableSqlQuery = false; 
 			break;
 		}
 	}
 	private void FOR_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 2:
-			 inSiddhiTimeScaleQuery = true;
+			 inSiddhiTimeScaleQuery = true; 
 			break;
 		}
 	}
 	private void EVENTS_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 3:
-			 inSiddhiInsertQuery = false;
+			 inSiddhiInsertQuery = false; 
 			break;
 		}
 	}
 	private void WITHIN_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 4:
-			 inSiddhiTimeScaleQuery = true;
+			 inSiddhiTimeScaleQuery = true; 
 			break;
 		}
 	}
 	private void LAST_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 5:
-			 inSiddhiOutputRateLimit = false;
+			 inSiddhiOutputRateLimit = false; 
 			break;
 		}
 	}
 	private void FIRST_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 6:
-			 inSiddhiOutputRateLimit = false;
+			 inSiddhiOutputRateLimit = false; 
 			break;
 		}
 	}
 	private void OUTPUT_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 7:
-			 inSiddhiTimeScaleQuery = true;
+			 inSiddhiTimeScaleQuery = true; 
 			break;
 		}
 	}
 	private void SECOND_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 8:
-			 inSiddhiTimeScaleQuery = false;
+			 inSiddhiTimeScaleQuery = false; 
 			break;
 		}
 	}
 	private void MINUTE_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 9:
-			 inSiddhiTimeScaleQuery = false;
+			 inSiddhiTimeScaleQuery = false; 
 			break;
 		}
 	}
 	private void HOUR_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 10:
-			 inSiddhiTimeScaleQuery = false;
+			 inSiddhiTimeScaleQuery = false; 
 			break;
 		}
 	}
 	private void DAY_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 11:
-			 inSiddhiTimeScaleQuery = false;
+			 inSiddhiTimeScaleQuery = false; 
 			break;
 		}
 	}
 	private void MONTH_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 12:
-			 inSiddhiTimeScaleQuery = false;
+			 inSiddhiTimeScaleQuery = false; 
 			break;
 		}
 	}
 	private void YEAR_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 13:
-			 inSiddhiTimeScaleQuery = false;
+			 inSiddhiTimeScaleQuery = false; 
 			break;
 		}
 	}
 	private void SECONDS_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 14:
-			 inSiddhiTimeScaleQuery = false;
+			 inSiddhiTimeScaleQuery = false; 
 			break;
 		}
 	}
 	private void MINUTES_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 15:
-			 inSiddhiTimeScaleQuery = false;
+			 inSiddhiTimeScaleQuery = false; 
 			break;
 		}
 	}
 	private void HOURS_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 16:
-			 inSiddhiTimeScaleQuery = false;
+			 inSiddhiTimeScaleQuery = false; 
 			break;
 		}
 	}
 	private void DAYS_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 17:
-			 inSiddhiTimeScaleQuery = false;
+			 inSiddhiTimeScaleQuery = false; 
 			break;
 		}
 	}
 	private void MONTHS_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 18:
-			 inSiddhiTimeScaleQuery = false;
+			 inSiddhiTimeScaleQuery = false; 
 			break;
 		}
 	}
 	private void YEARS_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 19:
-			 inSiddhiTimeScaleQuery = false;
+			 inSiddhiTimeScaleQuery = false; 
 			break;
 		}
 	}
 	private void XMLLiteralStart_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 20:
-			 inTemplate = true;
+			 inTemplate = true; 
 			break;
 		}
 	}
 	private void StringTemplateLiteralStart_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 21:
-			 inTemplate = true;
+			 inTemplate = true; 
 			break;
 		}
 	}
 	private void DeprecatedTemplateStart_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 22:
-			 inDeprecatedTemplate = true;
+			 inDeprecatedTemplate = true; 
 			break;
 		}
 	}
 	private void XMLLiteralEnd_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 23:
-			 inTemplate = false;
+			 inTemplate = false; 
 			break;
 		}
 	}
 	private void DeprecatedTemplateEnd_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 24:
-			 inDeprecatedTemplate = false;
+			 inDeprecatedTemplate = false; 
 			break;
 		}
 	}
 	private void StringTemplateLiteralEnd_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 25:
-			 inTemplate = false;
+			 inTemplate = false; 
 			break;
 		}
 	}

@@ -17,6 +17,8 @@
 */
 package org.ballerinalang.model.tree.expressions;
 
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangExpression;
+
 /**
  * i[0].
  *
@@ -24,7 +26,7 @@ package org.ballerinalang.model.tree.expressions;
  */
 public interface IndexBasedAccessNode extends VariableReferenceNode {
 
-    VariableReferenceNode getExpression();
+    BLangExpression getExpression();
 
     ExpressionNode getIndex();
 }
