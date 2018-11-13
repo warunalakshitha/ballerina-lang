@@ -1184,10 +1184,10 @@ public class PackageInfoReader {
                 case InstructionCodes.ANY2S:
                 case InstructionCodes.ANY2B:
                 case InstructionCodes.ANY2D:
-//                case InstructionCodes.ANY2JSON:
-//                case InstructionCodes.ANY2XML:
-//                case InstructionCodes.ANY2MAP:
-//                case InstructionCodes.ANY2TYPE:
+                case InstructionCodes.ANY2JSON:
+                case InstructionCodes.ANY2XML:
+                case InstructionCodes.ANY2MAP:
+                case InstructionCodes.ANY2TYPE:
                 case InstructionCodes.ANY2DT:
                 case InstructionCodes.I2F:
                 case InstructionCodes.I2S:
