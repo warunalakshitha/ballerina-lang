@@ -17,7 +17,11 @@
  */
 package org.ballerinalang.model.values;
 
+import org.ballerinalang.bre.bvm.CPU;
 import org.ballerinalang.model.types.BField;
+import org.ballerinalang.model.types.BJSONType;
+import org.ballerinalang.model.types.BMapType;
+import org.ballerinalang.model.types.BRecordType;
 import org.ballerinalang.model.types.BStructureType;
 import org.ballerinalang.model.types.BType;
 import org.ballerinalang.model.types.BTypes;
@@ -46,6 +50,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * {@code MapType} represents a map.
+ *
  * @param <K> Key
  * @param <V> Value
  * @since 0.8.0
@@ -61,7 +66,7 @@ public class BMap<K, V extends BValue> implements BRefType, BCollection, Seriali
     private HashMap<String, Object> nativeData = new HashMap<>();
 
     public BMap() {
-        map =  new LinkedHashMap<>();
+        map = new LinkedHashMap<>();
     }
 
     public BMap(BType type) {
@@ -107,7 +112,7 @@ public class BMap<K, V extends BValue> implements BRefType, BCollection, Seriali
     /**
      * Retrieve the value for the given key from map.
      *
-     * @param key key used to get the value
+     * @param key    key used to get the value
      * @param except flag indicating whether to throw an exception if the key does not exists
      * @return value
      */
@@ -125,7 +130,8 @@ public class BMap<K, V extends BValue> implements BRefType, BCollection, Seriali
 
     /**
      * Insert a key value pair into the map.
-     * @param key key related to the value
+     *
+     * @param key   key related to the value
      * @param value value related to the key
      */
     public void put(K key, V value) {
@@ -166,6 +172,7 @@ public class BMap<K, V extends BValue> implements BRefType, BCollection, Seriali
 
     /**
      * Retrieve the internal map.
+     *
      * @return map
      */
     public LinkedHashMap<K, V> getMap() {
@@ -174,6 +181,7 @@ public class BMap<K, V extends BValue> implements BRefType, BCollection, Seriali
 
     /**
      * Get the size of the map.
+     *
      * @return returns the size of the map
      */
     public int size() {
@@ -273,7 +281,7 @@ public class BMap<K, V extends BValue> implements BRefType, BCollection, Seriali
                     return getJSONString();
                 default:
                     String keySeparator = type.getTag() == TypeTags.MAP_TAG ? "\"" : "";
-                    for (Iterator<Map.Entry<K, V>> i = map.entrySet().iterator(); i.hasNext();) {
+                    for (Iterator<Map.Entry<K, V>> i = map.entrySet().iterator(); i.hasNext(); ) {
                         String key;
                         Map.Entry<K, V> e = i.next();
                         key = keySeparator + (String) e.getKey() + keySeparator;
@@ -328,6 +336,69 @@ public class BMap<K, V extends BValue> implements BRefType, BCollection, Seriali
     }
 
     @Override
+    public void stamp(BType type) {
+
+        if (type.getTag() == TypeTags.JSON_TAG && ((BJSONType) type).getConstrainedType() != null) {
+            this.stamp(((BJSONType) type).getConstrainedType());
+        } else if (type.getTag() == TypeTags.MAP_TAG) {
+            for (Object mapEntry : (this).values()) {
+                ((BValue) mapEntry).stamp(((BMapType) type).getConstrainedType());
+            }
+        } else if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
+            Map<String, BType> targetTypeField = new HashMap<>();
+            BType restFieldType = ((BRecordType) type).restFieldType;
+
+            for (BField field : ((BStructureType) type).getFields()) {
+                targetTypeField.put(field.getFieldName(), field.fieldType);
+            }
+
+            for (Map.Entry targetTypeEntry : targetTypeField.entrySet()) {
+                String fieldName = targetTypeEntry.getKey().toString();
+
+                if (!(this.getMap().containsKey(fieldName))) {
+                    throw new BallerinaException("Seal failed due to unavailability of required field " + fieldName +
+                            " in type " + this.type);
+                }
+
+            }
+
+            for (Map.Entry valueEntry : this.getMap().entrySet()) {
+                String fieldName = valueEntry.getKey().toString();
+
+                if (targetTypeField.containsKey(fieldName)) {
+                    if (CPU.isStampingAllowed(((BValue) valueEntry.getValue()).getType(), targetTypeField.get(fieldName))) {
+                        ((BValue) valueEntry.getValue()).stamp(targetTypeField.get(fieldName));
+                    } else {
+                        throw new BallerinaException("Seal failed due to invalid value assignment. Type " +
+                                targetTypeField.get(fieldName) + " cannot assigned to type " +
+                                ((BValue) valueEntry.getValue()).getType());
+                    }
+
+                } else {
+                    if (!((BRecordType) type).sealed) {
+                        if (restFieldType.getTag() == TypeTags.ANYDATA_TAG) {
+                            ((BValue) valueEntry.getValue()).stamp(BTypes.typeAnydata);
+                        } else if (((BValue) valueEntry.getValue()).getType().getTag() != restFieldType.getTag()) {
+                            throw new BallerinaException("Seal failed due to closed record type. Field " +
+                                    fieldName + " does not belongs to the rest field type " + restFieldType);
+                        }
+                    } else {
+                        throw new BallerinaException("Seal failed due to closed record type. Field " +
+                                fieldName + " does not exist in Record type " + type.getName());
+                    }
+                }
+            }
+
+        } else if (type.getTag() == TypeTags.ANYDATA_TAG) {
+            if (!CPU.isStampingAllowed(this.getType(), type)) {
+                throw new BallerinaException("Seal failed due to invalid value assignment. Type " +
+                        type + " cannot assigned to type " + this.getType());
+            }
+        }
+
+        this.type = type;
+    }
+
     public BValue copy(Map<BValue, BValue> refs) {
         readLock.lock();
         try {
@@ -376,9 +447,9 @@ public class BMap<K, V extends BValue> implements BRefType, BCollection, Seriali
         public BValue[] getNext(int arity) {
             Map.Entry<K, V> next = iterator.next();
             if (arity == 1) {
-                return new BValue[] {next.getValue()};
+                return new BValue[]{next.getValue()};
             }
-            return new BValue[] {new BString((String) next.getKey()), next.getValue()};
+            return new BValue[]{new BString((String) next.getKey()), next.getValue()};
         }
 
         @Override
@@ -390,9 +461,10 @@ public class BMap<K, V extends BValue> implements BRefType, BCollection, Seriali
     /**
      * Add natively accessible data.
      *
-     * @param key key to store data with
+     * @param key  key to store data with
      * @param data data to be stored
      */
+
     public void addNativeData(String key, Object data) {
         this.nativeData.put(key, data);
     }

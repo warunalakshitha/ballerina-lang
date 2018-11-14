@@ -51,6 +51,8 @@ import org.wso2.ballerinalang.compiler.semantics.model.symbols.BXMLNSSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.SymTag;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.Symbols;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.TaintRecord;
+import org.wso2.ballerinalang.compiler.semantics.model.types.BAnyType;
+import org.wso2.ballerinalang.compiler.semantics.model.types.BAnydataType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BArrayType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BIntermediateCollectionType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BInvokableType;
@@ -464,6 +466,8 @@ public class Desugar extends BLangNodeVisitor {
         // Add object level variables to the init function.
         Map<BSymbol, BLangStatement> initFunctionStmts = objectTypeNode.initFunction.initFunctionStmts;
         objectTypeNode.fields.stream()
+                // skip if the field is already have an value set by the constructor.
+                .filter(field -> !initFunctionStmts.containsKey(field.symbol))
                 .map(field -> {
                     // If the rhs value is not given in-line inside the struct
                     // then get the default value literal for that particular struct.
@@ -474,9 +478,7 @@ public class Desugar extends BLangNodeVisitor {
                 })
                 .filter(field -> field.expr != null)
                 .forEachOrdered(field -> {
-                    if (!initFunctionStmts.containsKey(field.symbol)) {
-                        initFunctionStmts.put(field.symbol, createAssignmentStmt(field));
-                    }
+                    initFunctionStmts.put(field.symbol, createAssignmentStmt(field));
                 });
 
         // Adding init statements to the init function.
@@ -493,6 +495,10 @@ public class Desugar extends BLangNodeVisitor {
         int maskOptional = Flags.asMask(EnumSet.of(Flag.OPTIONAL));
         // Add struct level variables to the init function.
         recordTypeNode.fields.stream()
+                // Only add a field if it is required. Checking if it's required is enough since non-defaultable
+                // required fields will have been caught in the type checking phase.
+                .filter(field -> !recordTypeNode.initFunction.initFunctionStmts.containsKey(field.symbol) &&
+                            !Symbols.isFlagOn(field.symbol.flags, maskOptional))
                 .map(field -> {
                     // If the rhs value is not given in-line inside the struct
                     // then get the default value literal for that particular struct.
@@ -503,13 +509,8 @@ public class Desugar extends BLangNodeVisitor {
                 })
                 .filter(field -> field.expr != null)
                 .forEachOrdered(field -> {
-                    // Only add a field if it is required. Checking if it's required is enough since non-defaultable
-                    // required fields will have been caught in the type checking phase.
-                    if (!recordTypeNode.initFunction.initFunctionStmts.containsKey(field.symbol) &&
-                            !Symbols.isFlagOn(field.symbol.flags, maskOptional)) {
-                        recordTypeNode.initFunction.initFunctionStmts.put(field.symbol,
-                                                                          (BLangStatement) createAssignmentStmt(field));
-                    }
+                    recordTypeNode.initFunction.initFunctionStmts.put(field.symbol,
+                            createAssignmentStmt(field));
                 });
 
         //Adding init statements to the init function.
@@ -1794,28 +1795,32 @@ public class Desugar extends BLangNodeVisitor {
         if (varRefType.tag == TypeTags.OBJECT) {
             if (fieldAccessExpr.symbol != null && fieldAccessExpr.symbol.type.tag == TypeTags.INVOKABLE &&
                     ((fieldAccessExpr.symbol.flags & Flags.ATTACHED) == Flags.ATTACHED)) {
-                targetVarRef = new BLangStructFunctionVarRef(fieldAccessExpr.expr,
+                targetVarRef = new BLangStructFunctionVarRef((BLangVariableReference) fieldAccessExpr.expr,
                                                              (BVarSymbol) fieldAccessExpr.symbol);
             } else {
-                targetVarRef = new BLangStructFieldAccessExpr(fieldAccessExpr.pos, fieldAccessExpr.expr, stringLit,
-                                                              (BVarSymbol) fieldAccessExpr.symbol, false);
+                targetVarRef = new BLangStructFieldAccessExpr(fieldAccessExpr.pos,
+                        (BLangVariableReference) fieldAccessExpr.expr, stringLit, (BVarSymbol) fieldAccessExpr.symbol,
+                        false);
             }
         } else if (varRefType.tag == TypeTags.RECORD) {
             if (fieldAccessExpr.symbol != null && fieldAccessExpr.symbol.type.tag == TypeTags.INVOKABLE
                     && ((fieldAccessExpr.symbol.flags & Flags.ATTACHED) == Flags.ATTACHED)) {
-                targetVarRef = new BLangStructFunctionVarRef(fieldAccessExpr.expr,
+                targetVarRef = new BLangStructFunctionVarRef((BLangVariableReference) fieldAccessExpr.expr,
                                                              (BVarSymbol) fieldAccessExpr.symbol);
             } else {
-                targetVarRef = new BLangStructFieldAccessExpr(fieldAccessExpr.pos, fieldAccessExpr.expr, stringLit,
+                targetVarRef = new BLangStructFieldAccessExpr(fieldAccessExpr.pos,
+                        (BLangVariableReference) fieldAccessExpr.expr, stringLit,
                                                               (BVarSymbol) fieldAccessExpr.symbol, true);
             }
         } else if (varRefType.tag == TypeTags.MAP) {
-            targetVarRef = new BLangMapAccessExpr(fieldAccessExpr.pos, fieldAccessExpr.expr, stringLit);
+            targetVarRef = new BLangMapAccessExpr(fieldAccessExpr.pos, (BLangVariableReference) fieldAccessExpr.expr,
+                    stringLit);
         } else if (varRefType.tag == TypeTags.JSON) {
-            targetVarRef = new BLangJSONAccessExpr(fieldAccessExpr.pos, fieldAccessExpr.expr, stringLit);
+            targetVarRef = new BLangJSONAccessExpr(fieldAccessExpr.pos, (BLangVariableReference) fieldAccessExpr.expr,
+                    stringLit);
         } else if (varRefType.tag == TypeTags.XML) {
-            targetVarRef = new BLangXMLAccessExpr(fieldAccessExpr.pos, fieldAccessExpr.expr, stringLit,
-                                                  fieldAccessExpr.fieldKind);
+            targetVarRef = new BLangXMLAccessExpr(fieldAccessExpr.pos, (BLangVariableReference) fieldAccessExpr.expr,
+                    stringLit, fieldAccessExpr.fieldKind);
         }
 
         targetVarRef.lhsVar = fieldAccessExpr.lhsVar;
@@ -1836,25 +1841,25 @@ public class Desugar extends BLangNodeVisitor {
         BType varRefType = indexAccessExpr.expr.type;
         if (varRefType.tag == TypeTags.OBJECT || varRefType.tag == TypeTags.RECORD) {
             targetVarRef = new BLangStructFieldAccessExpr(indexAccessExpr.pos,
-                                                          indexAccessExpr.expr,
+                                                            (BLangVariableReference) indexAccessExpr.expr,
                                                           indexAccessExpr.indexExpr,
                                                           (BVarSymbol) indexAccessExpr.symbol,
                                                           false);
         } else if (varRefType.tag == TypeTags.MAP) {
-            targetVarRef = new BLangMapAccessExpr(indexAccessExpr.pos, indexAccessExpr.expr, indexAccessExpr.indexExpr,
-                    !indexAccessExpr.type.isNullable());
+            targetVarRef = new BLangMapAccessExpr(indexAccessExpr.pos, (BLangVariableReference) indexAccessExpr.expr,
+                    indexAccessExpr.indexExpr, !indexAccessExpr.type.isNullable());
         } else if (varRefType.tag == TypeTags.JSON || getElementType(varRefType).tag == TypeTags.JSON) {
-            targetVarRef = new BLangJSONAccessExpr(indexAccessExpr.pos, indexAccessExpr.expr,
+            targetVarRef = new BLangJSONAccessExpr(indexAccessExpr.pos, (BLangVariableReference)  indexAccessExpr.expr,
                     indexAccessExpr.indexExpr);
         } else if (varRefType.tag == TypeTags.ARRAY) {
             targetVarRef = new BLangArrayAccessExpr(indexAccessExpr.pos,
-                    indexAccessExpr.expr, indexAccessExpr.indexExpr);
+                    (BLangVariableReference) indexAccessExpr.expr, indexAccessExpr.indexExpr);
         } else if (varRefType.tag == TypeTags.XML) {
             targetVarRef = new BLangXMLAccessExpr(indexAccessExpr.pos,
-                    indexAccessExpr.expr, indexAccessExpr.indexExpr);
+                    (BLangVariableReference) indexAccessExpr.expr, indexAccessExpr.indexExpr);
         } else if (varRefType.tag == TypeTags.TUPLE) {
             targetVarRef = new BLangTupleAccessExpr(indexAccessExpr.pos,
-                    indexAccessExpr.expr, indexAccessExpr.indexExpr);
+                    (BLangVariableReference) indexAccessExpr.expr, indexAccessExpr.indexExpr);
         }
 
         targetVarRef.lhsVar = indexAccessExpr.lhsVar;
@@ -2771,7 +2776,7 @@ public class Desugar extends BLangNodeVisitor {
     }
 
     private void visitActionInvocationEndpoint(BLangInvocation iExpr) {
-        final BEndpointVarSymbol epSymbol = (BEndpointVarSymbol) iExpr.expr.symbol;
+        final BEndpointVarSymbol epSymbol = (BEndpointVarSymbol) ((BLangVariableReference)  iExpr.expr).symbol;
         // Convert to endpoint.getClient(). iExpr has to be a VarRef.
         final BLangInvocation getClientExpr = ASTBuilderUtil.createInvocationExpr(iExpr.expr.pos,
                 epSymbol.getClientFunction, Collections.emptyList(), symResolver);
@@ -3549,11 +3554,17 @@ public class Desugar extends BLangNodeVisitor {
     }
 
     private BType getSafeType(BType type, boolean liftError) {
-        // Since JSON is by default contains null, we need to create a new json type which
+
+        // Since JSON, ANY and ANYDATA is by default contains null, we need to create a new respective type which
         // is not-nullable.
-        if (type.tag == TypeTags.JSON) {
-            BJSONType jsonType = (BJSONType) type;
-            return new BJSONType(jsonType.tag, jsonType.constraint, jsonType.tsymbol, false);
+        switch(type.tag){
+            case TypeTags.JSON:
+                BJSONType jsonType = (BJSONType) type;
+                return new BJSONType(jsonType.tag, jsonType.constraint, jsonType.tsymbol, false);
+            case TypeTags.ANY:
+                return new BAnyType(type.tag, type.tsymbol, false);
+            case TypeTags.ANYDATA:
+                return new BAnydataType(type.tag, type.tsymbol, false);
         }
 
         if (type.tag != TypeTags.UNION) {
@@ -3581,7 +3592,7 @@ public class Desugar extends BLangNodeVisitor {
             return false;
         }
 
-        BLangVariableReference varRef = ((BLangAccessExpression) expr).expr;
+        BLangVariableReference varRef = (BLangVariableReference) ((BLangAccessExpression) expr).expr;
         if (varRef.type.isNullable()) {
             return true;
         }
@@ -3606,7 +3617,7 @@ public class Desugar extends BLangNodeVisitor {
             if (accessExpr.expr != null) {
                 this.accessExprStack.push(accessExpr);
                 // If the parent of current expr is the root, terminate
-                stmts.addAll(createLHSSafeNavigation(accessExpr.expr, type, rhsExpr,
+                stmts.addAll(createLHSSafeNavigation((BLangVariableReference)accessExpr.expr, type, rhsExpr,
                         safeAssignment));
 
                 this.accessExprStack.pop();
@@ -3682,7 +3693,7 @@ public class Desugar extends BLangNodeVisitor {
                 kind == NodeKind.INVOCATION) {
             varRef = cloneAccessExpr((BLangAccessExpression) originalAccessExpr.expr);
         } else {
-            varRef = cloneExpression(originalAccessExpr.expr);
+            varRef = cloneExpression((BLangVariableReference)originalAccessExpr.expr);
         }
         varRef.type = getSafeType(originalAccessExpr.expr.type, false);
 

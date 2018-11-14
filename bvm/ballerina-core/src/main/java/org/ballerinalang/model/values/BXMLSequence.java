@@ -57,7 +57,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
     public BXMLSequence(BRefValueArray sequence) {
         this.sequence = sequence;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -65,7 +65,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
     public XMLNodeType getNodeType() {
         return XMLNodeType.SEQUENCE;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -73,7 +73,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
     public BBoolean isEmpty() {
         return new BBoolean(sequence.size() == 0);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -93,7 +93,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
 
         return new BString(XMLNodeType.SEQUENCE.value());
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -104,7 +104,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         }
         return BTypes.typeString.getZeroValue();
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -117,7 +117,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         }
         return new BString(seqTextBuilder.toString());
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -126,10 +126,10 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         if (sequence.size() == 1) {
             return ((BXMLItem) sequence.get(0)).getAttribute(localName, namespace);
         }
-        
+
         return STRING_NULL_VALUE;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -138,10 +138,10 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         if (sequence.size() == 1) {
             return ((BXMLItem) sequence.get(0)).getAttribute(localName, namespace, prefix);
         }
-        
+
         return STRING_NULL_VALUE;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -160,7 +160,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         if (sequence.size() == 1) {
             return ((BXMLItem) sequence.get(0)).getAttributesMap();
         }
-        
+
         return BTypes.typeMap.getEmptyValue();
     }
 
@@ -170,7 +170,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
             ((BXMLItem) sequence.get(0)).setAttributes(attributes);
         }
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -186,7 +186,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         }
         return new BXMLSequence(elementsSeq);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -249,7 +249,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         }
         return new BXMLSequence(elementsSeq);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -258,7 +258,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         if (sequence.size() != 1) {
             throw new BallerinaException("not an " + XMLNodeType.ELEMENT);
         }
-        
+
         ((BXMLItem) sequence.get(0)).setChildren(seq);
     }
 
@@ -270,7 +270,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         if (sequence.size() != 1) {
             throw new BallerinaException("not an " + XMLNodeType.ELEMENT);
         }
-        
+
         ((BXMLItem) sequence.get(0)).addChildren(seq);
     }
 
@@ -283,16 +283,16 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         int j = 0;
         for (int i = 0; i < sequence.size(); i++) {
             BXMLItem element = (BXMLItem) sequence.get(i);
-            if (element.value() == null || (element.getNodeType() == XMLNodeType.TEXT && 
+            if (element.value() == null || (element.getNodeType() == XMLNodeType.TEXT &&
                     ((OMText) element.value()).getText().trim().isEmpty())) {
                 continue;
             }
             elementsSeq.add(j++, element);
         }
-        
+
         return new BXMLSequence(elementsSeq);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -301,29 +301,29 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         if (startIndex > this.sequence.size() || endIndex > this.sequence.size() || startIndex < -1 || endIndex < -1) {
             throw new BallerinaException("index out of range: [" + startIndex + "," + endIndex + "]");
         }
-        
+
         if (startIndex == -1) {
             startIndex = 0;
         }
-        
+
         if (endIndex == -1) {
             endIndex = sequence.size();
         }
-        
+
         if (startIndex == endIndex) {
             return new BXMLSequence();
-        } 
-        
+        }
+
         if (startIndex > endIndex) {
             throw new BallerinaException("invalid indices: " + startIndex + " < " + endIndex);
         }
-        
+
         int j = 0;
         BRefValueArray elementsSeq = new BRefValueArray();
         for (long i = startIndex; i < endIndex; i++) {
             elementsSeq.add(j++, sequence.get(i));
         }
-        
+
         return new BXMLSequence(elementsSeq);
     }
 
@@ -383,7 +383,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         }
         return BLangConstants.STRING_NULL_VALUE;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -426,7 +426,7 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         if (sequence.size() != 1) {
             throw new BallerinaException("not an " + XMLNodeType.ELEMENT);
         }
-        
+
         ((BXMLItem) sequence.get(0)).removeAttribute(qname);
     }
 
@@ -452,10 +452,10 @@ public final class BXMLSequence extends BXML<BRefValueArray> {
         @Override
         public BValue[] getNext(int arity) {
             if (arity == 1) {
-                return new BValue[] {value.sequence.get(cursor++)};
+                return new BValue[]{value.sequence.get(cursor++)};
             }
             int cursor = this.cursor++;
-            return new BValue[] {new BInteger(cursor), value.sequence.get(cursor)};
+            return new BValue[]{new BInteger(cursor), value.sequence.get(cursor)};
         }
 
         @Override

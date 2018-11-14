@@ -324,7 +324,10 @@ public enum DiagnosticCode {
     INVALID_USAGE_OF_CLONE("clone.invocation.invalid"),
 
     // Dataflow analysis related error codes
-    PARTIALLY_INITIALIZED_VARIABLE("partially.initialized.variable");
+    PARTIALLY_INITIALIZED_VARIABLE("partially.initialized.variable"),
+    // Seal inbuilt function related codes
+    INCOMPATIBLE_STAMP_TYPE("incompatible.stamp.type"),
+    NOT_SUPPORTED_SOURCE_TYPE_FOR_STAMP("not.supported.source.for.stamp");
 
     private String value;
 

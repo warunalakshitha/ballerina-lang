@@ -19,6 +19,13 @@
 package org.ballerinalang.model.values;
 
 import java.math.BigDecimal;
+import org.ballerinalang.bre.bvm.CPU;
+import org.ballerinalang.model.types.BType;
+import org.ballerinalang.model.types.BTypes;
+import org.ballerinalang.model.types.TypeTags;
+import org.ballerinalang.util.exceptions.BallerinaException;
+
+import java.util.ArrayList;
 
 /**
  * The {@code BValueType} represents a value type value in Ballerina.
@@ -31,8 +38,8 @@ public abstract class BValueType implements BValue {
      * Returns the value of the specified number as an {@code int},
      * which may involve rounding or truncation.
      *
-     * @return  the numeric value represented by this object after conversion
-     *          to type {@code int}.
+     * @return the numeric value represented by this object after conversion
+     * to type {@code int}.
      */
     public abstract long intValue();
 
@@ -40,8 +47,8 @@ public abstract class BValueType implements BValue {
      * Returns the value of the specified number as an {@code byte},
      * which may involve rounding or truncation.
      *
-     * @return  the numeric value represented by this object after conversion
-     *          to type {@code byte}.
+     * @return the numeric value represented by this object after conversion
+     * to type {@code byte}.
      */
     public abstract byte byteValue();
 
@@ -49,8 +56,8 @@ public abstract class BValueType implements BValue {
      * Returns the value of the specified number as a {@code float},
      * which may involve rounding.
      *
-     * @return  the numeric value represented by this object after conversion
-     *          to type {@code float}.
+     * @return the numeric value represented by this object after conversion
+     * to type {@code float}.
      */
     public abstract double floatValue();
 
@@ -80,4 +87,23 @@ public abstract class BValueType implements BValue {
         return this.stringValue();
     }
 
+
+    public abstract void setType(BType type);
+
+    @Override
+    public void stamp(BType type) {
+        if (type.getTag() == TypeTags.ANYDATA_TAG) {
+            if (CPU.isStampingAllowed(this.getType(), type)) {
+                this.setType(BTypes.typeAnydata);
+            } else {
+                throw new BallerinaException("Error in sealing the value type: " + this.getType() +
+                        " cannot sealed as " + type);
+            }
+        } else if (type.getTag() == TypeTags.JSON_TAG) {
+            this.setType(BTypes.typeJSON);
+        } else if (this.getType().getTag() != type.getTag()) {
+            throw new BallerinaException("Error in sealing the value type: " + this.getType() +
+                    " cannot sealed as " + type);
+        }
+    }
 }
