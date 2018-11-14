@@ -23,6 +23,7 @@ import org.ballerinalang.util.exceptions.BallerinaException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.Map;
 
 /**
  * {@code BValue} represents any value in Ballerina.
@@ -37,10 +38,12 @@ public interface BValue {
 
     /**
      * Deep copy {@link BValue}.
-     * 
+     *
+     * @param refs Represents the reference map which is passed from the top most 'copy' invocation. It contains all
+     *             the copies which were created earlier, within the current {@link BValue} object.
      * @return A copy of this {@link BValue}
      */
-    BValue copy();
+    BValue copy(Map<BValue, BValue> refs);
 
     /**
      * Default serialize implementation for {@link BValue}.
