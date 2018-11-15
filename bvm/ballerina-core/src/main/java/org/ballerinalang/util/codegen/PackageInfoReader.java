@@ -1226,6 +1226,13 @@ public class PackageInfoReader {
                     j = codeStream.readInt();
                     packageInfo.addInstruction(InstructionFactory.get(opcode, i, j));
                     break;
+
+                case InstructionCodes.CLONE:
+                    i = codeStream.readInt();
+                    k = codeStream.readInt();
+                    packageInfo.addInstruction(InstructionFactory.get(opcode, i, k));
+                    break;
+
                 case InstructionCodes.IALOAD:
                 case InstructionCodes.BIALOAD:
                 case InstructionCodes.FALOAD:

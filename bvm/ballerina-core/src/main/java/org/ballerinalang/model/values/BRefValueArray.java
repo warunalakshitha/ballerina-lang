@@ -32,8 +32,10 @@ import org.wso2.ballerinalang.compiler.util.BArrayState;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 /**
  * @since 0.87
@@ -121,9 +123,18 @@ public class BRefValueArray extends BNewArray implements Serializable {
     }
 
     @Override
-    public BValue copy() {
-        BRefValueArray refValueArray = new BRefValueArray(Arrays.copyOf(values, values.length), arrayType);
+    public BValue copy(Map<BValue, BValue> refs) {
+        if (refs.containsKey(this)) {
+            return refs.get(this);
+        }
+
+        BRefType<?>[] values = new BRefType[size];
+        BRefValueArray refValueArray = new BRefValueArray(values, arrayType);
         refValueArray.size = this.size;
+        refs.put(this, refValueArray);
+        int bound = this.size;
+        IntStream.range(0, bound)
+                .forEach(i -> values[i] = this.values[i] == null ? null : (BRefType<?>) this.values[i].copy(refs));
         return refValueArray;
     }
 

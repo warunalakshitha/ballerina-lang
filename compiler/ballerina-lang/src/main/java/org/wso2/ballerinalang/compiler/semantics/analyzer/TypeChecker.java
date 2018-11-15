@@ -1906,7 +1906,7 @@ public class TypeChecker extends BLangNodeVisitor {
             funcSymbol = symResolver.createSymbolForStampOperator(iExpr.pos, funcName, functionArgList,
                     iExpr.expr);
         } else {
-            funcSymbol = symResolver.resolveBuiltinOperator(funcName, args);
+            funcSymbol = symResolver.resolveBuiltinOperator(iExpr.expr.pos, function, args);
         }
 
         if (funcSymbol == symTable.notFoundSymbol) {

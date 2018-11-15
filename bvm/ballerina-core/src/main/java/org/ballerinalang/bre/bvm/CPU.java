@@ -565,6 +565,9 @@ public class CPU {
                         findAndAddAdditionalVarRegIndexes(ctx, operands, fPointer);
                         break;
 
+                    case InstructionCodes.CLONE:
+                        createClone(operands, sf);
+                        break;
                     case InstructionCodes.I2ANY:
                     case InstructionCodes.BI2ANY:
                     case InstructionCodes.F2ANY:
@@ -822,6 +825,14 @@ public class CPU {
                 ctx.setError(BLangVMErrors.createError(ctx, e.getMessage()));
                 handleError(ctx);
             }
+        }
+    }
+
+    private static void createClone(int[] operands, WorkerData sf) {
+        int i = operands[0];
+        int j = operands[1];
+        if (isAnydata(sf.refRegs[i].getType())) {
+            sf.refRegs[j] = (BRefType<?>) sf.refRegs[i].copy(new HashMap<>());
         }
     }
 
@@ -3643,7 +3654,7 @@ public class CPU {
         // TODO: do validation for type?
         BMap newMap = new BMap(BTypes.typeMap);
         ((BMap) sf.refRegs[i]).getMap().forEach((key, value)
-                -> newMap.put(key, value == null ? null : ((BValue) value).copy()));
+                -> newMap.put(key, value == null ? null : ((BValue) value).copy(new HashMap<>())));
         sf.refRegs[j] = newMap;
     }
 
