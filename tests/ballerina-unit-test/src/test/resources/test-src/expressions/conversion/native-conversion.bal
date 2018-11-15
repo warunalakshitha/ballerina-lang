@@ -39,7 +39,7 @@ function testStructToMap () returns (map) {
                    info:{status:"single"},
                    marks:[67, 38, 91]
                };
-    map m = <map>p;
+    map m = check map.from(p);
     return m;
 }
 
@@ -70,7 +70,7 @@ function testMapToStruct () returns (Person) {
                 score:5.67,
                 alive:true
             };
-    Person p = check <Person> m;
+    Person p = check Person.from(m);
     return p;
 }
 
@@ -100,7 +100,7 @@ function testNestedMapToNestedStruct() returns Person {
         score:5.67,
         alive:true
     };
-    Person p = check <Person> m;
+    Person p = check Person.from(m);
     return p;
 }
 
@@ -113,7 +113,7 @@ function testStructToJson () returns (json) {
                    marks:[87, 94, 72]
                };
 
-    json j = check <json>p;
+    json j = check json.from(p);
     return j;
 }
 
@@ -125,7 +125,7 @@ function testStructToJsonConstrained1() returns (json) {
                    info:{status:"single"},
                    marks:[87, 94, 72]
                };
-    json<Person2> j = check <json<Person2>> p;
+    json<Person2> j = check json<Person2>.from(p);
     return j;
 }
 
@@ -133,7 +133,7 @@ function testStructToJsonConstrained2() returns (json) {
     Person2 p = {   name:"Child",
                     age:25
                 };
-    json<Person2> j = check <json<Person2>> p;
+    json<Person2> j = check json<Person2>.from(p);
     return j;
 }
 
@@ -141,7 +141,7 @@ function testStructToJsonConstrainedNegative() returns (json) {
     Person2 p = {   name:"Child",
                     age:25
                 };
-    json<Person3> j = check <json<Person3>> p;
+    json<Person3> j = check json<Person3>.from(p);
     return j;
 }
 
@@ -168,7 +168,7 @@ function testJsonToStruct () returns (Person | error) {
                  alive:true,
                  children:null
              };
-    var p = <Person>j;
+    var p = Person.from(j);
     return p;
 }
 
@@ -182,7 +182,7 @@ function testMapToStructWithMapValueForJsonField() returns Person {
                 info:info,
                 marks:marks
             };
-    Person p = check <Person>m;
+    Person p = check Person.from(m);
     return p;
 }
 
@@ -194,7 +194,7 @@ function testMapWithMissingFieldsToStruct () returns (Person) {
                 address:addr,
                 marks:marks
             };
-    Person p = check <Person>m;
+    Person p = check Person.from(m);
     return p;
 }
 
@@ -224,7 +224,7 @@ function testMapWithIncompatibleArrayToStruct () returns (Person) {
                 alive:true
             };
 
-    var p = check <Person>m;
+    var p = check Person.from(m);
     return p;
 }
 
@@ -254,7 +254,7 @@ function testMapWithIncompatibleStructToStruct () returns (Employee) {
                 marks:marks
             };
             
-    var e = check <Employee>m;
+    var e = check Employee.from(m);
     return e;
 }
 
@@ -266,7 +266,7 @@ function testJsonToStructWithMissingFields () returns (Person) {
                  marks:[87, 94, 72]
              };
 
-    var p = check <Person>j;
+    var p = check Person.from(j);
     return p;
 }
 
@@ -278,7 +278,7 @@ function testIncompatibleJsonToStruct () returns (Person) {
                  marks:[87, 94, 72]
              };
 
-    var p = check <Person>j;
+    var p = check Person.from(j);
     return p;
 }
 
@@ -298,7 +298,7 @@ function testJsonWithIncompatibleMapToStruct () returns (Person) {
                  marks:[87, 94, 72]
              };
 
-    var p = check <Person>j;
+    var p = check Person.from(j);
     return p;
 }
 
@@ -318,7 +318,7 @@ function testJsonWithIncompatibleTypeToStruct () returns (Person) {
                  marks:[87, 94, 72]
              };
 
-    var p = check <Person>j;
+    var p = check Person.from(j);
     return p;
 }
 
@@ -338,14 +338,14 @@ function testJsonWithIncompatibleStructToStruct () returns (Person) {
                  marks:[87, 94, 72]
              };
 
-    var p = check <Person>j;
+    var p = check Person.from(j);
     return p;
 }
 
 function testJsonArrayToStruct () returns (Person) {
     json j = [87, 94, 72];
 
-    var p = check <Person>j;
+    var p = check Person.from(j);
     return p;
 }
 
@@ -359,48 +359,48 @@ function testStructWithIncompatibleTypeMapToJson () returns (json) {
     map m = {bar:b};
     Info info = {foo:m};
 
-    var j = check <json>info;
+    var j = check json.from(info);
     return j;
 }
 
 function testJsonIntToString () returns (string) {
     json j = 5;
     int value;
-    value = check <int>j;
-    return <string>value;
+    value = check int.from(j);
+    return string.from(value);
 }
 
 function testBooleanInJsonToInt () returns (int) {
     json j = true;
-    int value = check <int>j;
+    int value = check int.from(j);
     return value;
 }
 
 function testIncompatibleJsonToInt () returns (int) {
     json j = "hello";
     int value;
-    value = check <int>j;
+    value = check int.from(j);
     return value;
 }
 
 function testIntInJsonToFloat () returns (float) {
     json j = 7;
     float value;
-    value = check <float>j;
+    value = check float.from(j);
     return value;
 }
 
 function testIncompatibleJsonToFloat () returns (float) {
     json j = "hello";
     float value;
-    value = check <float>j;
+    value = check float.from(j);
     return value;
 }
 
 function testIncompatibleJsonToBoolean () returns (boolean) {
     json j = "hello";
     boolean value;
-    value = check <boolean>j;
+    value = check boolean.from(j);
     return value;
 }
 
@@ -440,13 +440,13 @@ type StringArray record {
 
 function testJsonToStringArray () returns (StringArray) {
     json j = {a:["a", "b", "c"]};
-    StringArray a = check <StringArray>j;
+    StringArray a = check StringArray.from(j);
     return a;
 }
 
 function testJsonIntArrayToStringArray () returns (StringArray) {
     json j = {a:[4, 3, 9]};
-    StringArray a = check <StringArray>j;
+    StringArray a = check StringArray.from(j);
     return a;
 }
 
@@ -457,37 +457,37 @@ type XmlArray record {
 
 function testJsonToXmlArray () returns (XmlArray) {
     json j = {a:["a", "b", "c"]};
-    XmlArray a = check <XmlArray>j;
+    XmlArray a = check XmlArray.from(j);
     return a;
 }
 
 function testNullJsonArrayToArray () returns (StringArray) {
     json j = {a:null};
-    StringArray a = check <StringArray>j;
+    StringArray a = check StringArray.from(j);
     return a;
 }
 
 function testNullJsonToArray () returns (StringArray) {
     json j;
-    StringArray s = check <StringArray>j;
+    StringArray s = check StringArray.from(j);
     return s;
 }
 
 function testNonArrayJsonToArray () returns (StringArray) {
     json j = {a:"im not an array"};
-    StringArray a = check <StringArray>j;
+    StringArray a = check StringArray.from(j);
     return a;
 }
 
 function testNullJsonToStruct () returns Person {
     json j;
-    var p = check <Person>j;
+    var p = check Person.from(j);
     return p;
 }
 
 function testNullStructToJson () returns (json | error) {
     Person|() p;
-    var j = check <json> p;
+    var j = check json.from(p);
     return j;
 }
 
@@ -507,7 +507,7 @@ function testIncompatibleJsonToStructWithErrors () returns (Person | error) {
                  marks:[87, 94, 72]
              };
              
-    Person p  = check <Person>j;
+    Person p  = check Person.from(j);
     return p;
 }
 
@@ -532,7 +532,7 @@ type PhoneBook record {
 
 function testStructWithStringArrayToJSON () returns (json) {
     PhoneBook phonebook = {names:["John", "Doe"]};
-    var phonebookJson = check <json>phonebook;
+    var phonebookJson = check json.from(phonebook);
     return phonebookJson;
 }
 
@@ -562,7 +562,7 @@ function testStructToMapWithRefTypeArray () returns (map, int) {
                             actors:[{fname:"Leonardo", lname:"DiCaprio", age:35},
                                     {fname:"Tom", lname:"Hardy", age:34}]};
 
-    map m = <map>theRevenant;
+    map m = check map.from(theRevenant);
 
     any a = m["writers"];
     var writers = check <person[]> a;
@@ -582,7 +582,7 @@ type StructWithDefaults record {
 
 function testEmptyJSONtoStructWithDefaults () returns (StructWithDefaults | error) {
     json j = {};
-    var testStruct = check <StructWithDefaults>j;
+    var testStruct = check StructWithDefaults.from(j);
 
     return testStruct;
 }
@@ -599,29 +599,29 @@ type StructWithoutDefaults record {
 
 function testEmptyJSONtoStructWithoutDefaults () returns (StructWithoutDefaults | error) {
     json j = {};
-    var testStruct = check <StructWithoutDefaults>j;
+    var testStruct = check StructWithoutDefaults.from(j);
 
     return testStruct;
 }
 
 function testEmptyMaptoStructWithDefaults () returns (StructWithDefaults) {
     map m;
-    var testStruct = check <StructWithDefaults>m;
+    var testStruct = check StructWithDefaults.from(m);
 
     return testStruct;
 }
 
 function testEmptyMaptoStructWithoutDefaults () returns (StructWithoutDefaults) {
     map m;
-    var testStruct = check <StructWithoutDefaults>m;
+    var testStruct = check StructWithoutDefaults.from(m);
 
     return testStruct;
 }
 
 function testSameTypeConversion() returns (int) {
     float f = 10.05;
-    var i= <int> f;
-    i = <int>i;
+    var i= int.from(f);
+    i = int.from(i);
     return i;
 }
 
@@ -631,11 +631,11 @@ function testSameTypeConversion() returns (int) {
 //                                       json, error,
 //                                       xml, error) {
 //    string s;
-//    var i, err1 = <int> s;
-//    var f, err2 = <float> s;
-//    var b, err3 = <boolean> s;
-//    var j, err4 = <json> s;
-//    var x, err5 = <xml> s;
+//    var i, err1 = int.from(s);
+//    var f, err2 = float.from(s);
+//    var b, err3 = boolean.from(s);
+//    var j, err4 = json.from(s);
+//    var x, err5 = xml.from(s);
 //    
 //    return i, err1, f, err2, b, err3, j, err4, x, err5;
 //}
@@ -651,7 +651,7 @@ function structWithComplexMapToJson() returns (json | error) {
     map m = {"a":a, "b":b, "c":c, "d":d, "e":e, "f":f, "g":g, "h":null};
     
     Info info = {foo : m};
-    var js = check <json> info;
+    var js = check json.from(info);
     return js;
 }
 
@@ -673,7 +673,7 @@ function structWithComplexArraysToJson() returns (json | error) {
     PersonA p1 = {name:""};
     PersonA p2 = {name:""};
     ComplexArrayStruct t = {a:[4, 6, 9], b:[4.6, 7.5], c:[true, true, false], d:["apple", "orange"], e:[m1, m2], f:[p1, p2], g:[g]};
-    var js = check <json> t;
+    var js = check json.from(t);
     return js;
 }
 
@@ -683,7 +683,7 @@ function testComplexMapToJson () returns (json) {
                 gpa:2.81,
                 status:true
             };
-    json j2 = check <json> m;
+    json j2 = check json.from(m);
     return j2;
 }
 
@@ -696,7 +696,7 @@ function testJsonToMapUnconstrained() returns map {
     jx.o.a = "A";
     jx.o.b = "B";
     jx.o.c = true;
-    map m = check <map> jx;
+    map m = check map.from(jx);
     return m;
 }
 
@@ -705,7 +705,7 @@ function testJsonToMapConstrained1() returns map {
     j.x = "A";
     j.y = "B";
   
-    return check <map<string>> j;
+    return check map<string>.from(j);
 }
 
 type T1 record {
@@ -721,7 +721,7 @@ function testJsonToMapConstrained2() returns map {
     json j2 = {};
     j2.a = j1;
     map<T1> m;
-    m = check <map<T1>> j2;
+    m = check map<T1>.from(j2);
     return m;
 }
 
@@ -732,7 +732,7 @@ function testJsonToMapConstrainedFail() returns map {
     json j2 = {};
     j2.a = j1;
     map<T1> m;
-    m = check <map<T1>> j2;
+    m = check map<T1>.from(j2);
     return m;
 }
 
@@ -750,7 +750,7 @@ function testStructArrayConversion1() returns T1 {
     b[0].x = 5;
     b[0].y = 1;
     b[0].z = 2;
-    a = <T1[]> b;
+    a = T1[].from(b);
     return a[0];
 }
 
@@ -761,8 +761,8 @@ function testStructArrayConversion2() returns T2 {
     b[0].x = 5;
     b[0].y = 1;
     b[0].z = 2;
-    a = <T1[]> b;
-    b = check <T2[]> a;
+    a = T1[].from(b);
+    b = check T2[].from(a);
     return b[0];
 }
 
@@ -818,11 +818,11 @@ function testArrayToJson1() returns json {
     int[] x;
     x[0] = 10;
     x[1] = 15;
-    json j = check <json> x;
+    json j = check json.from(x);
     return j;
 }
 
-function testArrayToJson2() returns json {
+function testArrayToJson2() returns json | error {
     T1[] x;
     T1 a;
     T1 b;
@@ -830,7 +830,7 @@ function testArrayToJson2() returns json {
     b.x = 15;
     x[0] = a;
     x[1] = b;
-    json j = check <json> x;
+    json | error j = json.from(x);
     return j;
 }
 
@@ -848,15 +848,15 @@ function testArrayToJsonFail() {
     b.x = 15;
     x[0] = a;
     x[1] = b;
-    json j = check <json> x;
+    json j = check json.from(x);
 }
 
 function testJsonToArray1() returns T1[] {
     T1[] x;
     x[0] = {};
     x[0].x = 10;
-    json j = check <json> x;
-    x = check <T1[]> j;
+    json j = check json.from(x);
+    x = check T1[].from(j);
     return x;
 }
 
@@ -865,7 +865,7 @@ function testJsonToArray2() returns int[] {
     j[0] = 1;
     j[1] = 2;
     j[2] = 3;
-    int[] x = check <int[]> j;
+    int[] x = check int[].from(j);
     return x;
 }
 
@@ -873,12 +873,12 @@ function testJsonToArrayFail() {
     json j = {};
     j.x = 1;
     j.y = 1.5;
-    int[] x = check <int[]> j;
+    int[] x = check int[].from(j);
 }
 
 function anyToFloat() returns float {
     any a = 5;
-    return check <float> a;
+    return check float.from(a);
 }
 
 type A record {
@@ -887,5 +887,5 @@ type A record {
 
 function testJsonIntToFloat() returns A {
     json j = {f : 3};
-    return check <A> j;
+    return check A.from(j);
 }
