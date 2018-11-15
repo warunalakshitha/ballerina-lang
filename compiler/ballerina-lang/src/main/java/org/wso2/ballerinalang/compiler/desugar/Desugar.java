@@ -32,6 +32,7 @@ import org.ballerinalang.model.types.TypeKind;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.SymbolResolver;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.TaintAnalyzer;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.Types;
+import org.wso2.ballerinalang.compiler.semantics.model.BLangBuiltInMethod;
 import org.wso2.ballerinalang.compiler.semantics.model.Scope;
 import org.wso2.ballerinalang.compiler.semantics.model.SymbolEnv;
 import org.wso2.ballerinalang.compiler.semantics.model.SymbolTable;
@@ -2758,6 +2759,14 @@ public class Desugar extends BLangNodeVisitor {
                                                                                 OperatorKind.OR, orSymbol);
                 result = rewriteExpr(binaryExprInf);
                 break;
+            case FROM:
+                if (iExpr.symbol instanceof BConversionOperatorSymbol) {
+                    result = new BLangBuiltInMethodInvocation(iExpr, iExpr.builtInMethod);
+                } else {
+                    result = generateStampForConversion(iExpr.pos, iExpr.expr, iExpr.requiredArgs,
+                                                        (BInvokableSymbol) iExpr.symbol);
+                }
+                break;
             default:
                 result = new BLangBuiltInMethodInvocation(iExpr, iExpr.builtInMethod);
                 break;
@@ -2883,6 +2892,29 @@ public class Desugar extends BLangNodeVisitor {
         conversionExpr.type = targetType;
         conversionExpr.conversionSymbol = symbol;
         return conversionExpr;
+    }
+
+    private BLangInvocation.BLangBuiltInMethodInvocation generateStampForConversion(DiagnosticPos pos,
+                                                                                    BLangExpression expr,
+                                                                                    List<BLangExpression> requiredArgs,
+                                                                                    BInvokableSymbol bInvokableSymbol) {
+        BType targetType = bInvokableSymbol.retType;
+        if (targetType != symTable.nilType) {
+            BLangExpression sourceExpression = requiredArgs.get(0);
+            BType sourceType = sourceExpression.type;
+            List<BType> args = Lists.of(sourceType);
+            BInvokableType opType = new BInvokableType(args, sourceType, null);
+            BOperatorSymbol cloneSymbol = new BOperatorSymbol(names.fromString(BLangBuiltInMethod.CLONE.getName()),
+                                                              null, opType, null, InstructionCodes.CLONE);
+            BLangInvocation.BLangBuiltInMethodInvocation cloneInvocation =
+                    ASTBuilderUtil.createBuiltInMethod(pos, sourceExpression, cloneSymbol, new ArrayList<>(),
+                                                       symResolver, BLangBuiltInMethod.CLONE);
+            return ASTBuilderUtil.createBuiltInMethod(pos, expr, bInvokableSymbol, Lists.of(cloneInvocation),
+                                                      symResolver, BLangBuiltInMethod.STAMP);
+        } else {
+            return ASTBuilderUtil.createBuiltInMethod(pos, expr, bInvokableSymbol, requiredArgs, symResolver,
+                                                      BLangBuiltInMethod.STAMP);
+        }
     }
 
     private BType getElementType(BType type) {

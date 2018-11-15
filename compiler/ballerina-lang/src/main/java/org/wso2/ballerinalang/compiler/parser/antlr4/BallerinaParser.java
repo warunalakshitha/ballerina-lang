@@ -15038,6 +15038,7 @@ public class BallerinaParser extends Parser {
 				match(Identifier);
 				}
 				break;
+			case FROM:
 			case TYPE_MAP:
 			case FOREACH:
 			case CONTINUE:
@@ -15068,6 +15069,7 @@ public class BallerinaParser extends Parser {
 		public TerminalNode TYPE_MAP() { return getToken(BallerinaParser.TYPE_MAP, 0); }
 		public TerminalNode START() { return getToken(BallerinaParser.START, 0); }
 		public TerminalNode CONTINUE() { return getToken(BallerinaParser.CONTINUE, 0); }
+		public TerminalNode FROM() { return getToken(BallerinaParser.FROM, 0); }
 		public ReservedWordContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -15091,7 +15093,7 @@ public class BallerinaParser extends Parser {
 			{
 			setState(2365);
 			_la = _input.LA(1);
-			if ( !(((((_la - 76)) & ~0x3f) == 0 && ((1L << (_la - 76)) & ((1L << (TYPE_MAP - 76)) | (1L << (FOREACH - 76)) | (1L << (CONTINUE - 76)) | (1L << (START - 76)))) != 0)) ) {
+			if ( !(_la==FROM || ((((_la - 76)) & ~0x3f) == 0 && ((1L << (_la - 76)) & ((1L << (TYPE_MAP - 76)) | (1L << (FOREACH - 76)) | (1L << (CONTINUE - 76)) | (1L << (START - 76)))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -18859,13 +18861,13 @@ public class BallerinaParser extends Parser {
 		"\u0085\u0094\u0094\4\2\u0091\u0091\u00c1\u00c1\7\2ttxx\u008f\u0090\u0094"+
 		"\u0094\u00a1\u00a1\3\2\u0091\u0093\3\2\u008f\u0090\3\2\u0097\u009a\3\2"+
 		"\u0095\u0096\3\2\u009d\u009e\4\2\u009f\u00a0\u00a8\u00a8\4\2\u00a7\u00a7"+
-		"\u00b5\u00b5\3\2\u00b9\u00ba\3\2\u00b6\u00b8\3\2\u00be\u00bf\6\2NN]]_"+
-		"_yy\4\2,-dd\3\2\u009b\u009c\3\2EF\3\2\67B\u0b88\2\u01e8\3\2\2\2\4\u01ff"+
-		"\3\2\2\2\6\u020a\3\2\2\2\b\u020d\3\2\2\2\n\u021a\3\2\2\2\f\u0222\3\2\2"+
-		"\2\16\u0224\3\2\2\2\20\u023c\3\2\2\2\22\u023e\3\2\2\2\24\u0255\3\2\2\2"+
-		"\26\u026f\3\2\2\2\30\u0271\3\2\2\2\32\u0288\3\2\2\2\34\u029a\3\2\2\2\36"+
-		"\u02b8\3\2\2\2 \u02ba\3\2\2\2\"\u02bc\3\2\2\2$\u02c6\3\2\2\2&\u02d0\3"+
-		"\2\2\2(\u02df\3\2\2\2*\u02e1\3\2\2\2,\u02e6\3\2\2\2.\u02f5\3\2\2\2\60"+
+		"\u00b5\u00b5\3\2\u00b9\u00ba\3\2\u00b6\u00b8\3\2\u00be\u00bf\7\2\31\31"+
+		"NN]]__yy\4\2,-dd\3\2\u009b\u009c\3\2EF\3\2\67B\u0b88\2\u01e8\3\2\2\2\4"+
+		"\u01ff\3\2\2\2\6\u020a\3\2\2\2\b\u020d\3\2\2\2\n\u021a\3\2\2\2\f\u0222"+
+		"\3\2\2\2\16\u0224\3\2\2\2\20\u023c\3\2\2\2\22\u023e\3\2\2\2\24\u0255\3"+
+		"\2\2\2\26\u026f\3\2\2\2\30\u0271\3\2\2\2\32\u0288\3\2\2\2\34\u029a\3\2"+
+		"\2\2\36\u02b8\3\2\2\2 \u02ba\3\2\2\2\"\u02bc\3\2\2\2$\u02c6\3\2\2\2&\u02d0"+
+		"\3\2\2\2(\u02df\3\2\2\2*\u02e1\3\2\2\2,\u02e6\3\2\2\2.\u02f5\3\2\2\2\60"+
 		"\u02fe\3\2\2\2\62\u0312\3\2\2\2\64\u0325\3\2\2\2\66\u0327\3\2\2\28\u032b"+
 		"\3\2\2\2:\u0340\3\2\2\2<\u0345\3\2\2\2>\u034d\3\2\2\2@\u0352\3\2\2\2B"+
 		"\u036a\3\2\2\2D\u038f\3\2\2\2F\u0391\3\2\2\2H\u0396\3\2\2\2J\u0398\3\2"+
@@ -19627,13 +19629,13 @@ public class BallerinaParser extends Parser {
 		"\2\u098d\u098c\3\2\2\2\u098e\u0990\3\2\2\2\u098f\u0991\5\u0192\u00ca\2"+
 		"\u0990\u098f\3\2\2\2\u0990\u0991\3\2\2\2\u0991\u0993\3\2\2\2\u0992\u0994"+
 		"\5\u0194\u00cb\2\u0993\u0992\3\2\2\2\u0993\u0994\3\2\2\2\u0994\u018d\3"+
-		"\2\2\2\u0995\u099a\5\u0190\u00c9\2\u0996\u0997\7\u0086\2";
+		"\2\2\2\u0995\u099a\5\u0190\u00c9\2\u0996\u0997\7";
 	private static final String _serializedATNSegment1 =
-		"\2\u0997\u0999\5\u0190\u00c9\2\u0998\u0996\3\2\2\2\u0999\u099c\3\2\2\2"+
-		"\u099a\u0998\3\2\2\2\u099a\u099b\3\2\2\2\u099b\u018f\3\2\2\2\u099c\u099a"+
-		"\3\2\2\2\u099d\u09a0\5\u011c\u008f\2\u099e\u099f\7\4\2\2\u099f\u09a1\7"+
-		"\u00c1\2\2\u09a0\u099e\3\2\2\2\u09a0\u09a1\3\2\2\2\u09a1\u0191\3\2\2\2"+
-		"\u09a2\u09a3\7\34\2\2\u09a3\u09a4\7\35\2\2\u09a4\u09a5\5\u0094K\2\u09a5"+
+		"\u0086\2\2\u0997\u0999\5\u0190\u00c9\2\u0998\u0996\3\2\2\2\u0999\u099c"+
+		"\3\2\2\2\u099a\u0998\3\2\2\2\u099a\u099b\3\2\2\2\u099b\u018f\3\2\2\2\u099c"+
+		"\u099a\3\2\2\2\u099d\u09a0\5\u011c\u008f\2\u099e\u099f\7\4\2\2\u099f\u09a1"+
+		"\7\u00c1\2\2\u09a0\u099e\3\2\2\2\u09a0\u09a1\3\2\2\2\u09a1\u0191\3\2\2"+
+		"\2\u09a2\u09a3\7\34\2\2\u09a3\u09a4\7\35\2\2\u09a4\u09a5\5\u0094K\2\u09a5"+
 		"\u0193\3\2\2\2\u09a6\u09a7\7\36\2\2\u09a7\u09a8\5\u011c\u008f\2\u09a8"+
 		"\u0195\3\2\2\2\u09a9\u09aa\7\u00a9\2\2\u09aa\u09ab\7\u0089\2\2\u09ab\u09ac"+
 		"\5\u013e\u00a0\2\u09ac\u09ad\7\u008a\2\2\u09ad\u09b1\7\u0087\2\2\u09ae"+

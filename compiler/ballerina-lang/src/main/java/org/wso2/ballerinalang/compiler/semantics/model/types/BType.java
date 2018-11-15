@@ -109,7 +109,7 @@ public class BType implements ValueType {
         return getKind().typeName();
     }
 
-    protected String getQualifiedTypeName() {
+    public String getQualifiedTypeName() {
         return tsymbol.pkgID.toString() + ":" + tsymbol.name;
     }
 }

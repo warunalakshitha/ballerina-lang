@@ -145,6 +145,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.xml.XMLConstants;
 
+import static org.wso2.ballerinalang.compiler.semantics.model.BLangBuiltInMethod.UNDEFINED;
+import static org.wso2.ballerinalang.compiler.semantics.model.BLangBuiltInMethod.getFromString;
 import static org.wso2.ballerinalang.compiler.semantics.model.SymbolTable.BBYTE_MAX_VALUE;
 import static org.wso2.ballerinalang.compiler.semantics.model.SymbolTable.BBYTE_MIN_VALUE;
 
@@ -776,9 +778,9 @@ public class TypeChecker extends BLangNodeVisitor {
         BType varRefType = iExpr.expr.type;
         varRefType = getSafeType(varRefType, iExpr);
 
-        BLangBuiltInMethod builtInFunction = BLangBuiltInMethod.getFromString(iExpr.name.value);
+        BLangBuiltInMethod builtInFunction = getFromString(iExpr.name.value);
         // Returns if the function is a builtin function
-        if (BLangBuiltInMethod.UNDEFINED != builtInFunction && checkBuiltinFunctionInvocation(iExpr, builtInFunction,
+        if (UNDEFINED != builtInFunction && checkBuiltinFunctionInvocation(iExpr, builtInFunction,
                 varRefType)) {
             return;
         }
@@ -1188,7 +1190,11 @@ public class TypeChecker extends BLangNodeVisitor {
         BType sourceType = checkExpr(conversionExpr.expr, env, symTable.noType);
 
         // Lookup for built-in type conversion operator symbol
-        BSymbol symbol = symResolver.resolveConversionOperator(sourceType, targetType);
+        BSymbol symbol = symTable.notFoundSymbol;
+//        if (types.isExplicitlyConvertible(sourceType, targetType)) {
+//            symbol = symResolver.resolveConversionOperator(sourceType, targetType);
+//        }
+        symbol = symResolver.resolveConversionOperator(sourceType, targetType);
         if (symbol == symTable.notFoundSymbol) {
             dlog.error(conversionExpr.pos, DiagnosticCode.INCOMPATIBLE_TYPES_CONVERSION, sourceType, targetType);
         } else {
@@ -1896,18 +1902,20 @@ public class TypeChecker extends BLangNodeVisitor {
     private boolean checkBuiltinFunctionInvocation(BLangInvocation iExpr, BLangBuiltInMethod function, BType... args) {
         
         Name funcName = names.fromString(iExpr.name.value);
-
+        List<BLangExpression> functionArgList = iExpr.argExprs;
         BSymbol funcSymbol;
-        if (iExpr.name.value.equals("stamp")) {
-            List<BLangExpression> functionArgList = iExpr.argExprs;
-            for(BLangExpression expression: functionArgList) {
-                checkExpr(expression, env, symTable.noType);
-            }
-
-            funcSymbol = symResolver.createSymbolForStampOperator(iExpr.pos, funcName, functionArgList,
-                    iExpr.expr);
-        } else {
-            funcSymbol = symResolver.resolveBuiltinOperator(iExpr.expr.pos, function, args);
+        switch (function) {
+            case STAMP:
+                functionArgList.forEach(expression ->  checkExpr(expression, env, symTable.noType));
+                funcSymbol = symResolver.createSymbolForStampOperator(iExpr.pos, funcName, functionArgList, iExpr.expr);
+                break;
+            case FROM:
+                functionArgList.forEach(expression ->  checkExpr(expression, env, symTable.noType));
+                funcSymbol = symResolver.createSymbolForFromOperator(iExpr.pos, funcName, function, iExpr.expr,
+                                                                     functionArgList, args);
+                break;
+            default:
+                funcSymbol = symResolver.resolveBuiltinOperator(iExpr.expr.pos, function, args);
         }
 
         if (funcSymbol == symTable.notFoundSymbol) {

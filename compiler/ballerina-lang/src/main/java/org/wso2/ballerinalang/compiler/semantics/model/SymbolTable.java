@@ -597,9 +597,8 @@ public class SymbolTable {
             }
         }
         BInvokableType opType = new BInvokableType(paramTypes, retType, null);
-        BConversionOperatorSymbol symbol = new BConversionOperatorSymbol(this.rootPkgSymbol.pkgID, opType,
+        BConversionOperatorSymbol symbol = new BConversionOperatorSymbol(this.rootPkgSymbol.pkgID, opType, sourceType,
                 this.rootPkgSymbol, implicit, safe, opcode);
-        symbol.kind = SymbolKind.CONVERSION_OPERATOR;
         rootScope.define(symbol.name, symbol);
     }
 

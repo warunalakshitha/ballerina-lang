@@ -176,7 +176,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.xml.XMLConstants;
 
 import static org.wso2.ballerinalang.compiler.tree.expressions.BLangRecordVarRef.BLangRecordVarRefKeyValue;
@@ -993,6 +992,11 @@ public class TaintAnalyzer extends BLangNodeVisitor {
                 break;
             case CLONE:
                 invocationExpr.expr.accept(this);
+                break;
+            case FROM:
+            case STAMP:
+                invocationExpr.expr.accept(this);
+                invocationExpr.argExprs.forEach(expression -> expression.accept(this));
                 break;
             case REASON:
             case DETAIL:
