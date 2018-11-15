@@ -38,6 +38,8 @@ public enum BLangBuiltInMethod {
 
     STACKTRACE("stackTrace"),
 
+    STAMP("stamp"),
+
     UNDEFINED("$undefined");
 
     private String name;
