@@ -23,6 +23,7 @@ import org.ballerinalang.util.exceptions.BallerinaException;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.util.Map;
 
 /**
  * The {@code BString} represents a string in Ballerina.
@@ -129,7 +130,12 @@ public final class BString extends BValueType implements BRefType<String> {
     }
 
     @Override
-    public BValue copy() {
-        return new BString(value);
+    public BValue copy(Map<BValue, BValue> refs) {
+        if (refs.containsKey(this)) {
+            return refs.get(this);
+        }
+
+        refs.put(this, new BString(value));
+        return refs.get(this);
     }
 }
