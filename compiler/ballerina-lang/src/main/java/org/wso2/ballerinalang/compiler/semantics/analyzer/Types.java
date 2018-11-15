@@ -187,35 +187,45 @@ public class Types {
     }
 
     public boolean isAnydata(BType type) {
-        if (type.tag <= TypeTags.ANYDATA) {
+        Set<String> visitedTypes = new HashSet<>();
+        visitedTypes.add(type.getQualifiedTypeName());
+        return isAnydata(type, visitedTypes);
+    }
+
+    private boolean isAnydata(Collection<BType> types, Set<String> visitedTypes) {
+        return types.stream().allMatch(bType -> isAnydata(bType, visitedTypes));
+    }
+
+    public boolean isAnydata(BType type, Set<String> visitedTypes) {
+        String typeName = type.getQualifiedTypeName();
+        if (visitedTypes.contains(typeName) || type.tag <= TypeTags.ANYDATA) {
             return true;
         }
-
+        visitedTypes.add(typeName);
         switch (type.tag) {
             case TypeTags.MAP:
-                return isAnydata(((BMapType) type).constraint);
+                return isAnydata(((BMapType) type).constraint, visitedTypes);
             case TypeTags.RECORD:
                 BRecordType recordType = (BRecordType) type;
                 List<BType> fieldTypes = recordType.fields.stream()
-                        .map(field -> field.type).collect(Collectors.toList());
-                return isAnydata(fieldTypes) && (recordType.sealed || isAnydata(recordType.restFieldType));
+                                                          .map(field -> field.type)
+                                                          .collect(Collectors.toList());
+                return isAnydata(fieldTypes, visitedTypes) && (recordType.sealed ||
+                        isAnydata(recordType.restFieldType));
             case TypeTags.UNION:
-                return isAnydata(((BUnionType) type).memberTypes);
+                return isAnydata(((BUnionType) type).memberTypes, visitedTypes);
             case TypeTags.TUPLE:
-                return isAnydata(((BTupleType) type).tupleTypes);
+                return isAnydata(((BTupleType) type).tupleTypes, visitedTypes);
             case TypeTags.ARRAY:
                 return isAnydata(((BArrayType) type).eType);
             case TypeTags.FINITE:
                 Set<BType> valSpaceTypes = ((BFiniteType) type).valueSpace.stream()
-                        .map(val -> val.type).collect(Collectors.toSet());
-                return isAnydata(valSpaceTypes);
+                                                                          .map(val -> val.type)
+                                                                          .collect(Collectors.toSet());
+                return isAnydata(valSpaceTypes, visitedTypes);
             default:
                 return false;
         }
-    }
-
-    private boolean isAnydata(Collection<BType> types) {
-        return types.stream().allMatch(this::isAnydata);
     }
 
     public boolean isBrandedType(BType type) {
@@ -238,6 +248,14 @@ public class Types {
      */
     public boolean isAssignable(BType source, BType target) {
         return isAssignable(source, target, new ArrayList<>());
+    }
+
+    public boolean isExplicitlyConvertible(BType source, BType target) {
+        if (isSameType(source, target)) {
+            return true;
+        }
+        return isValueType(source) && isValueType(target) && source.tag != TypeTags.BYTE && target.tag != TypeTags
+                .BYTE && source.tag != TypeTags.STRING;
     }
 
     boolean isStampingAllowed(BType source, BType target) {
