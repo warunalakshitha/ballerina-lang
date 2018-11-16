@@ -336,12 +336,12 @@ public class SymbolResolver extends BLangNodeVisitor {
         } else {
             BLangExpression argumentExpression = functionArgList.get(0);
             BType variableSourceType = argumentExpression.type;
-            if (isStampSupportedForSourceType(variableSourceType)) {
+            if (types.isAnydata(variableSourceType) && isStampSupportedForSourceType(variableSourceType)) {
                 if (targetTypeExpression.type.tag == TypeTags.TYPEDESC) {
                     BType targetType = getTargetType(targetTypeExpression);
                     if (targetType != symTable.semanticError) {
                         //It is not allowed to stamp a variable to union type.
-                        if (canHaveStampInvocation(targetType)) {
+                        if (types.isAnydata(targetType) && canHaveStampInvocation(targetType)) {
                             BSymbol bSymbol = generateStampSymbol(name, variableSourceType, targetType);
                             if (bSymbol != symTable.notFoundSymbol) {
                                 return bSymbol;
@@ -1060,27 +1060,24 @@ public class SymbolResolver extends BLangNodeVisitor {
      * @return eligibility to use 'stamp' function
      */
     private boolean canHaveStampInvocation(BType type) {
-        if (types.isAnydata(type)) {
-            switch (type.tag) {
-                case TypeTags.ARRAY:
-                    //Primitive type array does not support stamp because primitive arrays aren't using ref registry.
-                    int arrayConstraintTypeTag = ((BArrayType) type).eType.tag;
-                    return !(arrayConstraintTypeTag == TypeTags.INT || arrayConstraintTypeTag == TypeTags.BOOLEAN ||
-                            arrayConstraintTypeTag == TypeTags.FLOAT || arrayConstraintTypeTag == TypeTags.BYTE ||
-                            arrayConstraintTypeTag == TypeTags.STRING);
-                case TypeTags.UNION:
-                case TypeTags.INT:
-                case TypeTags.BOOLEAN:
-                case TypeTags.STRING:
-                case TypeTags.FLOAT:
-                case TypeTags.BYTE:
-                case TypeTags.TABLE:
-                    return false;
-                default:
-                    return true;
-            }
+        switch (type.tag) {
+            case TypeTags.ARRAY:
+                //Primitive type array does not support stamp because primitive arrays aren't using ref registry.
+                int arrayConstraintTypeTag = ((BArrayType) type).eType.tag;
+                return !(arrayConstraintTypeTag == TypeTags.INT || arrayConstraintTypeTag == TypeTags.BOOLEAN ||
+                        arrayConstraintTypeTag == TypeTags.FLOAT || arrayConstraintTypeTag == TypeTags.BYTE ||
+                        arrayConstraintTypeTag == TypeTags.STRING);
+            case TypeTags.UNION:
+            case TypeTags.INT:
+            case TypeTags.BOOLEAN:
+            case TypeTags.STRING:
+            case TypeTags.FLOAT:
+            case TypeTags.BYTE:
+            case TypeTags.TABLE:
+                return false;
+            default:
+                return true;
         }
-        return false;
     }
 
     /**
@@ -1090,27 +1087,22 @@ public class SymbolResolver extends BLangNodeVisitor {
      * @return eligibility to use as the target type for 'stamp' function
      */
     private boolean isStampSupportedForSourceType(BType sourceType) {
-
-        if (types.isAnydata(sourceType)) {
-            switch (sourceType.tag) {
-                case TypeTags.ARRAY:
-                    // Primitive type array does not support stamp because primitive arrays are not using ref registry.
-                    int arrayConstraintTypeTag = ((BArrayType) sourceType).eType.tag;
-                    return !(arrayConstraintTypeTag == TypeTags.INT || arrayConstraintTypeTag == TypeTags.BOOLEAN ||
-                            arrayConstraintTypeTag == TypeTags.FLOAT || arrayConstraintTypeTag == TypeTags.BYTE ||
-                            arrayConstraintTypeTag == TypeTags.STRING);
-                case TypeTags.INT:
-                case TypeTags.BOOLEAN:
-                case TypeTags.STRING:
-                case TypeTags.FLOAT:
-                case TypeTags.BYTE:
-                case TypeTags.TABLE:
-                    return false;
-                default:
-                    return true;
-            }
-
+        switch (sourceType.tag) {
+            case TypeTags.ARRAY:
+                // Primitive type array does not support stamp because primitive arrays are not using ref registry.
+                int arrayConstraintTypeTag = ((BArrayType) sourceType).eType.tag;
+                return !(arrayConstraintTypeTag == TypeTags.INT || arrayConstraintTypeTag == TypeTags.BOOLEAN ||
+                        arrayConstraintTypeTag == TypeTags.FLOAT || arrayConstraintTypeTag == TypeTags.BYTE ||
+                        arrayConstraintTypeTag == TypeTags.STRING);
+            case TypeTags.INT:
+            case TypeTags.BOOLEAN:
+            case TypeTags.STRING:
+            case TypeTags.FLOAT:
+            case TypeTags.BYTE:
+            case TypeTags.TABLE:
+                return false;
+            default:
+                return true;
         }
-        return false;
     }
 }
