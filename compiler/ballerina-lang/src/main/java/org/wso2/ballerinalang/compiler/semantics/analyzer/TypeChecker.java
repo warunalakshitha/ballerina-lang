@@ -1897,16 +1897,17 @@ public class TypeChecker extends BLangNodeVisitor {
         Name funcName = names.fromString(iExpr.name.value);
 
         BSymbol funcSymbol;
-        if (iExpr.name.value.equals("stamp")) {
-            List<BLangExpression> functionArgList = iExpr.argExprs;
-            for (BLangExpression expression : functionArgList) {
-                checkExpr(expression, env, symTable.noType);
-            }
-
-            funcSymbol = symResolver.createSymbolForStampOperator(iExpr.pos, funcName, functionArgList,
-                    iExpr.expr);
-        } else {
-            funcSymbol = symResolver.resolveBuiltinOperator(iExpr.expr.pos, function, args);
+        switch (function) {
+            case STAMP:
+                iExpr.argExprs.forEach(expression -> checkExpr(expression, env, symTable.noType));
+                funcSymbol = symResolver.createSymbolForStampOperator(iExpr.pos, funcName, iExpr.argExprs, iExpr.expr);
+                break;
+            case FROM:
+                iExpr.argExprs.forEach(expression -> checkExpr(expression, env, symTable.noType));
+                funcSymbol = symResolver.createSymbolForFromOperator(iExpr.pos, funcName, iExpr.expr, iExpr.argExprs);
+                break;
+            default:
+                funcSymbol = symResolver.resolveBuiltinOperator(iExpr.expr.pos, function, args);
         }
 
         if (funcSymbol == symTable.notFoundSymbol) {
