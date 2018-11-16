@@ -187,35 +187,42 @@ public class Types {
     }
 
     public boolean isAnydata(BType type) {
-        if (type.tag <= TypeTags.ANYDATA) {
+        return isAnydata(type, new HashSet<>());
+    }
+
+    public boolean isAnydata(BType type, Set<BType> unresolvedTypes) {
+        if (type.tag <= TypeTags.ANYDATA || unresolvedTypes.contains(type)) {
             return true;
         }
-
+        unresolvedTypes.add(type);
         switch (type.tag) {
             case TypeTags.MAP:
                 return isAnydata(((BMapType) type).constraint);
             case TypeTags.RECORD:
                 BRecordType recordType = (BRecordType) type;
                 List<BType> fieldTypes = recordType.fields.stream()
-                        .map(field -> field.type).collect(Collectors.toList());
-                return isAnydata(fieldTypes) && (recordType.sealed || isAnydata(recordType.restFieldType));
+                                                          .map(field -> field.type)
+                                                          .collect(Collectors.toList());
+                return isAnydata(fieldTypes, unresolvedTypes) &&
+                        (recordType.sealed || isAnydata(recordType.restFieldType));
             case TypeTags.UNION:
-                return isAnydata(((BUnionType) type).memberTypes);
+                return isAnydata(((BUnionType) type).memberTypes, unresolvedTypes);
             case TypeTags.TUPLE:
-                return isAnydata(((BTupleType) type).tupleTypes);
+                return isAnydata(((BTupleType) type).tupleTypes, unresolvedTypes);
             case TypeTags.ARRAY:
                 return isAnydata(((BArrayType) type).eType);
             case TypeTags.FINITE:
                 Set<BType> valSpaceTypes = ((BFiniteType) type).valueSpace.stream()
-                        .map(val -> val.type).collect(Collectors.toSet());
-                return isAnydata(valSpaceTypes);
+                                                                          .map(val -> val.type)
+                                                                          .collect(Collectors.toSet());
+                return isAnydata(valSpaceTypes, unresolvedTypes);
             default:
                 return false;
         }
     }
 
-    private boolean isAnydata(Collection<BType> types) {
-        return types.stream().allMatch(this::isAnydata);
+    private boolean isAnydata(Collection<BType> types, Set<BType> unresolvedTypes) {
+        return types.stream().allMatch(bType -> isAnydata(bType, unresolvedTypes));
     }
 
     public boolean isBrandedType(BType type) {
