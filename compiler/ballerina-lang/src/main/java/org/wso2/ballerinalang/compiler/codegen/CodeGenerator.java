@@ -35,6 +35,7 @@ import org.wso2.ballerinalang.compiler.semantics.model.SymbolTable;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BAnnotationSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BAttachedFunction;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BConstantSymbol;
+import org.wso2.ballerinalang.compiler.semantics.model.symbols.BConversionOperatorSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BInvokableSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BObjectTypeSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BPackageSymbol;
@@ -236,7 +237,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Stack;
 import java.util.stream.Collectors;
-
 import javax.xml.XMLConstants;
 
 import static org.wso2.ballerinalang.compiler.codegen.CodeGenerator.VariableIndex.Kind.FIELD;
@@ -1280,6 +1280,13 @@ public class CodeGenerator extends BLangNodeVisitor {
             case STAMP:
                 genNode(iExpr.requiredArgs.get(0), this.env);
                 emit(InstructionCodes.STAMP, iExpr.requiredArgs.get(0).regIndex, getTypeCPIndex(iExpr.type), regIndex);
+                break;
+            case FROM:
+                if (iExpr.symbol.kind.equals(SymbolKind.CONVERSION_OPERATOR)) {
+                    BConversionOperatorSymbol symbol = (BConversionOperatorSymbol) iExpr.symbol;
+                    emitConversionInstruction(iExpr, iExpr.requiredArgs.get(0), symbol,
+                                              ((BInvokableType) symbol.type).paramTypes.get(1));
+                }
                 break;
         }
     }
