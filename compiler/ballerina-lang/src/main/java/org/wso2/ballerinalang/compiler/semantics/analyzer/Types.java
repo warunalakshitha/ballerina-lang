@@ -191,26 +191,29 @@ public class Types {
     }
 
     public boolean isAnydata(BType type, Set<BType> unresolvedTypes) {
-        if (type.tag <= TypeTags.ANYDATA || unresolvedTypes.contains(type)) {
+        if (type.tag <= TypeTags.ANYDATA) {
             return true;
         }
-        unresolvedTypes.add(type);
         switch (type.tag) {
             case TypeTags.MAP:
-                return isAnydata(((BMapType) type).constraint);
+                return isAnydata(((BMapType) type).constraint, unresolvedTypes);
             case TypeTags.RECORD:
-                BRecordType recordType = (BRecordType) type;
-                List<BType> fieldTypes = recordType.fields.stream()
-                                                          .map(field -> field.type)
-                                                          .collect(Collectors.toList());
-                return isAnydata(fieldTypes, unresolvedTypes) &&
-                        (recordType.sealed || isAnydata(recordType.restFieldType));
+                if (!unresolvedTypes.contains(type)) {
+                    unresolvedTypes.add(type);
+                    BRecordType recordType = (BRecordType) type;
+                    List<BType> fieldTypes = recordType.fields.stream()
+                                                              .map(field -> field.type)
+                                                              .collect(Collectors.toList());
+                    return isAnydata(fieldTypes, unresolvedTypes) &&
+                            (recordType.sealed || isAnydata(recordType.restFieldType, unresolvedTypes));
+                }
+                return true;
             case TypeTags.UNION:
                 return isAnydata(((BUnionType) type).memberTypes, unresolvedTypes);
             case TypeTags.TUPLE:
                 return isAnydata(((BTupleType) type).tupleTypes, unresolvedTypes);
             case TypeTags.ARRAY:
-                return isAnydata(((BArrayType) type).eType);
+                return isAnydata(((BArrayType) type).eType, unresolvedTypes);
             case TypeTags.FINITE:
                 Set<BType> valSpaceTypes = ((BFiniteType) type).valueSpace.stream()
                                                                           .map(val -> val.type)
