@@ -243,7 +243,6 @@ public class JSONUtils {
         if (map == null) {
             return null;
         }
-
         BMap<String, BValue> json = new BMap<>(targetType);
         if (targetType.getConstrainedType() == null) {
             for (Entry<String, BValue> structField : map.getMap().entrySet()) {
@@ -730,6 +729,8 @@ public class JSONUtils {
                 }
                 // fall through
             case TypeTags.ANY_TAG:
+                return jsonValue;
+            case TypeTags.ANYDATA_TAG:
                 return jsonValue;
             case TypeTags.UNION_TAG:
                 BUnionType type = (BUnionType) targetType;
