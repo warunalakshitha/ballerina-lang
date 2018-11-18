@@ -428,7 +428,17 @@ function testJsonIntToString () returns string|error {
     return  string.from(value);
 }
 
+<<<<<<< HEAD
 function testBooleanInJsonToInt () returns int|error {
+=======
+function testFloatToInt() returns (int) {
+    float f = 10.05344;
+    int i = int.from(f);
+    return i;
+}
+
+function testBooleanInJsonToInt () returns (int) {
+>>>>>>> 3ca654c... Add float to int conversion unit test
     json j = true;
     int value = check <int>j;
     return value;
