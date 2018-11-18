@@ -378,7 +378,7 @@ public class SymbolResolver extends BLangNodeVisitor {
             if (targetTypeExpression.type.tag == TypeTags.TYPEDESC) {
                 BType targetType = getTargetType(targetTypeExpression);
                 if (targetType != symTable.semanticError) {
-                    // Check whether conversion is supported for any data types which cannot be stamped.
+                    // Check whether conversion is supported for any data types.
                     if (types.isAnydata(sourceType) && types.isAnydata(targetType)) {
                         // Check whether we can stamp the source and target types.
                         BSymbol bSymbol;
@@ -388,6 +388,7 @@ public class SymbolResolver extends BLangNodeVisitor {
                                 return bSymbol;
                             }
                         }
+                        // Check explicit type conversion support if stamp not available.
                         bSymbol = resolveConversionOperator(sourceType, targetType);
                         if (bSymbol != symTable.notFoundSymbol) {
                             return bSymbol;
