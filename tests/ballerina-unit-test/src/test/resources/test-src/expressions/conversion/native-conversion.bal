@@ -386,6 +386,12 @@ function testJsonIntToString () returns (string) {
     return  string.from(value);
 }
 
+function testFloatToInt() returns (int) {
+    float f = 10.05344;
+    int i = int.from(f);
+    return i;
+}
+
 function testBooleanInJsonToInt () returns (int) {
     json j = true;
     int value = check int.from(j);
