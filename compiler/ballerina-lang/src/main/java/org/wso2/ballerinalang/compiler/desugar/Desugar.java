@@ -2768,7 +2768,7 @@ public class Desugar extends BLangNodeVisitor {
                 result = new BLangBuiltInMethodInvocation(iExpr, iExpr.builtInMethod);
                 break;
             case FROM:
-                if (iExpr.symbol.kind != null && iExpr.symbol.kind.equals(SymbolKind.CONVERSION_OPERATOR)) {
+                if (iExpr.symbol.kind == SymbolKind.CONVERSION_OPERATOR) {
                     result = new BLangBuiltInMethodInvocation(iExpr, iExpr.builtInMethod);
                 } else {
                     result = createStampBuiltInMethod(iExpr.pos, iExpr.expr, iExpr.requiredArgs,

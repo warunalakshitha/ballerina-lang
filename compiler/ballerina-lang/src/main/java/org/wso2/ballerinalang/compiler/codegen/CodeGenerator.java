@@ -1268,8 +1268,9 @@ public class CodeGenerator extends BLangNodeVisitor {
             emit(InstructionCodes.CLONE, iExpr.expr.regIndex, regIndex);
         } else if (iExpr.builtInMethod == BLangBuiltInMethod.FROM) {
             if (iExpr.symbol.kind.equals(SymbolKind.CONVERSION_OPERATOR)) {
-                emitConversionInstruction(iExpr, iExpr.requiredArgs.get(0), (BConversionOperatorSymbol) iExpr.symbol,
-                                          iExpr.requiredArgs.get(0).type);
+                BConversionOperatorSymbol symbol = (BConversionOperatorSymbol) iExpr.symbol;
+                emitConversionInstruction(iExpr, iExpr.requiredArgs.get(0), symbol,
+                                          ((BInvokableType) symbol.type).paramTypes.get(1));
             }
         }
     }
