@@ -992,9 +992,9 @@ public class TaintAnalyzer extends BLangNodeVisitor {
                 this.taintedStatus = TaintedStatus.UNTAINTED;
                 break;
             case CLONE:
+                invocationExpr.expr.accept(this);
             case STAMP:
             case FROM:
-                invocationExpr.expr.accept(this);
                 invocationExpr.argExprs.forEach(expression -> expression.accept(this));
                 break;
             case REASON:
