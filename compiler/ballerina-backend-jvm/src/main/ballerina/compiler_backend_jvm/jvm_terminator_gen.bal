@@ -210,20 +210,6 @@ type TerminatorGenerator object {
             // store return
             self.storeReturnFromCallIns(callIns);
         }
-
-        // handle trapped function calls.
-        if (isInTryBlock &&  currentEE is bir:ErrorEntry) {
-            self.errorGen.generateCatchInsForTrap(currentEE, endLabel, handlerLabel, jumpLabel);
-        }
-
-        self.mv.visitVarInsn(ALOAD, localVarOffset);
-        self.mv.visitFieldInsn(GETFIELD, "org/ballerinalang/jvm/Strand", "yield", "Z");
-        jvm:Label yieldLabel = self.labelGen.getLabel(funcName + "yield");
-        self.mv.visitJumpInsn(IFNE, yieldLabel);
-
-        // goto thenBB
-        jvm:Label gotoLabel = self.labelGen.getLabel(funcName + callIns.thenBB.id.value);
-        self.mv.visitJumpInsn(GOTO, gotoLabel);
     }
 
     private function storeReturnFromCallIns(bir:Call callIns) {

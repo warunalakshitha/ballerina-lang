@@ -161,7 +161,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
 import javax.xml.XMLConstants;
 
 /**
@@ -1244,7 +1243,8 @@ public class BIRGen extends BLangNodeVisitor {
             // Once trap expression is visited,  we need to back track all basic blocks which is covered by the trap 
             // and add error entry for each and every basic block.
             genIntermediateErrorEntries(this.env.trapBB);
-        } else {
+        }
+        if (!this.env.enclBB.instructions.isEmpty()) {
             // Create new block for instructions after trap.
             this.env.enclFunc.errorTable.add(new BIRNode.BIRErrorEntry(this.env.trapBB, this.env.targetOperand));
             this.env.trapBB = new BIRBasicBlock(this.env.nextBBId(names));
@@ -1585,17 +1585,12 @@ public class BIRGen extends BLangNodeVisitor {
     private void genIntermediateErrorEntries(BIRBasicBlock thenBB) {
         if (thenBB != this.env.enclBB) {
             this.env.enclFunc.errorTable.add(new BIRNode.BIRErrorEntry(thenBB, this.env.targetOperand));
-            // TODO:temp solution to avoid class casts
-            if (thenBB.terminator instanceof BIRTerminator.WaitAll) {
-                this.env.trapBB = ((BIRTerminator.WaitAll) thenBB.terminator).thenBB;
-            } else if (thenBB.terminator instanceof BIRTerminator.Wait) {
-                this.env.trapBB = ((BIRTerminator.Wait) thenBB.terminator).thenBB;
-            } else if (thenBB.terminator instanceof BIRTerminator.WorkerReceive) {
-                this.env.trapBB = ((BIRTerminator.WorkerReceive) thenBB.terminator).thenBB;
+            if (thenBB.terminator.thenBB != null) {
+                this.env.trapBB = thenBB.terminator.thenBB;
+                genIntermediateErrorEntries(this.env.trapBB);
             } else {
-                this.env.trapBB = ((BIRTerminator.Call) thenBB.terminator).thenBB;
+                throw new AssertionError();
             }
-            genIntermediateErrorEntries(this.env.trapBB);
         }
     }
 

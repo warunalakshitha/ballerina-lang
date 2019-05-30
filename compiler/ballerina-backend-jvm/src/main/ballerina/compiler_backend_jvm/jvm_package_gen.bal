@@ -311,14 +311,12 @@ function generateClassNameMappings(bir:Package module, string pkgName, string in
         // function.
         bir:Function initFunc = <bir:Function>functions[0];
         string functionName = initFunc.name.value;
-        if (functionName == getModuleInitFuncName(module)) {
-            JavaClass class = { sourceFileName:initFunc.pos.sourceFileName, moduleClass:initClass };
-            class.functions[0] = initFunc;
-            jvmClassMap[initClass] = class;
-            birFunctionMap[pkgName + functionName] = getFunctionWrapper(getFunction(initFunc), orgName, moduleName,
-                                                                        versionValue, initClass);
-            count = 1;
-        }
+        JavaClass class = { sourceFileName:initFunc.pos.sourceFileName, moduleClass:initClass };
+        class.functions[0] = initFunc;
+        jvmClassMap[initClass] = class;
+        birFunctionMap[pkgName + functionName] = getFunctionWrapper(getFunction(initFunc), orgName, moduleName,
+                                                                    versionValue, initClass);
+        count = 1;
         // Generate classes for other functions.
         while (count < funcSize) {
             bir:Function func = <bir:Function>functions[count];
@@ -345,7 +343,7 @@ function generateClassNameMappings(bir:Package module, string pkgName, string in
                     if (javaClass is JavaClass) {
                         javaClass.functions[javaClass.functions.length()] = func;
                     } else {
-                        JavaClass class = { sourceFileName:balFileName, moduleClass:moduleClass };
+                        class = { sourceFileName:balFileName, moduleClass:moduleClass };
                         class.functions[0] = func;
                         jvmClassMap[moduleClass] = class;
                     }
