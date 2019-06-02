@@ -538,7 +538,7 @@ public class Types {
     }
 
     private boolean isAssignable(BType source, BType target, List<TypePair> unresolvedTypes) {
-        if (isSameType(source, target)) {
+        if (isSameType(source, target, unresolvedTypes)) {
             return true;
         }
 
