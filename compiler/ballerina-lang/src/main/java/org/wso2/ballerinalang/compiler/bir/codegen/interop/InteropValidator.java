@@ -18,6 +18,7 @@
 package org.wso2.ballerinalang.compiler.bir.codegen.interop;
 
 import io.ballerina.projects.CompilerBackend;
+import io.ballerina.projects.JarResolver;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PlatformLibrary;
 import io.ballerina.projects.PlatformLibraryScope;
@@ -29,9 +30,6 @@ import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 
 import java.lang.reflect.Field;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -69,13 +67,14 @@ public class InteropValidator {
         return interopValidator;
     }
 
-    public void validate(ModuleId moduleId, CompilerBackend compilerBackend, BLangPackage bLangPackage) {
-        validateModulePackages(moduleId, compilerBackend, bLangPackage);
-        validateTestPackages(moduleId, compilerBackend, bLangPackage);
+    public void validate(ModuleId moduleId, CompilerBackend compilerBackend,
+                         JarResolver jarResolver, BLangPackage bLangPackage) {
+        validateModulePackages(moduleId, compilerBackend, jarResolver, bLangPackage);
+        validateTestPackages(moduleId, compilerBackend, jarResolver, bLangPackage);
     }
 
     private void validateModulePackages(ModuleId moduleId, CompilerBackend compilerBackend,
-                                        BLangPackage bLangPackage) {
+                                        JarResolver jarResolver, BLangPackage bLangPackage) {
         // find module dependencies path
         Set<Path> moduleDependencyPaths = getPlatformDependencyPaths(
                 moduleId, compilerBackend, PlatformLibraryScope.DEFAULT);
@@ -87,14 +86,14 @@ public class InteropValidator {
             moduleDependencyPaths.add(runtimeJar);
         }
 
-        ClassLoader classLoader = makeClassLoader(moduleDependencyPaths);
+        ClassLoader classLoader = jarResolver.getClassLoaderWithRequiredJarFilesForExecution();
         BIRNode.BIRPackage birPackage = bLangPackage.symbol.bir;
         // validate module functions with class names
         validateFunctions(classLoader, birPackage);
     }
 
     private void validateTestPackages(ModuleId moduleId, CompilerBackend compilerBackend,
-                                      BLangPackage bLangPackage) {
+                                      JarResolver jarResolver, BLangPackage bLangPackage) {
         if (!bLangPackage.hasTestablePackage()) {
             return;
         }
@@ -109,7 +108,7 @@ public class InteropValidator {
         if (Files.exists(runtimeJar)) {
             testDependencies.add(runtimeJar);
         }
-        ClassLoader classLoader = makeClassLoader(testDependencies);
+        ClassLoader classLoader = jarResolver.getClassLoaderWithRequiredJarFilesForExecution();
         bLangPackage.getTestablePkgs().forEach(testablePackage -> {
             BIRNode.BIRPackage testBirPackage = testablePackage.symbol.bir;
             validateFunctions(classLoader, testBirPackage);
@@ -161,21 +160,6 @@ public class InteropValidator {
                 optionalTypeDef.attachedFuncs = jAttachedFuncs;
             }
         }
-    }
-
-    private ClassLoader makeClassLoader(Set<Path> moduleDependencies) {
-        if (moduleDependencies == null || moduleDependencies.size() == 0) {
-            return Thread.currentThread().getContextClassLoader();
-        }
-        List<URL> dependentJars = new ArrayList<>();
-        for (Path dependency : moduleDependencies) {
-            try {
-                dependentJars.add(dependency.toUri().toURL());
-            } catch (MalformedURLException e) {
-                // ignore
-            }
-        }
-        return new URLClassLoader(dependentJars.toArray(new URL[]{}), ClassLoader.getPlatformClassLoader());
     }
 
     /**
