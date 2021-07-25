@@ -205,6 +205,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmValueGen.TYPE_HASH_
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmValueGen.createDefaultCase;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmValueGen.getTypeDescClassName;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmValueGen.getTypeValueClassName;
+import static org.wso2.ballerinalang.compiler.util.CompilerUtils.getMajorVersion;
 
 /**
  * BIR types to JVM byte code generation class.
@@ -464,7 +465,7 @@ public class JvmTypeGen {
         mv.visitInsn(DUP);
         mv.visitLdcInsn(typeId.packageID.orgName.value);
         mv.visitLdcInsn(typeId.packageID.name.value);
-        mv.visitLdcInsn(typeId.packageID.version.value);
+        mv.visitLdcInsn(getMajorVersion(typeId.packageID.version.value));
         mv.visitMethodInsn(INVOKESPECIAL, MODULE, JVM_INIT_METHOD,
                 String.format("(L%s;L%s;L%s;)V", STRING_VALUE, STRING_VALUE, STRING_VALUE), false);
 
@@ -854,7 +855,7 @@ public class JvmTypeGen {
 
         mv.visitLdcInsn(packageID.orgName.value);
         mv.visitLdcInsn(packageID.name.value);
-        mv.visitLdcInsn(packageID.version.value);
+        mv.visitLdcInsn(getMajorVersion(packageID.version.value));
         mv.visitMethodInsn(INVOKESPECIAL, MODULE, JVM_INIT_METHOD,
                            String.format("(L%s;L%s;L%s;)V", STRING_VALUE, STRING_VALUE, STRING_VALUE), false);
 
@@ -992,7 +993,7 @@ public class JvmTypeGen {
 
         mv.visitLdcInsn(packageID.orgName.value);
         mv.visitLdcInsn(packageID.name.value);
-        mv.visitLdcInsn(packageID.version.value);
+        mv.visitLdcInsn(getMajorVersion(packageID.version.value));
         mv.visitMethodInsn(INVOKESPECIAL, MODULE, JVM_INIT_METHOD,
                            String.format("(L%s;L%s;L%s;)V", STRING_VALUE, STRING_VALUE, STRING_VALUE), false);
 
@@ -1023,7 +1024,7 @@ public class JvmTypeGen {
 
         mv.visitLdcInsn(packageID.orgName.value);
         mv.visitLdcInsn(packageID.name.value);
-        mv.visitLdcInsn(packageID.version.value);
+        mv.visitLdcInsn(getMajorVersion(packageID.version.value));
         mv.visitMethodInsn(INVOKESPECIAL, MODULE, JVM_INIT_METHOD,
                 String.format("(L%s;L%s;L%s;)V", STRING_VALUE, STRING_VALUE, STRING_VALUE), false);
 
@@ -1057,7 +1058,7 @@ public class JvmTypeGen {
         PackageID packageID = tupleType.tsymbol.pkgID;
         mv.visitLdcInsn(packageID.orgName.value);
         mv.visitLdcInsn(packageID.name.value);
-        mv.visitLdcInsn(packageID.version.value);
+        mv.visitLdcInsn(getMajorVersion(packageID.version.value));
         mv.visitMethodInsn(INVOKESPECIAL, MODULE, JVM_INIT_METHOD,
                 String.format("(L%s;L%s;L%s;)V", STRING_VALUE, STRING_VALUE, STRING_VALUE), false);
 
@@ -1426,7 +1427,7 @@ public class JvmTypeGen {
         PackageID packageID = errorType.tsymbol.pkgID;
         mv.visitLdcInsn(packageID.orgName.value);
         mv.visitLdcInsn(packageID.name.value);
-        mv.visitLdcInsn(packageID.version.value);
+        mv.visitLdcInsn(getMajorVersion(packageID.version.value));
         mv.visitMethodInsn(INVOKESPECIAL, MODULE, JVM_INIT_METHOD,
                            String.format("(L%s;L%s;L%s;)V", STRING_VALUE, STRING_VALUE, STRING_VALUE), false);
 
@@ -1857,7 +1858,7 @@ public class JvmTypeGen {
 
                 mv.visitLdcInsn(packageID.orgName.value);
                 mv.visitLdcInsn(packageID.name.value);
-                mv.visitLdcInsn(packageID.version.value);
+                mv.visitLdcInsn(getMajorVersion(packageID.version.value));
                 mv.visitMethodInsn(INVOKESPECIAL, MODULE, JVM_INIT_METHOD,
                         String.format("(L%s;L%s;L%s;)V", STRING_VALUE, STRING_VALUE, STRING_VALUE), false);
             }
@@ -1951,7 +1952,7 @@ public class JvmTypeGen {
 
         mv.visitLdcInsn(packageID.orgName.value);
         mv.visitLdcInsn(packageID.name.value);
-        mv.visitLdcInsn(packageID.version.value);
+        mv.visitLdcInsn(getMajorVersion(packageID.version.value));
         mv.visitMethodInsn(INVOKESPECIAL, MODULE, JVM_INIT_METHOD,
                            String.format("(L%s;L%s;L%s;)V", STRING_VALUE, STRING_VALUE, STRING_VALUE), false);
 
