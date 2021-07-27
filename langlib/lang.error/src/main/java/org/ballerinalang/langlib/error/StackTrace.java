@@ -85,20 +85,9 @@ public class StackTrace {
 
         Object[] values = new Object[4];
         values[0] = stackTraceElement.getMethodName();
+        values[1] = stackTraceElement.getClassName();
         values[2] = stackTraceElement.getFileName();
         values[3] = stackTraceElement.getLineNumber();
-
-        String moduleName = IdentifierUtils.decodeIdentifier(stackTraceElement.getClassName())
-                .replace(FILE_NAME_PERIOD_SEPARATOR, DOT);
-        String fileName = stackTraceElement.getFileName().replace(BLANG_SRC_FILE_SUFFIX, EMPTY);
-        if (!moduleName.equals(fileName)) {
-            int index = moduleName.lastIndexOf(DOT + fileName);
-            if (index != -1) {
-                values[1] = moduleName.substring(0, index);
-            } else {
-                values[1] = moduleName;
-            }
-        }
         return ValueCreator.createRecordValue(
                 ValueCreator.createRecordValue(BALLERINA_LANG_ERROR_PKG_ID, CALL_STACK_ELEMENT), values);
     }

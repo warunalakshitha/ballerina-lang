@@ -46,6 +46,8 @@ import java.util.StringJoiner;
 import static io.ballerina.runtime.api.PredefinedTypes.TYPE_MAP;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BLANG_SRC_FILE_SUFFIX;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.DOT;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.EMPTY;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.FILE_NAME_PERIOD_SEPARATOR;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.MODULE_INIT_CLASS_NAME;
 
 /**
@@ -390,7 +392,7 @@ public class ErrorValue extends BError implements RefValue {
                 default:
                     return Optional.empty();
             }
-            return Optional.of(new StackTraceElement(cleanupClassName(className), methodName, fileName,
+            return Optional.of(new StackTraceElement(cleanupClassName(className, fileName), methodName, fileName,
                                                      stackFrame.getLineNumber()));
 
         }
@@ -398,11 +400,20 @@ public class ErrorValue extends BError implements RefValue {
             // Remove java sources for bal stacktrace if they are not extern functions.
             return Optional.empty();
         }
-        return Optional.of(
-                new StackTraceElement(cleanupClassName(className), methodName, fileName, stackFrame.getLineNumber()));
+        return Optional.of(new StackTraceElement(cleanupClassName(className, fileName), methodName,
+                fileName, stackFrame.getLineNumber()));
     }
 
-    private String cleanupClassName(String className) {
-        return className.replace(GENERATE_OBJECT_CLASS_PREFIX, ".");
+    private String cleanupClassName(String className, String fileName) {
+        className = className.replace(GENERATE_OBJECT_CLASS_PREFIX, ".").replace(FILE_NAME_PERIOD_SEPARATOR, DOT);
+        className = IdentifierUtils.decodeIdentifier(className);
+        fileName = fileName.replace(BLANG_SRC_FILE_SUFFIX, EMPTY);
+        if (!className.equals(fileName)) {
+            int index = className.lastIndexOf(DOT + fileName);
+            if (index != -1) {
+                return className.substring(0, index);
+            }
+        }
+        return className;
     }
 }
