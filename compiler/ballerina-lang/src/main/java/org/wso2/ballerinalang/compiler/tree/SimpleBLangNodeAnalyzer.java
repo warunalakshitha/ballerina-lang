@@ -716,6 +716,11 @@ public abstract class SimpleBLangNodeAnalyzer<T> extends BLangNodeAnalyzer<T> {
         visit((BLangInvocation) node, data);
     }
 
+    public void visit(BLangInvocation.BLangResourceAccessInvocation node, T data) {
+        analyzeNode(node, data);
+        visit((BLangInvocation) node, data);
+    }
+
     public void visit(BLangIsAssignableExpr node, T data) {
         analyzeNode(node, data);
         visitNode(node.lhsExpr, data);
@@ -1382,6 +1387,7 @@ public abstract class SimpleBLangNodeAnalyzer<T> extends BLangNodeAnalyzer<T> {
 
     public void visit(BLangObjectTypeNode node, T data) {
         analyzeNode(node, data);
+        visitNode(node.initFunction, data);
         visitBLangStructureTypeNode(node, data);
         visitNode(node.functions, data);
     }
@@ -1473,7 +1479,5 @@ public abstract class SimpleBLangNodeAnalyzer<T> extends BLangNodeAnalyzer<T> {
     private void visitBLangStructureTypeNode(BLangStructureTypeNode node, T data) {
         visitNode(node.fields, data);
         visitNode(node.typeRefs, data);
-        visitNode(node.initFunction, data);
-        visitNode(node.initFunction, data);
     }
 }

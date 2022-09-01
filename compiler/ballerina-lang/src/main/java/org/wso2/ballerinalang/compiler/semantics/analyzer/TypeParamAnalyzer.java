@@ -901,7 +901,6 @@ public class TypeParamAnalyzer {
         recordSymbol.isTypeParamResolved = true;
         recordSymbol.typeParamTSymbol = expTSymbol;
         recordSymbol.scope = new Scope(recordSymbol);
-        recordSymbol.initializerFunc = expTSymbol.initializerFunc;
 
         LinkedHashMap<String, BField> fields = new LinkedHashMap<>();
         for (BField expField : expType.fields.values()) {
@@ -1051,7 +1050,7 @@ public class TypeParamAnalyzer {
             BResourceFunction resourceFunction = (BResourceFunction) expFunc;
             return new BResourceFunction(resourceFunction.funcName, invokableSymbol, matchType,
                     resourceFunction.resourcePath, resourceFunction.accessor, resourceFunction.pathParams,
-                    resourceFunction.restPathParam, expFunc.pos);
+                    resourceFunction.restPathParam, resourceFunction.resourcePathType, expFunc.pos);
         }
         return new BAttachedFunction(expFunc.funcName, invokableSymbol, matchType, expFunc.pos);
     }

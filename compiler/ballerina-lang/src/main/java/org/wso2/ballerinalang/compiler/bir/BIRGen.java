@@ -68,6 +68,7 @@ import org.wso2.ballerinalang.compiler.semantics.model.symbols.BEnumSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BInvokableSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BInvokableTypeSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BObjectTypeSymbol;
+import org.wso2.ballerinalang.compiler.semantics.model.symbols.BResourceFunction;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BServiceSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BTypeDefinitionSymbol;
@@ -196,7 +197,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import javax.xml.XMLConstants;
@@ -648,6 +648,34 @@ public class BIRGen extends BLangNodeVisitor {
             addRestParam(birFunc, astFunc.restParam.symbol, astFunc.restParam.pos);
         }
 
+        if (astFunc.flagSet.contains(Flag.RESOURCE)) {
+            BTypeSymbol parentTSymbol = astFunc.parent.getBType().tsymbol;
+            // Parent symbol will always be BObjectTypeSymbol for resource functions
+            BObjectTypeSymbol objectTypeSymbol = (BObjectTypeSymbol) parentTSymbol;
+            for (BAttachedFunction func : objectTypeSymbol.attachedFuncs) {
+                if (func.funcName.value.equals(funcName.value)) {
+                    BResourceFunction resourceFunction = (BResourceFunction) func;
+                    
+                    List<BVarSymbol> pathParamSymbols = resourceFunction.pathParams;
+                    List<BIRVariableDcl> pathParams = new ArrayList<>(pathParamSymbols.size());
+                    for (BVarSymbol pathParamSym : pathParamSymbols) {
+                        pathParams.add(createBIRVarDeclForPathParam(pathParamSym));
+                    }
+                    birFunc.pathParams = pathParams;
+                            
+                    BVarSymbol restPathParamSym = resourceFunction.restPathParam;
+                    if (restPathParamSym != null) {
+                        birFunc.restPathParam = createBIRVarDeclForPathParam(restPathParamSym);
+                    }
+
+                    birFunc.resourcePath = resourceFunction.resourcePath;
+                    birFunc.accessor = resourceFunction.accessor;
+                    birFunc.resourcePathType = resourceFunction.resourcePathType;
+                    break;
+                }
+            }
+        }
+
         if (astFunc.interfaceFunction || Symbols.isNative(astFunc.symbol)) {
             this.env.clear();
             return;
@@ -673,6 +701,11 @@ public class BIRGen extends BLangNodeVisitor {
         this.env.clear();
         birFunc.dependentGlobalVars = astFunc.symbol.dependentGlobalVars.stream()
                 .map(varSymbol -> this.globalVarMap.get(varSymbol)).collect(Collectors.toSet());
+    }
+    
+    private BIRVariableDcl createBIRVarDeclForPathParam(BVarSymbol pathParamSym) {
+        return new BIRVariableDcl(pathParamSym.pos, pathParamSym.type, this.env.nextLocalVarId(names), 
+                VarScope.FUNCTION, VarKind.ARG, pathParamSym.name.value);
     }
 
     private BIRVariableDcl getSelf(BSymbol receiver) {
@@ -1494,7 +1527,7 @@ public class BIRGen extends BLangNodeVisitor {
 
     @Override
     public void visit(BLangMapLiteral astMapLiteralExpr) {
-        visitTypedesc(astMapLiteralExpr.pos, astMapLiteralExpr.getBType(), Collections.emptyList());
+        visitTypedesc(astMapLiteralExpr.pos, astMapLiteralExpr.getBType());
         BIRVariableDcl tempVarDcl =
                 new BIRVariableDcl(astMapLiteralExpr.getBType(), this.env.nextLocalVarId(names),
                                    VarScope.FUNCTION, VarKind.TEMP);
@@ -1524,8 +1557,7 @@ public class BIRGen extends BLangNodeVisitor {
 
     @Override
     public void visit(BLangStructLiteral astStructLiteralExpr) {
-        List<BIROperand> varDcls = mapToVarDcls(astStructLiteralExpr.enclMapSymbols);
-        visitTypedesc(astStructLiteralExpr.pos, astStructLiteralExpr.getBType(), varDcls);
+        visitTypedesc(astStructLiteralExpr.pos, astStructLiteralExpr.getBType());
 
         BIRVariableDcl tempVarDcl = new BIRVariableDcl(astStructLiteralExpr.getBType(),
                                                        this.env.nextLocalVarId(names), VarScope.FUNCTION, VarKind.TEMP);
@@ -1539,19 +1571,6 @@ public class BIRGen extends BLangNodeVisitor {
         setScopeAndEmit(instruction);
 
         this.env.targetOperand = toVarRef;
-    }
-
-    private List<BIROperand> mapToVarDcls(TreeMap<Integer, BVarSymbol> enclMapSymbols) {
-        if (enclMapSymbols == null || enclMapSymbols.size() == 0) {
-            return Collections.emptyList();
-        }
-
-        ArrayList<BIROperand> varDcls = new ArrayList<>(enclMapSymbols.size());
-        for (BVarSymbol varSymbol : enclMapSymbols.values()) {
-            BIRVariableDcl varDcl = this.env.symbolVarMap.get(varSymbol);
-            varDcls.add(new BIROperand(varDcl));
-        }
-        return varDcls;
     }
 
     @Override
@@ -1885,7 +1904,7 @@ public class BIRGen extends BLangNodeVisitor {
 
     @Override
     public void visit(BLangWaitForAllExpr.BLangWaitLiteral waitLiteral) {
-        visitTypedesc(waitLiteral.pos, waitLiteral.getBType(), Collections.emptyList());
+        visitTypedesc(waitLiteral.pos, waitLiteral.getBType());
         BIRBasicBlock thenBB = new BIRBasicBlock(this.env.nextBBId(names));
         addToTrapStack(thenBB);
         BIRVariableDcl tempVarDcl = new BIRVariableDcl(waitLiteral.getBType(),
@@ -2154,16 +2173,16 @@ public class BIRGen extends BLangNodeVisitor {
     public void visit(BLangSimpleVarRef.BLangTypeLoad typeLoad) {
         BType type = typeLoad.symbol.tag == SymTag.TYPE_DEF ?
                 ((BTypeDefinitionSymbol) typeLoad.symbol).referenceType : typeLoad.symbol.type;
-        visitTypedesc(typeLoad.pos, type, Collections.emptyList());
+        visitTypedesc(typeLoad.pos, type);
     }
 
-    private void visitTypedesc(Location pos, BType type, List<BIROperand> varDcls) {
+    private void visitTypedesc(Location pos, BType type) {
         BIRVariableDcl tempVarDcl =
                 new BIRVariableDcl(symTable.typeDesc, this.env.nextLocalVarId(names), VarScope.FUNCTION, VarKind
                         .TEMP);
         this.env.enclFunc.localVars.add(tempVarDcl);
         BIROperand toVarRef = new BIROperand(tempVarDcl);
-        setScopeAndEmit(new BIRNonTerminator.NewTypeDesc(pos, toVarRef, type, varDcls));
+        setScopeAndEmit(new BIRNonTerminator.NewTypeDesc(pos, toVarRef, type, Collections.emptyList()));
         this.env.targetOperand = toVarRef;
     }
 

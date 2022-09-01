@@ -55,6 +55,7 @@ import org.wso2.ballerinalang.compiler.semantics.model.symbols.BInvokableTypeSym
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BObjectTypeSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BPackageSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BRecordTypeSymbol;
+import org.wso2.ballerinalang.compiler.semantics.model.symbols.BResourceFunction;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BServiceSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BStructureTypeSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BSymbol;
@@ -408,6 +409,8 @@ public class BIRPackageSymbolEnter {
 
         Scope scopeToDefine = this.env.pkgSymbol.scope;
 
+        boolean isResourceFunction = dataInStream.readBoolean();
+
         if (this.currentStructure != null) {
             BType attachedType = Types.getReferredType(this.currentStructure.type);
 
@@ -417,18 +420,55 @@ public class BIRPackageSymbolEnter {
                     names.fromString(Symbols.getAttachedFuncSymbolName(attachedType.tsymbol.name.value, funcName));
             if (attachedType.tag == TypeTags.OBJECT || attachedType.tag == TypeTags.RECORD) {
                 scopeToDefine = attachedType.tsymbol.scope;
-                // todo: Define resource function from BIR
-                BAttachedFunction attachedFunc =
-                        new BAttachedFunction(names.fromString(funcName), invokableSymbol, funcType,
-                                              symTable.builtinPos);
-                BStructureTypeSymbol structureTypeSymbol = (BStructureTypeSymbol) attachedType.tsymbol;
-                if (Names.USER_DEFINED_INIT_SUFFIX.value.equals(funcName)
-                        || funcName.equals(Names.INIT_FUNCTION_SUFFIX.value)) {
-                    structureTypeSymbol.initializerFunc = attachedFunc;
-                } else if (funcName.equals(Names.GENERATED_INIT_SUFFIX.value)) {
-                    ((BObjectTypeSymbol) structureTypeSymbol).generatedInitializerFunc = attachedFunc;
+                if (isResourceFunction) {
+                    int pathParamCount = dataInStream.readInt();
+                    List<BVarSymbol> pathParams = new ArrayList<>(pathParamCount);
+                    for (int i = 0; i < pathParamCount; i++) {
+                        Name pathParamName = names.fromString(getStringCPEntryValue(dataInStream));
+                        BType paramType = readBType(dataInStream);
+                        BVarSymbol varSymbol = new BVarSymbol(0, pathParamName, this.env.pkgSymbol.pkgID,
+                                paramType, null, symTable.builtinPos, COMPILED_SOURCE);
+                        pathParams.add(varSymbol);
+                    }
+
+                    boolean restPathParamExist = dataInStream.readBoolean();
+                    BVarSymbol restPathParam = null;
+                    if (restPathParamExist) {
+                        Name pathParamName = names.fromString(getStringCPEntryValue(dataInStream));
+                        BType paramType = readBType(dataInStream);
+                        restPathParam = new BVarSymbol(0, pathParamName, this.env.pkgSymbol.pkgID, paramType,
+                                null, symTable.builtinPos, COMPILED_SOURCE);
+                    }
+
+                    int resourcePathCount = dataInStream.readInt();
+                    List<Name> resourcePath = new ArrayList<>(resourcePathCount);
+                    for (int i = 0; i < resourcePathCount; i++) {
+                        resourcePath.add(names.fromString(getStringCPEntryValue(dataInStream)));
+                    }
+
+                    Name accessor = names.fromString(getStringCPEntryValue(dataInStream));
+                    BTupleType resourcePathType = (BTupleType) readBType(dataInStream);
+
+                    BResourceFunction resourceFunction = new BResourceFunction(names.fromString(funcName),
+                            invokableSymbol, funcType, resourcePath, accessor, pathParams, restPathParam,
+                            resourcePathType, symTable.builtinPos);
+
+                    ((BStructureTypeSymbol) attachedType.tsymbol).attachedFuncs.add(resourceFunction);
                 } else {
-                    structureTypeSymbol.attachedFuncs.add(attachedFunc);
+                    BAttachedFunction attachedFunc =
+                            new BAttachedFunction(names.fromString(funcName), invokableSymbol, funcType,
+                                    symTable.builtinPos);
+                    BStructureTypeSymbol structureTypeSymbol = (BStructureTypeSymbol) attachedType.tsymbol;
+                    if (Names.USER_DEFINED_INIT_SUFFIX.value.equals(funcName)
+                            || funcName.equals(Names.INIT_FUNCTION_SUFFIX.value)) {
+                        if (structureTypeSymbol.getKind() == SymbolKind.OBJECT) {
+                        ((BObjectTypeSymbol) structureTypeSymbol).initializerFunc = attachedFunc;
+                    }
+                    } else if (funcName.equals(Names.GENERATED_INIT_SUFFIX.value)) {
+                        ((BObjectTypeSymbol) structureTypeSymbol).generatedInitializerFunc = attachedFunc;
+                    } else {
+                        structureTypeSymbol.attachedFuncs.add(attachedFunc);
+                    }
                 }
             }
         }
@@ -1260,27 +1300,14 @@ public class BIRPackageSymbolEnter {
                         recordSymbol.scope.define(varSymbol.name, varSymbol);
                     }
 
-                    boolean isInitAvailable = inputStream.readByte() == 1;
-                    if (isInitAvailable) {
-                        // read record init function
-                        String recordInitFuncName = getStringCPEntryValue(inputStream);
-                        var recordInitFuncFlags = inputStream.readLong();
-                        BInvokableType recordInitFuncType = (BInvokableType) readTypeFromCp();
-                        Name initFuncName = names.fromString(recordInitFuncName);
-                        boolean isNative = Symbols.isFlagOn(recordInitFuncFlags, Flags.NATIVE);
-                        BInvokableSymbol recordInitFuncSymbol =
-                                Symbols.createFunctionSymbol(recordInitFuncFlags, initFuncName,
-                                                             initFuncName, env.pkgSymbol.pkgID, recordInitFuncType,
-                                                             env.pkgSymbol, isNative, symTable.builtinPos,
-                                                             COMPILED_SOURCE);
-                        recordInitFuncSymbol.retType = recordInitFuncType.retType;
-                        // Define resource function
-                        recordSymbol.initializerFunc = new BAttachedFunction(initFuncName, recordInitFuncSymbol,
-                                                                             recordInitFuncType, symTable.builtinPos);
-                        recordSymbol.scope.define(initFuncName, recordInitFuncSymbol);
-                    }
-
                     recordType.typeInclusions = readTypeInclusions();
+
+                    int defaultValues = inputStream.readInt();
+                    for (int i = 0; i < defaultValues; i++) {
+                        String paramName = getStringCPEntryValue(inputStream);
+                        BInvokableSymbol invokableSymbol = getSymbolOfClosure();
+                        recordSymbol.defaultValues.put(paramName, invokableSymbol);
+                    }
 
 //                    setDocumentation(varSymbol, attrData); // TODO fix
 

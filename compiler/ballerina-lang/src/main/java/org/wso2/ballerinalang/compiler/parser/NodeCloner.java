@@ -365,7 +365,6 @@ public class NodeCloner extends BLangNodeVisitor {
     private void cloneBLangStructureTypeNode(BLangStructureTypeNode source, BLangStructureTypeNode clone) {
 
         clone.fields = cloneList(source.fields);
-        clone.initFunction = clone(source.initFunction);
         clone.isAnonymous = source.isAnonymous;
         clone.isLocal = source.isLocal;
         clone.typeRefs = cloneList(source.typeRefs);
@@ -1174,6 +1173,19 @@ public class NodeCloner extends BLangNodeVisitor {
         clone.remoteMethodCall = source.remoteMethodCall;
         clone.flagSet = cloneSet(source.flagSet, Flag.class);
         clone.annAttachments = cloneList(source.annAttachments);
+        clone.requiredArgs = cloneList(source.requiredArgs);
+        clone.expr = clone(source.expr);
+    }
+
+    @Override
+    public void visit(BLangInvocation.BLangResourceAccessInvocation source) {
+        BLangInvocation.BLangResourceAccessInvocation clone = new BLangInvocation.BLangResourceAccessInvocation();
+        source.cloneRef = clone;
+        clone.pkgAlias = source.pkgAlias;
+        clone.resourceAccessPathSegments = clone(source.resourceAccessPathSegments);
+        clone.name = source.name;
+        clone.argExprs = cloneList(source.argExprs);
+        clone.flagSet = cloneSet(source.flagSet, Flag.class);
         clone.requiredArgs = cloneList(source.requiredArgs);
         clone.expr = clone(source.expr);
     }
@@ -2272,6 +2284,7 @@ public class NodeCloner extends BLangNodeVisitor {
         clone.methodName = clone(source.methodName);
         clone.restPathParam = clone(source.restPathParam);
         clone.pathParams = cloneList(source.pathParams);
+        clone.resourcePathType = clone(source.resourcePathType);
     }
 
     private void cloneFunctionNode(BLangFunction source, BLangFunction clone) {
