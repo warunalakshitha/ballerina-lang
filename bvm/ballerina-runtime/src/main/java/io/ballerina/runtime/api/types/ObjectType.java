@@ -17,6 +17,10 @@
  */
 package io.ballerina.runtime.api.types;
 
+import io.ballerina.runtime.internal.types.BRecordField;
+
+import java.util.Map;
+
 /**
  * {@code BObjectType} represents a user defined object type in Ballerina.
  *

@@ -37,8 +37,10 @@ import org.wso2.ballerinalang.compiler.semantics.model.types.BField;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BObjectType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BTypeIdSet;
 import org.wso2.ballerinalang.compiler.util.Name;
+import org.wso2.ballerinalang.compiler.util.TypeTags;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -496,7 +498,7 @@ public class JvmObjectTypeGen {
         if (!fields.isEmpty()) {
             mv.visitInsn(DUP);
             mv.visitMethodInsn(INVOKESTATIC, objectTypesClass, methodName + "$addField$", SET_LINKED_HASH_MAP, false);
-            jvmCreateTypeGen.splitAddFields(objectTypesCw, objectTypesClass, methodName, fields);
+            jvmCreateTypeGen.splitAddFields(objectTypesCw, objectTypesClass, methodName, fields, null, false);
         }
 
         // Set the fields of the object

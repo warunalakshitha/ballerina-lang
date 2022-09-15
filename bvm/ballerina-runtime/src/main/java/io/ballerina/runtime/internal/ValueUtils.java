@@ -30,6 +30,7 @@ import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.runtime.api.values.BValue;
 import io.ballerina.runtime.api.values.BXml;
+import io.ballerina.runtime.internal.scheduling.AsyncUtils;
 import io.ballerina.runtime.internal.scheduling.Scheduler;
 import io.ballerina.runtime.internal.scheduling.State;
 import io.ballerina.runtime.internal.scheduling.Strand;
@@ -57,17 +58,23 @@ public class ValueUtils {
      * @return               value of the record.
      */
     public static BMap<BString, Object> createRecordValue(Module packageId, String recordTypeName) {
-        ValueCreator valueCreator = ValueCreator.getValueCreator(ValueCreator.getLookupKey(packageId, false));
+        MapValue<BString, Object> recordValue;
+        ValueCreator valueCreator;
         try {
-            return valueCreator.createRecordValue(recordTypeName);
+            valueCreator = ValueCreator.getValueCreator(ValueCreator.getLookupKey(packageId, false));
+            recordValue = valueCreator.createRecordValue(recordTypeName);
         } catch (BError e) {
             // If record type definition not found, get it from test module.
             String testLookupKey = ValueCreator.getLookupKey(packageId, true);
             if (ValueCreator.containsValueCreator(testLookupKey)) {
-                return ValueCreator.getValueCreator(testLookupKey).createRecordValue(recordTypeName);
+                valueCreator = ValueCreator.getValueCreator(testLookupKey);
+                recordValue = valueCreator.createRecordValue(recordTypeName);
+            } else {
+                throw e;
             }
-            throw e;
         }
+        AsyncUtils.invokeDefaultValueFunctions(valueCreator, recordValue);
+        return recordValue;
     }
 
     /**
@@ -81,7 +88,21 @@ public class ValueUtils {
      */
     public static BMap<BString, Object> createRecordValue(Module packageId, String recordTypeName,
                                                           Map<String, Object> valueMap) {
-        BMap<BString, Object> recordValue = createRecordValue(packageId, recordTypeName);
+        MapValue<BString, Object> recordValue;
+        ValueCreator valueCreator;
+        try {
+            valueCreator = ValueCreator.getValueCreator(ValueCreator.getLookupKey(packageId, false));
+            recordValue = valueCreator.createRecordValue(recordTypeName);
+        } catch (BError e) {
+            // If record type definition not found, get it from test module.
+            String testLookupKey = ValueCreator.getLookupKey(packageId, true);
+            if (ValueCreator.containsValueCreator(testLookupKey)) {
+                valueCreator = ValueCreator.getValueCreator(testLookupKey);
+                recordValue = valueCreator.createRecordValue(recordTypeName);
+            } else {
+                throw e;
+            }
+        }
         for (Map.Entry<String, Object> fieldEntry : valueMap.entrySet()) {
             Object val = fieldEntry.getValue();
             // TODO: Remove the following String to BString conversion.
@@ -90,6 +111,7 @@ public class ValueUtils {
             }
             recordValue.populateInitialValue(StringUtils.fromString(fieldEntry.getKey()), val);
         }
+        AsyncUtils.invokeDefaultValueFunctions(valueCreator, recordValue);
         return recordValue;
     }
 
@@ -104,10 +126,25 @@ public class ValueUtils {
      */
     public static BMap<BString, Object> createRecordValue(Module packageId, String recordTypeName,
                                                           BMap<BString, Object> valueMap) {
-        BMap<BString, Object> recordValue = createRecordValue(packageId, recordTypeName);
+        MapValue<BString, Object> recordValue;
+        ValueCreator valueCreator;
+        try {
+            valueCreator = ValueCreator.getValueCreator(ValueCreator.getLookupKey(packageId, false));
+            recordValue = valueCreator.createRecordValue(recordTypeName);
+        } catch (BError e) {
+            // If record type definition not found, get it from test module.
+            String testLookupKey = ValueCreator.getLookupKey(packageId, true);
+            if (ValueCreator.containsValueCreator(testLookupKey)) {
+                valueCreator = ValueCreator.getValueCreator(testLookupKey);
+                recordValue = valueCreator.createRecordValue(recordTypeName);
+            } else {
+                throw e;
+            }
+        }
         for (Map.Entry<BString, Object> fieldEntry : valueMap.entrySet()) {
             recordValue.populateInitialValue(fieldEntry.getKey(), fieldEntry.getValue());
         }
+        AsyncUtils.invokeDefaultValueFunctions(valueCreator, recordValue);
         return recordValue;
     }
 

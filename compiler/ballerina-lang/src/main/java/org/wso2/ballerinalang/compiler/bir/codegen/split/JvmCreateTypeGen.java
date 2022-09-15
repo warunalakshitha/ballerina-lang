@@ -41,6 +41,7 @@ import org.wso2.ballerinalang.compiler.parser.BLangAnonymousModelHelper;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.TypeHashVisitor;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.Types;
 import org.wso2.ballerinalang.compiler.semantics.model.SymbolTable;
+import org.wso2.ballerinalang.compiler.semantics.model.symbols.BInvokableSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.Symbols;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BErrorType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BField;
@@ -71,6 +72,7 @@ import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SUPER;
+import static org.objectweb.asm.Opcodes.ACONST_NULL;
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.DUP;
@@ -93,7 +95,8 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmCodeGenUtil.createD
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmCodeGenUtil.getModuleLevelClassName;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.CREATE_TYPES_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.CREATE_TYPE_INSTANCES_METHOD;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.FIELD_IMPL;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.OBJECT_FIELD_IMPL;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.RECORD_FIELD_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.GET_ANON_TYPE_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.GET_FUNCTION_TYPE_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.JVM_INIT_METHOD;
@@ -112,7 +115,8 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.ADD_TYPE
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.ANY_TO_JBOOLEAN;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_FUNCTION_TYPE_FOR_STRING;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_TYPE;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.INIT_FIELD_IMPL;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.INIT_OBJECT_FIELD_IMPL;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.INIT_RECORD_FIELD_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.MAP_PUT;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.SET_IMMUTABLE_TYPE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.SET_LINKED_HASH_MAP;
@@ -692,13 +696,14 @@ public class JvmCreateTypeGen {
         }
     }
 
-    public void splitAddFields(ClassWriter cw, String typeClassName, String methodName, Map<String, BField> fields) {
+    public void splitAddFields(ClassWriter cw, String typeClassName, String methodName, Map<String, BField> fields,
+                               Map<String, BInvokableSymbol> defaultValues, boolean isRecord) {
         int fieldMapIndex = 0;
         MethodVisitor mv = null;
         int methodCount = 0;
         int fieldsCount = 0;
         String addFieldMethod = methodName + "$addField$";
-        for (BField optionalField : fields.values()) {
+        for (BField field : fields.values()) {
             if (fieldsCount % MAX_FIELDS_PER_SPLIT_METHOD == 0) {
                 mv = cw.visitMethod(ACC_STATIC + ACC_PRIVATE, addFieldMethod, SET_LINKED_HASH_MAP, null, null);
                 mv.visitCode();
@@ -707,14 +712,16 @@ public class JvmCreateTypeGen {
             mv.visitVarInsn(ALOAD, fieldMapIndex);
 
             // Load field name
-            mv.visitLdcInsn(decodeIdentifier(optionalField.name.value));
+            mv.visitLdcInsn(decodeIdentifier(field.name.value));
 
             // create and load field type
-            createField(mv, optionalField);
-
+            if (isRecord) {
+                createRecordField(mv, field, defaultValues.get(field.name.value));
+            } else {
+                createObjectField(mv, field);
+            }
             // Add the field to the map
-            mv.visitMethodInsn(INVOKEINTERFACE, MAP, "put", MAP_PUT,
-                    true);
+            mv.visitMethodInsn(INVOKEINTERFACE, MAP, "put", MAP_PUT, true);
 
             // emit a pop, since we are not using the return value from the map.put()
             mv.visitInsn(POP);
@@ -736,27 +743,35 @@ public class JvmCreateTypeGen {
         }
     }
 
-    /**
-     * Create a field information for objects and records.
-     *
-     * @param mv    method visitor
-     * @param field field parameter description
-     */
-    private void createField(MethodVisitor mv, BField field) {
 
-        mv.visitTypeInsn(NEW, FIELD_IMPL);
+    private void createRecordField(MethodVisitor mv, BField field, BInvokableSymbol defaultValueSymbol) {
+
+        mv.visitTypeInsn(NEW, RECORD_FIELD_IMPL);
         mv.visitInsn(DUP);
-
         // Load the field type
         jvmTypeGen.loadLocalType(mv, field.symbol.type);
-
         // Load field name
         mv.visitLdcInsn(decodeIdentifier(field.name.value));
-
         // Load flags
         mv.visitLdcInsn(field.symbol.flags);
+        if (defaultValueSymbol == null) {
+            mv.visitInsn(ACONST_NULL);
+        } else {
+            mv.visitLdcInsn(defaultValueSymbol.name.value);
+        }
+        mv.visitMethodInsn(INVOKESPECIAL, RECORD_FIELD_IMPL, JVM_INIT_METHOD, INIT_RECORD_FIELD_IMPL, false);
+    }
 
-        mv.visitMethodInsn(INVOKESPECIAL, FIELD_IMPL, JVM_INIT_METHOD, INIT_FIELD_IMPL, false);
+    private void createObjectField(MethodVisitor mv, BField field) {
+        mv.visitTypeInsn(NEW, OBJECT_FIELD_IMPL);
+        mv.visitInsn(DUP);
+        // Load the field type
+        jvmTypeGen.loadLocalType(mv, field.symbol.type);
+        // Load field name
+        mv.visitLdcInsn(decodeIdentifier(field.name.value));
+        // Load flags
+        mv.visitLdcInsn(field.symbol.flags);
+        mv.visitMethodInsn(INVOKESPECIAL, OBJECT_FIELD_IMPL, JVM_INIT_METHOD, INIT_OBJECT_FIELD_IMPL, false);
     }
 
     public JvmUnionTypeGen getJvmUnionTypeGen() {
