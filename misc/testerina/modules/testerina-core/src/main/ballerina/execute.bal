@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/lang.'error as langError;
+import ballerina/jballerina.java;
 
 boolean shouldSkip = false;
 boolean shouldAfterSuiteSkip = false;
@@ -67,6 +68,7 @@ function executeTest(TestFunction testFunction) {
     if !testFunction.enabled {
         return;
     }
+    printOut(testFunction.name);
     error? diagnoseError = testFunction.diagnostics;
     if diagnoseError is error {
         reportData.onFailed(name = testFunction.name, message = diagnoseError.message(), testType = getTestType(testFunction));
@@ -102,6 +104,7 @@ function executeTest(TestFunction testFunction) {
             dependent.skip = true;
         });
     }
+    printOut("Test done");
     testFunction.dependents.forEach(dependent => executeTest(dependent));
 }
 
@@ -439,3 +442,20 @@ function nestedEnabledDependentsAvailable(TestFunction[] dependents) returns boo
     }
     return nestedEnabledDependentsAvailable(queue);
 }
+
+function printOut(string value) {
+    handle strValue = java:fromString(value);
+    handle stdout1 = stdout();
+    printlnInternal(stdout1, strValue);
+}
+
+public function stdout() returns handle = @java:FieldGet {
+    name: "out",
+    'class: "java/lang/System"
+} external;
+
+public function printlnInternal(handle receiver, handle strValue) = @java:Method {
+    name: "println",
+    'class: "java/io/PrintStream",
+    paramTypes: ["java.lang.String"]
+} external;

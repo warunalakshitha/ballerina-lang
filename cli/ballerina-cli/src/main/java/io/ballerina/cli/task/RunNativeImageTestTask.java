@@ -440,6 +440,7 @@ public class RunNativeImageTestTask implements Task {
         }
 
         if (accumulatedTestResult != 0) {
+            System.out.println(accumulatedTestResult);
             TestUtils.cleanTempCache(project, cachesRoot);
             throw createLauncherException("there are test failures");
         }
