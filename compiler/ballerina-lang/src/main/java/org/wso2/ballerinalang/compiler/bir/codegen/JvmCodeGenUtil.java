@@ -657,16 +657,8 @@ public class JvmCodeGenUtil {
                 fullyQualifiedFuncName, yieldStatus, yieldStatusVarIndex);
         int gotoBBNumber = thenBB.number;
         int currentBBNumber = currentBB.number;
-        if (currentBBNumber <= gotoBBNumber) {
-            Label gotoLabel = labelGen.getLabel(funcName + thenBB.id.value);
-            mv.visitJumpInsn(GOTO, gotoLabel);
-            return;
-        }
-        mv.visitInsn(ICONST_1);
-        mv.visitVarInsn(ISTORE, loopVarIndex);
-        mv.visitIntInsn(SIPUSH, gotoBBNumber);
-        mv.visitVarInsn(ISTORE, stateVarIndex);
-        mv.visitJumpInsn(GOTO, loopLabel);
+        Label gotoLabel = labelGen.getLabel(funcName + thenBB.id.value);
+        mv.visitJumpInsn(GOTO, gotoLabel);
     }
 
     protected static void generateSetYieldedStatus(MethodVisitor mv, LabelGenerator labelGen, String funcName,
