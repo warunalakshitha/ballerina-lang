@@ -31,6 +31,7 @@ public final class SymbolFlags {
     public static final long READONLY = 32;
     public static final long REQUIRED = 256;
     public static final long PRIVATE = 1024;
+    public static final long ANONYMOUS = 2048;
     public static final long OPTIONAL = 4096;
     public static final long REMOTE = 32768;
     public static final long CLIENT = 65536;
