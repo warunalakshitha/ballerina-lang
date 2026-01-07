@@ -449,7 +449,7 @@ public final class TypeCreator {
      * @return new field
      */
     public static Field createField(Type fieldType, String fieldName, long flags) {
-        return new BField(fieldType, fieldName, flags);
+        return new BField(fieldType, fieldName, flags, false);
     }
 
     /**

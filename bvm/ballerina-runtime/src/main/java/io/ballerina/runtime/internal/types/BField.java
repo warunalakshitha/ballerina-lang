@@ -30,11 +30,13 @@ public class BField implements Field {
     private final Type type;
     private final String name;
     private final long flags;
+    private final boolean isDefaultable;
 
-    public BField(Type fieldType, String fieldName, long flags) {
+    public BField(Type fieldType, String fieldName, long flags, boolean isDefaultable) {
         this.type = fieldType;
         this.name = fieldName;
         this.flags = flags;
+        this.isDefaultable = isDefaultable;
     }
 
     @Override
@@ -50,5 +52,9 @@ public class BField implements Field {
     @Override
     public long getFlags() {
         return flags;
+    }
+
+    public boolean isDefaultable() {
+        return isDefaultable;
     }
 }
