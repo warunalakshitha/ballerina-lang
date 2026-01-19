@@ -157,7 +157,7 @@ public class MockDesugar {
         functionName = MOCK_FUNCTION + functionName;
 
         // Create the Base function with the name
-        BLangFunction generatedMock = ASTBuilderUtil.createFunction(bLangPackage.pos, functionName);
+        BLangFunction generatedMock = ASTBuilderUtil.createLambdaFunction(bLangPackage.pos, functionName);
 
         if (this.originalFunction != null || this.importFunction != null) {
             generatedMock.requiredParams = generateRequiredParams();        // Required Params

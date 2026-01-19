@@ -4949,6 +4949,8 @@ public class SymbolEnter extends BLangNodeVisitor {
             }).map(field -> {
                 BLangSimpleVariable var = ASTBuilderUtil.createVariable(typeRef.pos, field.name.value, field.type);
                 var.flagSet = field.symbol.getFlags();
+                defineNode(var, typeDefEnv);
+                var.symbol.isDefaultable = field.symbol.isDefaultable;
                 return var;
             });
         }).toList();

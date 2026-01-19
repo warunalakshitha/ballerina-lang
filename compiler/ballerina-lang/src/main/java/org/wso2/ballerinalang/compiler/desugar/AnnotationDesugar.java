@@ -803,7 +803,7 @@ public class AnnotationDesugar {
 
     private BLangFunction defineFunction(Location pos, PackageID pkgID, BSymbol owner) {
         String funcName = ANNOT_FUNC + UNDERSCORE + annotFuncCount++;
-        BLangFunction function = ASTBuilderUtil.createFunction(pos, funcName);
+        BLangFunction function = ASTBuilderUtil.createLambdaFunction(pos, funcName);
         function.setBType(new BInvokableType(symTable.typeEnv(), Collections.emptyList(), symTable.mapType, null));
         BLangBuiltInRefTypeNode anyMapType = (BLangBuiltInRefTypeNode) TreeBuilder.createBuiltInReferenceTypeNode();
         anyMapType.typeKind = TypeKind.MAP;

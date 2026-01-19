@@ -22,6 +22,7 @@ import org.ballerinalang.model.TreeBuilder;
 import org.ballerinalang.model.elements.Flag;
 import org.ballerinalang.model.elements.PackageID;
 import org.ballerinalang.model.symbols.AnnotationAttachmentSymbol;
+import org.ballerinalang.model.symbols.SymbolKind;
 import org.ballerinalang.model.symbols.SymbolOrigin;
 import org.ballerinalang.model.tree.BlockNode;
 import org.ballerinalang.model.tree.IdentifierNode;
@@ -35,25 +36,32 @@ import org.wso2.ballerinalang.compiler.semantics.model.Scope;
 import org.wso2.ballerinalang.compiler.semantics.model.SymbolTable;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BAnnotationAttachmentSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BInvokableSymbol;
+import org.wso2.ballerinalang.compiler.semantics.model.symbols.BInvokableTypeSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BObjectTypeSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BOperatorSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BVarSymbol;
+import org.wso2.ballerinalang.compiler.semantics.model.symbols.SchedulerPolicy;
+import org.wso2.ballerinalang.compiler.semantics.model.symbols.SymTag;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.Symbols;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BArrayType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BInvokableType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
 import org.wso2.ballerinalang.compiler.tree.BLangBlockFunctionBody;
+import org.wso2.ballerinalang.compiler.tree.BLangClassDefinition;
 import org.wso2.ballerinalang.compiler.tree.BLangErrorVariable;
 import org.wso2.ballerinalang.compiler.tree.BLangFunction;
 import org.wso2.ballerinalang.compiler.tree.BLangIdentifier;
+import org.wso2.ballerinalang.compiler.tree.BLangNode;
 import org.wso2.ballerinalang.compiler.tree.BLangNodeAnalyzer;
 import org.wso2.ballerinalang.compiler.tree.BLangNodeTransformer;
 import org.wso2.ballerinalang.compiler.tree.BLangNodeVisitor;
 import org.wso2.ballerinalang.compiler.tree.BLangRecordVariable;
+import org.wso2.ballerinalang.compiler.tree.BLangResourceFunction;
 import org.wso2.ballerinalang.compiler.tree.BLangService;
 import org.wso2.ballerinalang.compiler.tree.BLangSimpleVariable;
 import org.wso2.ballerinalang.compiler.tree.BLangTupleVariable;
+import org.wso2.ballerinalang.compiler.tree.BLangTypeDefinition;
 import org.wso2.ballerinalang.compiler.tree.BLangVariable;
 import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangBindingPattern;
 import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangCaptureBindingPattern;
@@ -106,9 +114,12 @@ import org.wso2.ballerinalang.compiler.tree.statements.BLangSimpleVariableDef;
 import org.wso2.ballerinalang.compiler.tree.statements.BLangStatement;
 import org.wso2.ballerinalang.compiler.tree.statements.BLangTupleVariableDef;
 import org.wso2.ballerinalang.compiler.tree.statements.BLangWhile;
+import org.wso2.ballerinalang.compiler.tree.types.BLangBuiltInRefTypeNode;
+import org.wso2.ballerinalang.compiler.tree.types.BLangRecordTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangType;
 import org.wso2.ballerinalang.compiler.tree.types.BLangUserDefinedType;
 import org.wso2.ballerinalang.compiler.tree.types.BLangValueType;
+import org.wso2.ballerinalang.compiler.util.Constants;
 import org.wso2.ballerinalang.compiler.util.Name;
 import org.wso2.ballerinalang.compiler.util.Names;
 import org.wso2.ballerinalang.compiler.util.TypeTags;
@@ -120,6 +131,8 @@ import java.util.EnumSet;
 import java.util.List;
 
 import static org.ballerinalang.model.symbols.SymbolOrigin.VIRTUAL;
+import static org.wso2.ballerinalang.compiler.util.Constants.DOLLAR;
+import static org.wso2.ballerinalang.compiler.util.Constants.RECORD_DELIMITER;
 
 /**
  * Some utils methods for building AST nodes at desugar phase.
@@ -198,11 +211,51 @@ public final class ASTBuilderUtil {
         final BLangFunction bLangFunction = (BLangFunction) TreeBuilder.createFunctionNode();
         final IdentifierNode funcName = createIdentifier(pos, name);
         bLangFunction.setName(funcName);
-        bLangFunction.flagSet = EnumSet.of(Flag.LAMBDA);
         bLangFunction.pos = pos;
         // Create body of the function
         bLangFunction.body = createBlockFunctionBody(pos);
         return bLangFunction;
+    }
+
+    static BLangFunction createFunction(SymbolTable symbolTable, String funcName, Location pos, PackageID pkgID,
+                                        BSymbol owner, BType bType) {
+        BLangFunction function = ASTBuilderUtil.createFunction(pos, funcName);
+        return setFunctionSymbol(symbolTable, funcName, pos, pkgID, owner, bType, function);
+    }
+
+    static BLangFunction createLambdaFunction(Location pos, String name) {
+        final BLangFunction bLangFunction = createFunction(pos, name);
+        bLangFunction.flagSet = EnumSet.of(Flag.LAMBDA);
+        return bLangFunction;
+    }
+
+    static BLangFunction createLambdaFunction(SymbolTable symbolTable, String funcName, Location pos, PackageID pkgID,
+                                              BSymbol owner, BType bType) {
+        BLangFunction function = ASTBuilderUtil.createLambdaFunction(pos, funcName);
+        return setFunctionSymbol(symbolTable, funcName, pos, pkgID, owner, bType, function);
+    }
+
+    private static BLangFunction setFunctionSymbol(SymbolTable symbolTable, String funcName, Location pos,
+                                                   PackageID pkgID, BSymbol owner, BType bType,
+                                                   BLangFunction function) {
+        function.flagSet.add(Flag.PUBLIC);
+        BInvokableTypeSymbol invokableTypeSymbol = Symbols.createInvokableTypeSymbol(SymTag.FUNCTION_TYPE, Flags.PUBLIC,
+                pkgID, bType, owner, pos, VIRTUAL);
+        function.setBType(new BInvokableType(symbolTable.typeEnv(), List.of(), bType, invokableTypeSymbol));
+        BLangBuiltInRefTypeNode typeNode = (BLangBuiltInRefTypeNode) TreeBuilder.createBuiltInReferenceTypeNode();
+        typeNode.setBType(bType);
+        typeNode.typeKind = bType.getKind();
+        typeNode.pos = pos;
+        function.returnTypeNode = typeNode;
+        BInvokableSymbol functionSymbol = new BInvokableSymbol(SymTag.FUNCTION, Flags.PUBLIC, new Name(funcName), pkgID,
+                function.getBType(), owner, pos, VIRTUAL);
+        functionSymbol.bodyExist = true;
+        functionSymbol.kind = SymbolKind.FUNCTION;
+        functionSymbol.retType = function.returnTypeNode.getBType();
+        functionSymbol.scope = new Scope(functionSymbol);
+        functionSymbol.schedulerPolicy = SchedulerPolicy.ANY;
+        function.symbol = functionSymbol;
+        return function;
     }
 
     static BLangType createTypeNode(BType type) {
@@ -1099,5 +1152,26 @@ public final class ASTBuilderUtil {
         rawTemplateExpr.insertions = insertions;
         rawTemplateExpr.setBType(type);
         return rawTemplateExpr;
+    }
+
+    static String generateName(String name, BLangNode parent) {
+        if (parent == null) {
+            return DOLLAR + name;
+        }
+        return switch (parent.getKind()) {
+            case CLASS_DEFN -> generateName(((BLangClassDefinition) parent).name.getValue() +
+                    Constants.UNDERSCORE + name, parent.parent);
+            case FUNCTION -> generateName(((BLangFunction) parent).symbol.name.value.replace(".",
+                    Constants.UNDERSCORE) + Constants.UNDERSCORE + name, parent.parent);
+            case RESOURCE_FUNC -> generateName(((BLangResourceFunction) parent).name.value + Constants.UNDERSCORE +
+                    name, parent.parent);
+            case VARIABLE -> generateName(((BLangSimpleVariable) parent).name.getValue() + Constants.UNDERSCORE + name,
+                    parent.parent);
+            case TYPE_DEFINITION -> generateName(((BLangTypeDefinition) parent).name.getValue() + Constants.UNDERSCORE +
+                    name, parent.parent);
+            case RECORD_TYPE -> generateName(RECORD_DELIMITER + ((BLangRecordTypeNode) parent).symbol.name.getValue()
+                    + RECORD_DELIMITER + name, parent.parent);
+            default -> generateName(name, parent.parent);
+        };
     }
 }
