@@ -44,6 +44,7 @@ public final class JvmConstants {
     // jvm runtime values related classes
     public static final String MAP_VALUE = "io/ballerina/runtime/internal/values/MapValue";
     public static final String MAP_VALUE_IMPL = "io/ballerina/runtime/internal/values/MapValueImpl";
+    public static final String RECORD_VALUE_IMPL = "io/ballerina/runtime/internal/values/RecordValueImpl";
     public static final String STREAM_VALUE = "io/ballerina/runtime/internal/values/StreamValue";
     public static final String TABLE_VALUE = "io/ballerina/runtime/internal/values/TableValue";
     public static final String ARRAY_VALUE = "io/ballerina/runtime/internal/values/ArrayValue";
@@ -185,7 +186,8 @@ public final class JvmConstants {
     public static final String TYPE_ID_SET = "io/ballerina/runtime/internal/types/BTypeIdSet";
 
     // other jvm-specific classes
-    public static final String BAL_RUNTIME = "io/ballerina/runtime/internal/BalRuntime";
+    public static final String BAL_RUNTIME = "io/ballerina/runtime/api/Runtime";
+    public static final String BAL_RUNTIME_IMPL = "io/ballerina/runtime/internal/BalRuntime";
     public static final String TYPE_CHECKER = "io/ballerina/runtime/internal/TypeChecker";
     public static final String TYPE_INITIALIZER = "io/ballerina/runtime/internal/TypeInitializer";
     public static final String SCHEDULER = "io/ballerina/runtime/internal/scheduling/Scheduler";
@@ -374,6 +376,7 @@ public final class JvmConstants {
     public static final String WORKER_CHANNELS_COMPLETE_METHOD = "completedWorkerChannels";
     public static final String WORKER_CHANNELS_COMPLETE_WITH_PANIC_METHOD = "completeWorkerChannelsWithPanic";
     public static final String RECORD_INIT_WRAPPER_NAME = "$init";
+    public static final String RUNTIME_VARIABLE = "runtime";
     public static final String RUNTIME_REGISTRY_VARIABLE = "runtimeRegistry";
     public static final String SCHEDULER_VARIABLE = "scheduler";
     public static final String CONFIGURE_INIT = "$configureInit";

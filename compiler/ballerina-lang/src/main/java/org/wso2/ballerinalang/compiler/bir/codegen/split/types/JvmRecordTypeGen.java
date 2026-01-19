@@ -20,6 +20,7 @@ package org.wso2.ballerinalang.compiler.bir.codegen.split.types;
 import io.ballerina.identifier.Utils;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
+import org.wso2.ballerinalang.compiler.bir.codegen.JvmPackageGen;
 import org.wso2.ballerinalang.compiler.bir.codegen.JvmTypeGen;
 import org.wso2.ballerinalang.compiler.bir.codegen.model.DoubleCheckLabelsRecord;
 import org.wso2.ballerinalang.compiler.bir.codegen.split.JvmConstantsGen;
@@ -70,20 +71,22 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.split.JvmCreateTypeGen
  * @since 2.0.0
  */
 public class JvmRecordTypeGen {
-
+    
     private final JvmCreateTypeGen jvmCreateTypeGen;
     private final JvmTypeGen jvmTypeGen;
     private final JvmConstantsGen jvmConstantsGen;
+    private final SymbolTable symbolTable;
 
-    public JvmRecordTypeGen(JvmCreateTypeGen jvmCreateTypeGen, JvmTypeGen jvmTypeGen, JvmConstantsGen jvmConstantsGen) {
+    public JvmRecordTypeGen(JvmPackageGen jvmPackageGen, JvmCreateTypeGen jvmCreateTypeGen, JvmTypeGen jvmTypeGen,
+                            JvmConstantsGen jvmConstantsGen) {
         this.jvmCreateTypeGen = jvmCreateTypeGen;
         this.jvmTypeGen = jvmTypeGen;
         this.jvmConstantsGen = jvmConstantsGen;
+        this.symbolTable = jvmPackageGen.symbolTable;
     }
 
     public void createRecordType(ClassWriter cw, MethodVisitor mv, BIRNode.BIRPackage module, String recordTypeClass,
-                                 BRecordType recordType, String varName, boolean isAnnotatedType,
-                                 SymbolTable symbolTable) {
+                                 BRecordType recordType, String varName, boolean isAnnotatedType) {
         cw.visitField(ACC_STATIC | ACC_PUBLIC | ACC_FINAL, TYPE_VAR_FIELD, GET_RECORD_TYPE_IMPL, null, null).visitEnd();
         // Create the record type
         mv.visitTypeInsn(NEW, RECORD_TYPE_IMPL);
@@ -105,22 +108,22 @@ public class JvmRecordTypeGen {
         // initialize the record type
         mv.visitMethodInsn(INVOKESPECIAL, RECORD_TYPE_IMPL, JVM_INIT_METHOD, RECORD_TYPE_IMPL_INIT, false);
         mv.visitFieldInsn(PUTSTATIC, recordTypeClass, TYPE_VAR_FIELD, GET_RECORD_TYPE_IMPL);
-        genGetTypeMethod(cw, recordType, recordTypeClass, module, isAnnotatedType, symbolTable);
+        genGetTypeMethod(cw, recordType, recordTypeClass, module, isAnnotatedType);
     }
 
     private void genGetTypeMethod(ClassWriter cw, BRecordType recordType, String recordTypeClass,
-                                  BIRNode.BIRPackage module, boolean isAnnotatedType, SymbolTable symbolTable) {
+                                  BIRNode.BIRPackage module, boolean isAnnotatedType) {
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC, GET_TYPE_METHOD, GET_RECORD_TYPE_METHOD, null, null);
         mv.visitCode();
         DoubleCheckLabelsRecord checkLabelsRecord = genDoubleCheckGetStart(mv, recordTypeClass, GET_RECORD_TYPE_IMPL);
-        populateRecord(cw, mv, module, recordTypeClass, recordType, symbolTable);
+        populateRecord(cw, mv, module, recordTypeClass, recordType);
         endDoubleCheckGetEnd(mv, recordTypeClass, GET_RECORD_TYPE_IMPL, checkLabelsRecord, isAnnotatedType);
         mv.visitMaxs(0, 0);
         mv.visitEnd();
     }
 
     public void populateRecord(ClassWriter cw, MethodVisitor mv, BIRNode.BIRPackage module, String recordTypeClass,
-                               BRecordType bType, SymbolTable symbolTable) {
+                               BRecordType bType) {
         Optional<BIntersectionType> immutableType = jvmCreateTypeGen.getImmutableType(bType, symbolTable);
         Map<String, String> fieldNameFPNameMap = module.recordDefaultValueMap.get(bType.tsymbol.name.value);
         mv.visitFieldInsn(GETSTATIC, recordTypeClass, TYPE_VAR_FIELD, GET_RECORD_TYPE_IMPL);
@@ -132,9 +135,6 @@ public class JvmRecordTypeGen {
             mv.visitInsn(DUP);
         }
         addRecordFields(cw, mv, recordTypeClass, bType);
-        if (fieldNameFPNameMap != null) {
-            addRecordDefaultValues(cw, mv, recordTypeClass, bType, fieldNameFPNameMap);
-        }
         addRecordRestField(mv, bType.restFieldType);
         if (immutableType.isPresent()) {
             jvmTypeGen.loadType(mv, immutableType.get());
@@ -154,19 +154,6 @@ public class JvmRecordTypeGen {
         }
         // Set the fields of the record
         mv.visitMethodInsn(INVOKEVIRTUAL, RECORD_TYPE_IMPL, "setFields", SET_MAP, false);
-    }
-
-    private void addRecordDefaultValues(ClassWriter cw, MethodVisitor mv, String typeClass, BRecordType recordType,
-                                        Map<String, String> fieldNameFPNameMap) {
-        // Create the default values map
-        mv.visitTypeInsn(NEW, LINKED_HASH_MAP);
-        mv.visitInsn(DUP);
-        mv.visitMethodInsn(INVOKESPECIAL, LINKED_HASH_MAP, JVM_INIT_METHOD, VOID_METHOD_DESC, false);
-        mv.visitInsn(DUP);
-        mv.visitMethodInsn(INVOKESTATIC, typeClass, "addDefaultValues", SET_LINKED_HASH_MAP, false);
-        jvmCreateTypeGen.splitAddDefaultValues(cw, typeClass, recordType, fieldNameFPNameMap);
-        // Set the fields of the record
-        mv.visitMethodInsn(INVOKEVIRTUAL, RECORD_TYPE_IMPL, "setDefaultValues", SET_MAP, false);
     }
 
     private void addRecordRestField(MethodVisitor mv, BType restFieldType) {

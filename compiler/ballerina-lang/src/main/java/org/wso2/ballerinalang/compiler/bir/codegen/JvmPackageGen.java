@@ -130,12 +130,14 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.interop.ExternalMethod
 import static org.wso2.ballerinalang.compiler.bir.codegen.interop.ExternalMethodGen.injectDefaultParamInits;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil.NAME_HASH_COMPARATOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil.canSkipFromCallByFunctionName;
+import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil.getBalFileNameForRecordDefaultMethod;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil.isExternFunc;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil.toNameString;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmModuleUtils.getModuleLevelClassName;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmModuleUtils.getPackageName;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmModuleUtils.isBallerinaBuiltinModule;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmModuleUtils.isSameModule;
+import static org.wso2.ballerinalang.compiler.util.Constants.RECORD_DELIMITER;
 
 /**
  * BIR module to JVM byte code generation class.
@@ -357,7 +359,13 @@ public class JvmPackageGen {
                                        Map<String, JavaClass> jvmClassMapping, boolean serviceEPAvailable,
                                        BIRFunction mainFunc, BIRFunction testExecuteFunc,
                                        AsyncDataCollector asyncDataCollector, Set<PackageID> immediateImports) {
-        jvmClassMapping.forEach((moduleClass, javaClass) -> {
+
+        for (Map.Entry<String, JavaClass> entry : jvmClassMapping.entrySet()) {
+            String moduleClass = entry.getKey();
+            JavaClass javaClass = entry.getValue();
+            if (javaClass.isTypeDescClass) {
+                continue;
+            }
             ClassWriter cw = new BallerinaClassWriter(COMPUTE_FRAMES);
             asyncDataCollector.setCurrentSourceFileName(javaClass.sourceFileName);
             asyncDataCollector.setCurrentSourceFileWithoutExt(javaClass.cleanedBalFileName);
@@ -385,7 +393,7 @@ public class JvmPackageGen {
                 ModuleStopMethodGen stopMethodGen = new ModuleStopMethodGen(jvmTypeGen, jvmConstantsGen);
                 stopMethodGen.generateExecutionStopMethod(cw, moduleInitClass, currentModule, asyncDataCollector,
                         immediateImports);
-                
+
             } else {
                 cw.visit(V21, ACC_PUBLIC + ACC_SUPER, moduleClass, null, OBJECT, null);
                 JvmCodeGenUtil.generateDefaultConstructor(cw, OBJECT);
@@ -400,7 +408,7 @@ public class JvmPackageGen {
             cw.visitEnd();
             byte[] bytes = getBytes(cw, currentModule);
             jarEntries.put(moduleClass + CLASS_FILE_SUFFIX, bytes);
-        });
+        }
     }
 
     /**
@@ -480,7 +488,7 @@ public class JvmPackageGen {
         BIRFunction initFunc = functions.getFirst();
         String functionName = Utils.encodeFunctionIdentifier(initFunc.name.value);
         String fileName = initFunc.pos.lineRange().fileName();
-        JavaClass klass = new JavaClass(fileName, fileName);
+        JavaClass klass = new JavaClass(fileName, fileName, false);
         klass.functions.addFirst(initFunc);
         PackageID packageID = birPackage.packageID;
         jvmClassMap.put(initClass, klass);
@@ -507,6 +515,7 @@ public class JvmPackageGen {
         // Generate classes for other functions.
         while (count < funcSize) {
             BIRFunction birFunc = functions.get(count);
+            boolean isRecordTypedescClass = false;
             count = count + 1;
             // link the bir function for lookup
             String birFuncName = birFunc.name.value;
@@ -514,12 +523,17 @@ public class JvmPackageGen {
             if (birFunc.pos == symbolTable.builtinPos) {
                 balFileName = MODULE_INIT_CLASS_NAME;
             }  else if (birFunc.pos == null) {
-                balFileName = MODULE_GENERATED_FUNCTIONS_CLASS_NAME + genClassNum;
-                if (genMethodsCount > MAX_GENERATED_METHODS_PER_CLASS) {
-                    genMethodsCount = 0;
-                    genClassNum++;
+                if (birFuncName.contains(RECORD_DELIMITER)) {
+                    balFileName = getBalFileNameForRecordDefaultMethod(birFuncName);
+                    isRecordTypedescClass = true;
                 } else {
-                    genMethodsCount++;
+                    balFileName = MODULE_GENERATED_FUNCTIONS_CLASS_NAME + genClassNum;
+                    if (genMethodsCount > MAX_GENERATED_METHODS_PER_CLASS) {
+                        genMethodsCount = 0;
+                        genClassNum++;
+                    } else {
+                        genMethodsCount++;
+                    }
                 }
             } else {
                 balFileName = birFunc.pos.lineRange().fileName();
@@ -531,14 +545,14 @@ public class JvmPackageGen {
                 // it's "file name" may end in `.bal` due to module. see #27201
                 cleanedBalFileName = JvmCodeGenUtil.cleanupPathSeparators(balFileName);
             }
-            String birModuleClassName = getModuleLevelClassName(packageID, cleanedBalFileName);
+            String birModuleClassName =  getModuleLevelClassName(packageID, cleanedBalFileName);
 
             if (!isBallerinaBuiltinModule(packageID.orgName.value, packageID.name.value)) {
                 JavaClass javaClass = jvmClassMap.get(birModuleClassName);
                 if (javaClass != null) {
                     javaClass.functions.add(birFunc);
                 } else {
-                    klass = new JavaClass(balFileName, cleanedBalFileName);
+                    klass = new JavaClass(balFileName, cleanedBalFileName, isRecordTypedescClass);
                     klass.functions.addFirst(birFunc);
                     jvmClassMap.put(birModuleClassName, klass);
                 }
@@ -668,7 +682,8 @@ public class JvmPackageGen {
         AsyncDataCollector asyncDataCollector = new AsyncDataCollector(currentModule);
         JvmConstantsGen jvmConstantsGen = new JvmConstantsGen(currentModule, types, typeHashVisitor, jarEntries);
         JvmTypeGen jvmTypeGen = new JvmTypeGen(jvmConstantsGen, currentModule.packageID, typeHashVisitor, symbolTable);
-        JvmMethodsSplitter jvmMethodsSplitter = new JvmMethodsSplitter(this, jvmConstantsGen, currentModule,
+        JvmCastGen jvmCastGen = new JvmCastGen(symbolTable, jvmTypeGen, types);
+        JvmMethodsSplitter jvmMethodsSplitter = new JvmMethodsSplitter(this, jvmCastGen, jvmConstantsGen, currentModule,
                 typeHashVisitor,  jvmTypeGen);
         configMethodGen.generateConfigMapper(immediateImports, currentModule, moduleInitClass, jvmConstantsGen,
                 typeHashVisitor, jarEntries, symbolTable);
@@ -686,10 +701,11 @@ public class JvmPackageGen {
         lazyLoadingDesugar.lazyLoadInitFunctions(currentModule.functions);
 
         // generate object/record value classes
-        JvmValueGen valueGen = new JvmValueGen(currentModule, this, methodGen, typeHashVisitor, types);
-        JvmCastGen jvmCastGen = new JvmCastGen(symbolTable, jvmTypeGen, types);
+      
+        JvmValueGen valueGen = new JvmValueGen(currentModule, this, jvmCastGen, methodGen, typeHashVisitor, types);
         LambdaGen lambdaGen = new LambdaGen(this, jvmCastGen, currentModule);
-        valueGen.generateValueClasses(jarEntries, jvmConstantsGen, jvmTypeGen, asyncDataCollector);
+        valueGen.generateValueClasses(jarEntries, currentModule, jvmTypeGen, jvmCastGen, jvmConstantsGen,
+                jvmClassMapping, asyncDataCollector);
 
         // generate module classes
         generateModuleClasses(jarEntries, moduleInitClass, jvmTypeGen, jvmCastGen, jvmConstantsGen,

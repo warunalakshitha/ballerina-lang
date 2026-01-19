@@ -97,14 +97,17 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.JAVA_RUNT
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.JVM_INIT_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.JVM_TO_STRING_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.LAMBDA_META_FACTORY_HANDLE;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MODULE_EXECUTE_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MODULE_INIT_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MODULE_START_METHOD;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MODULE_STOP_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.OVERFLOW_LINE_NUMBER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.SCHEDULER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRAND_CLASS;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRAND_WORKER_CHANNEL_MAP;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRING_BUILDER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRING_UTILS;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPEDESC_CLASS_PREFIX;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.WINDOWS_PATH_SEPERATOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.FP_INIT;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.FROM_STRING;
@@ -166,7 +169,8 @@ public final class JvmCodeGenUtil {
     public static final NameHashComparator NAME_HASH_COMPARATOR = new NameHashComparator();
     private static final Type PASS_OBJECT_RETURN_OBJECT_TYPE = Type.getType(PASS_OBJECT_RETURN_OBJECT);
     private static final Type PASS_OBJECT_ARRAY_RETURN_OBJECT_TYPE = Type.getType(PASS_OBJECT_ARRAY_RETURN_OBJECT);
-
+    private static final Set<String> SKIP_METHODS_CALL_BY_NAME = Set.of(MODULE_INIT_METHOD, MODULE_START_METHOD,
+            MODULE_STOP_METHOD, MODULE_EXECUTE_METHOD);
 
     private JvmCodeGenUtil() {
     }
@@ -721,8 +725,17 @@ public final class JvmCodeGenUtil {
         if (functionName.charAt(0) != '$') {
             return false;
         }
-        return functionName.startsWith(RECORD_DELIMITER)
+        return SKIP_METHODS_CALL_BY_NAME.contains(functionName)
+                || functionName.contains(RECORD_DELIMITER)
                 || functionName.startsWith(SPLIT_METHOD)
                 || functionName.startsWith(ANNOTATION_FUNC);
+    }
+
+    public static String getBalFileNameForRecordDefaultMethod(String methodName) {
+        String balFileName;
+        String[] split = methodName.split(Pattern.quote(RECORD_DELIMITER));
+        String typeName = split[split.length - 2];
+        balFileName = TYPEDESC_CLASS_PREFIX + typeName;
+        return balFileName;
     }
 }

@@ -62,7 +62,7 @@ import static org.objectweb.asm.Opcodes.PUTSTATIC;
 import static org.objectweb.asm.Opcodes.RETURN;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BALLERINA_HOME;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BALLERINA_VERSION;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BAL_RUNTIME;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BAL_RUNTIME_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.CLI_SPEC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.COMPATIBILITY_CHECKER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.CONFIGURATION_CLASS_NAME;
@@ -221,10 +221,10 @@ public class MainMethodGen {
     private void generateSetModuleInitialedAndStarted(MethodVisitor mv, int runtimeVarIndex) {
         mv.visitVarInsn(ALOAD, runtimeVarIndex);
         mv.visitInsn(ICONST_1);
-        mv.visitFieldInsn(PUTFIELD, BAL_RUNTIME, "moduleInitialized", "Z");
+        mv.visitFieldInsn(PUTFIELD, BAL_RUNTIME_IMPL, "moduleInitialized", "Z");
         mv.visitVarInsn(ALOAD, runtimeVarIndex);
         mv.visitInsn(ICONST_1);
-        mv.visitFieldInsn(PUTFIELD, BAL_RUNTIME, "moduleStarted", "Z");
+        mv.visitFieldInsn(PUTFIELD, BAL_RUNTIME_IMPL, "moduleStarted", "Z");
     }
 
     private void generateExecuteFunctionCall(String initClass, MethodVisitor mv, BIRNode.BIRFunction userMainFunc,
@@ -307,13 +307,13 @@ public class MainMethodGen {
 
     private void genRuntimeAndGetScheduler(MethodVisitor mv, String initClass, int runtimeVarIndex,
                                            int schedulerVarIndex) {
-        mv.visitTypeInsn(NEW, BAL_RUNTIME);
+        mv.visitTypeInsn(NEW, BAL_RUNTIME_IMPL);
         mv.visitInsn(DUP);
         mv.visitFieldInsn(GETSTATIC, initClass, CURRENT_MODULE_VAR_NAME, GET_MODULE);
-        mv.visitMethodInsn(INVOKESPECIAL, BAL_RUNTIME, JVM_INIT_METHOD, INIT_RUNTIME, false);
+        mv.visitMethodInsn(INVOKESPECIAL, BAL_RUNTIME_IMPL, JVM_INIT_METHOD, INIT_RUNTIME, false);
         mv.visitInsn(DUP);
         mv.visitVarInsn(ASTORE, runtimeVarIndex);
-        mv.visitFieldInsn(GETFIELD, BAL_RUNTIME, SCHEDULER_VARIABLE, GET_SCHEDULER);
+        mv.visitFieldInsn(GETFIELD, BAL_RUNTIME_IMPL, SCHEDULER_VARIABLE, GET_SCHEDULER);
         mv.visitVarInsn(ASTORE, schedulerVarIndex);
     }
 
@@ -324,7 +324,7 @@ public class MainMethodGen {
         } else {
             mv.visitInsn(ICONST_0);
         }
-        mv.visitMethodInsn(INVOKEVIRTUAL , BAL_RUNTIME, WAIT_ON_LISTENERS_METHOD_NAME, "(Z)V", false);
+        mv.visitMethodInsn(INVOKEVIRTUAL , BAL_RUNTIME_IMPL, WAIT_ON_LISTENERS_METHOD_NAME, "(Z)V", false);
     }
 
     private void loadCLIArgsForMain(MethodVisitor mv, List<BIRNode.BIRFunctionParameter> params,

@@ -74,7 +74,7 @@ import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.LRETURN;
 import static org.objectweb.asm.Opcodes.NEW;
 import static org.objectweb.asm.Opcodes.RETURN;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BAL_RUNTIME;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BAL_RUNTIME_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.CLI_SPEC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.CURRENT_MODULE_INIT_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.CURRENT_MODULE_STOP_METHOD;
@@ -279,7 +279,7 @@ public class InitMethodGen {
 
     private static void generateGetSchedulerVar(MethodVisitor mv) {
         mv.visitVarInsn(ALOAD, 0);
-        mv.visitFieldInsn(GETFIELD, BAL_RUNTIME, SCHEDULER_VARIABLE, GET_SCHEDULER);
+        mv.visitFieldInsn(GETFIELD, BAL_RUNTIME_IMPL, SCHEDULER_VARIABLE, GET_SCHEDULER);
         mv.visitVarInsn(ASTORE, 1);
     }
 
@@ -321,7 +321,7 @@ public class InitMethodGen {
         mv.visitVarInsn(ALOAD, 2);
         mv.visitInsn(ICONST_1);
         mv.visitVarInsn(ALOAD, 0);
-        mv.visitFieldInsn(GETFIELD, BAL_RUNTIME, RUNTIME_REGISTRY_VARIABLE, GET_RUNTIME_REGISTRY);
+        mv.visitFieldInsn(GETFIELD, BAL_RUNTIME_IMPL, RUNTIME_REGISTRY_VARIABLE, GET_RUNTIME_REGISTRY);
         mv.visitInsn(AASTORE);
     }
 

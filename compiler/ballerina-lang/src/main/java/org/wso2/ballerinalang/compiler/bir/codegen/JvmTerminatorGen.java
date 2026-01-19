@@ -49,7 +49,6 @@ import org.wso2.ballerinalang.compiler.semantics.model.types.BInvokableType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
 import org.wso2.ballerinalang.compiler.util.Name;
 import org.wso2.ballerinalang.compiler.util.TypeTags;
-import org.wso2.ballerinalang.compiler.util.Unifier;
 import org.wso2.ballerinalang.util.Flags;
 
 import java.util.ArrayList;
@@ -164,10 +163,13 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.SYNC_SEN
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.VOID_METHOD_DESC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.WORKER_CHANNELS_COMPLETE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.interop.InteropMethodGen.genVarArg;
+import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil.UNIFIER;
+import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil.getBalFileNameForRecordDefaultMethod;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil.loadStrand;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmModuleUtils.getModuleLevelClassName;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmModuleUtils.getPackageName;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmModuleUtils.isBuiltInPackage;
+import static org.wso2.ballerinalang.compiler.util.Constants.RECORD_DELIMITER;
 
 /**
  * BIR terminator instruction generator class to keep track of method visitor and index map.
@@ -185,7 +187,6 @@ public class JvmTerminatorGen {
     private final JvmInstructionGen jvmInstructionGen;
     private final PackageCache packageCache;
     private final SymbolTable symbolTable;
-    private final Unifier unifier;
     private final JvmTypeGen jvmTypeGen;
     private final JvmCastGen jvmCastGen;
     private final AsyncDataCollector asyncDataCollector;
@@ -206,7 +207,6 @@ public class JvmTerminatorGen {
         this.jvmInstructionGen = jvmInstructionGen;
         this.symbolTable = jvmPackageGen.symbolTable;
         this.moduleInitClass = getModuleLevelClassName(packageID, MODULE_INIT_CLASS_NAME);
-        this.unifier = new Unifier();
         this.asyncDataCollector = asyncDataCollector;
     }
 
@@ -301,7 +301,7 @@ public class JvmTerminatorGen {
 
     public void genReturnTerm(int returnVarRefIndex, BIRNode.BIRFunction func, int channelMapVarIndex,
                               int sendWorkerChannelNamesVar, int receiveWorkerChannelNamesVar, int localVarOffset) {
-        BType bType = unifier.build(symbolTable.typeEnv(), func.type.retType);
+        BType bType = UNIFIER.build(symbolTable.typeEnv(), func.type.retType);
         generateReturnTermFromType(bType, func, returnVarRefIndex, channelMapVarIndex, sendWorkerChannelNamesVar,
                 receiveWorkerChannelNamesVar, localVarOffset);
     }
@@ -609,16 +609,15 @@ public class JvmTerminatorGen {
             if (type.restType != null) {
                 params.add(type.restType);
             }
+            BType retType = UNIFIER.build(symbolTable.typeEnv(), type.retType);
+            methodDesc = JvmCodeGenUtil.getMethodDesc(symbolTable.typeEnv(), params, retType);
             String balFileName = funcSymbol.source;
-
-            if (balFileName == null || !balFileName.endsWith(BAL_EXTENSION)) {
+            if (methodName.contains(RECORD_DELIMITER)) {
+                balFileName = getBalFileNameForRecordDefaultMethod(methodName);
+            } else if (balFileName == null || !balFileName.endsWith(BAL_EXTENSION)) {
                 balFileName = MODULE_INIT_CLASS_NAME;
             }
-
             jvmClass = getModuleLevelClassName(packageID, JvmCodeGenUtil.cleanupPathSeparators(balFileName));
-            //TODO: add receiver:  BType attachedType = type.r != null ? receiver.type : null;
-            BType retType = unifier.build(symbolTable.typeEnv(), type.retType);
-            methodDesc = JvmCodeGenUtil.getMethodDesc(symbolTable.typeEnv(), params, retType);
         }
         this.mv.visitMethodInsn(INVOKESTATIC, jvmClass, encodedMethodName, methodDesc, false);
     }

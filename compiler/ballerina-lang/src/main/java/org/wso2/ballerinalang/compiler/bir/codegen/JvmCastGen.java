@@ -1231,6 +1231,24 @@ public class JvmCastGen {
         }
     }
 
+    public void generateCastToAny(MethodVisitor mv, BType type) {
+        BType sourceType = JvmCodeGenUtil.getImpliedType(type);
+        if (TypeTags.isIntegerTypeTag(sourceType.tag)) {
+            mv.visitMethodInsn(INVOKESTATIC, LONG_VALUE, VALUE_OF_METHOD, LONG_VALUE_OF, false);
+            return;
+        }
+
+        switch (sourceType.tag) {
+            case TypeTags.BYTE -> mv.visitMethodInsn(INVOKESTATIC, INT_VALUE, VALUE_OF_METHOD, INT_VALUE_OF_METHOD,
+                    false);
+            case TypeTags.FLOAT ->
+                    mv.visitMethodInsn(INVOKESTATIC, DOUBLE_VALUE, VALUE_OF_METHOD, DOUBLE_VALUE_OF_METHOD,
+                            false);
+            case TypeTags.BOOLEAN -> mv.visitMethodInsn(INVOKESTATIC, BOOLEAN_VALUE, VALUE_OF_METHOD,
+                    BOOLEAN_VALUE_OF_METHOD, false);
+        }
+    }
+
     private void generateCastToInt(MethodVisitor mv, BType sourceType) {
         sourceType = JvmCodeGenUtil.getImpliedType(sourceType);
         if (TypeTags.isIntegerTypeTag(sourceType.tag)) {
@@ -1351,24 +1369,6 @@ public class JvmCastGen {
             mv.visitMethodInsn(INVOKESTATIC, TYPE_CHECKER, ANY_TO_BYTE_METHOD, ANY_TO_BYTE, false);
         } else {
             throw new BLangCompilerException("Casting is not supported from '" + sourceType + "' to 'byte'");
-        }
-    }
-
-    private void generateCastToAny(MethodVisitor mv, BType type) {
-        BType sourceType = JvmCodeGenUtil.getImpliedType(type);
-        if (TypeTags.isIntegerTypeTag(sourceType.tag)) {
-            mv.visitMethodInsn(INVOKESTATIC, LONG_VALUE, VALUE_OF_METHOD, LONG_VALUE_OF, false);
-            return;
-        }
-
-        switch (sourceType.tag) {
-            case TypeTags.BYTE -> mv.visitMethodInsn(INVOKESTATIC, INT_VALUE, VALUE_OF_METHOD, INT_VALUE_OF_METHOD,
-                    false);
-            case TypeTags.FLOAT ->
-                    mv.visitMethodInsn(INVOKESTATIC, DOUBLE_VALUE, VALUE_OF_METHOD, DOUBLE_VALUE_OF_METHOD,
-                            false);
-            case TypeTags.BOOLEAN -> mv.visitMethodInsn(INVOKESTATIC, BOOLEAN_VALUE, VALUE_OF_METHOD,
-                    BOOLEAN_VALUE_OF_METHOD, false);
         }
     }
 

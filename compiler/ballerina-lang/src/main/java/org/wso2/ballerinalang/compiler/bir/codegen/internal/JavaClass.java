@@ -32,10 +32,12 @@ public class JavaClass {
     public final String sourceFileName;
     public final String cleanedBalFileName;
     public final List<BIRNode.BIRFunction> functions;
+    public final boolean isTypeDescClass;
 
-    public JavaClass(String sourceFileName, String cleanedBalFileName) {
+    public JavaClass(String sourceFileName, String cleanedBalFileName, boolean isTypeDescClass) {
         this.sourceFileName = sourceFileName;
         this.cleanedBalFileName = cleanedBalFileName;
         this.functions = new ArrayList<>();
+        this.isTypeDescClass = isTypeDescClass;
     }
 }

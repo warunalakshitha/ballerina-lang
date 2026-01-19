@@ -25,6 +25,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.wso2.ballerinalang.compiler.bir.codegen.internal.AsyncDataCollector;
 import org.wso2.ballerinalang.compiler.bir.codegen.internal.JarEntries;
+import org.wso2.ballerinalang.compiler.bir.codegen.internal.JavaClass;
 import org.wso2.ballerinalang.compiler.bir.codegen.methodgen.InitMethodGen;
 import org.wso2.ballerinalang.compiler.bir.codegen.methodgen.MethodGen;
 import org.wso2.ballerinalang.compiler.bir.codegen.model.JFieldBIRFunction;
@@ -89,6 +90,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MODULE_RE
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.OBJECT;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.POPULATE_INITIAL_VALUES_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.RECORD_INIT_WRAPPER_NAME;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.RECORD_VALUE_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.REENTRANT_LOCK;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.SPLIT_CLASS_SUFFIX;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPEDESC_CLASS_PREFIX;
@@ -137,13 +139,13 @@ public class JvmValueGen {
     private final TypeHashVisitor typeHashVisitor;
     private final Types types;
 
-    JvmValueGen(BIRNode.BIRPackage module, JvmPackageGen jvmPackageGen, MethodGen methodGen,
+    JvmValueGen(BIRNode.BIRPackage module, JvmPackageGen jvmPackageGen, JvmCastGen jvmCastGen, MethodGen methodGen,
                 TypeHashVisitor typeHashVisitor, Types types) {
         this.module = module;
         this.jvmPackageGen = jvmPackageGen;
         this.methodGen = methodGen;
         this.booleanType = jvmPackageGen.symbolTable.booleanType;
-        this.jvmRecordGen = new JvmRecordGen(jvmPackageGen.symbolTable);
+        this.jvmRecordGen = new JvmRecordGen(jvmPackageGen, jvmCastGen);
         this.jvmObjectGen = new JvmObjectGen();
         this.typeHashVisitor = typeHashVisitor;
         this.types = types;
@@ -193,8 +195,9 @@ public class JvmValueGen {
         return (field.symbol.flags & BAL_OPTIONAL) == BAL_OPTIONAL;
     }
 
-    void generateValueClasses(JarEntries jarEntries, JvmConstantsGen jvmConstantsGen, JvmTypeGen jvmTypeGen,
-                              AsyncDataCollector asyncDataCollector) {
+    void generateValueClasses(JarEntries jarEntries, BIRNode.BIRPackage currentModule, JvmTypeGen jvmTypeGen,
+                              JvmCastGen jvmCastGen, JvmConstantsGen jvmConstantsGen,
+                              Map<String, JavaClass> jvmClassMapping, AsyncDataCollector asyncDataCollector) {
         String packageName = getPackageName(module.packageID);
         module.typeDefs.forEach(optionalTypeDef -> {
             if (optionalTypeDef.type.tag == TypeTags.TYPEREFDESC) {
@@ -203,7 +206,7 @@ public class JvmValueGen {
             BType bType = optionalTypeDef.type;
             String varName = optionalTypeDef.internalName.value;
             String className = getTypeValueClassName(packageName, varName);
-            String valueClass = VALUE_CLASS_PREFIX + optionalTypeDef.internalName.value;
+            String valueClass = VALUE_CLASS_PREFIX + varName;
             asyncDataCollector.setCurrentSourceFileName(valueClass);
             asyncDataCollector.setCurrentSourceFileWithoutExt(valueClass);
             if (optionalTypeDef.type.tag == TypeTags.OBJECT &&
@@ -213,17 +216,21 @@ public class JvmValueGen {
                         asyncDataCollector, jarEntries);
             } else if (bType.tag == TypeTags.RECORD) {
                 BRecordType recordType = (BRecordType) bType;
-                byte[] bytes = this.createRecordValueClass(recordType, className, optionalTypeDef, jvmTypeGen);
+                String tdClass = getTypeDescClassName(packageName, varName);
+                byte[] bytes = this.createRecordValueClass(recordType, className, tdClass, optionalTypeDef, jvmTypeGen);
                 jarEntries.put(className + CLASS_FILE_SUFFIX, bytes);
-                String typedescClass = getTypeDescClassName(packageName, varName);
-                bytes = createRecordTypeDescClass(optionalTypeDef, recordType, typedescClass, jvmTypeGen);
-                jarEntries.put(typedescClass + CLASS_FILE_SUFFIX, bytes);
+                bytes = createRecordTypeDescClass(currentModule, optionalTypeDef, recordType, tdClass, jvmTypeGen,
+                        jvmCastGen, jvmConstantsGen, jvmClassMapping, asyncDataCollector);
+                jarEntries.put(tdClass + CLASS_FILE_SUFFIX, bytes);
             }
         });
     }
 
-    private byte[] createRecordTypeDescClass(BIRNode.BIRTypeDefinition typeDef, BRecordType recordType,
-                                             String className, JvmTypeGen jvmTypeGen) {
+    private byte[] createRecordTypeDescClass(BIRNode.BIRPackage currentModule, BIRNode.BIRTypeDefinition typeDef,
+                                             BRecordType recordType, String className, JvmTypeGen jvmTypeGen,
+                                             JvmCastGen jvmCastGen, JvmConstantsGen jvmConstantsGen,
+                                             Map<String, JavaClass> jvmClassMapping,
+                                             AsyncDataCollector asyncDataCollector) {
         ClassWriter cw = new BallerinaClassWriter(COMPUTE_FRAMES);
         if (typeDef.pos != null) {
             cw.visitSource(typeDef.pos.lineRange().fileName(), null);
@@ -236,6 +243,14 @@ public class JvmValueGen {
         this.createTypeDescConstructorWithAnnotations(cw, className);
         this.createInstantiateMethod(cw, recordType, jvmTypeGen, className);
         this.createInstantiateMethodWithInitialValues(cw, recordType, typeDef, className);
+        JavaClass javaClass = jvmClassMapping.get(className);
+        if (javaClass != null) {
+            // generate record default methods
+            for (BIRFunction func : javaClass.functions) {
+                methodGen.generateMethod(func, cw, currentModule, null, className, jvmTypeGen, jvmCastGen,
+                        jvmConstantsGen, asyncDataCollector);
+            }
+        }
         cw.visitEnd();
         return jvmPackageGen.getBytes(cw, typeDef);
     }
@@ -306,33 +321,31 @@ public class JvmValueGen {
         return getTypeValueClassName(getPackageName(packageID), typeName);
     }
 
-    private byte[] createRecordValueClass(BRecordType recordType, String className, BIRNode.BIRTypeDefinition typeDef,
-                                          JvmTypeGen jvmTypeGen) {
+    private byte[] createRecordValueClass(BRecordType recordType, String className, String tdClass,
+                                          BIRNode.BIRTypeDefinition typeDef, JvmTypeGen jvmTypeGen) {
         ClassWriter cw = new BallerinaClassWriter(COMPUTE_FRAMES);
         if (typeDef.pos != null) {
             cw.visitSource(typeDef.pos.lineRange().fileName(), null);
         }
         JvmCastGen jvmCastGen = new JvmCastGen(jvmPackageGen.symbolTable, jvmTypeGen, types);
-        cw.visit(V21, ACC_PUBLIC + ACC_SUPER + ACC_FINAL, className, RECORD_VALUE_CLASS, MAP_VALUE_IMPL,
+        cw.visit(V21, ACC_PUBLIC + ACC_SUPER + ACC_FINAL, className, RECORD_VALUE_CLASS, RECORD_VALUE_IMPL,
                 new String[]{MAP_VALUE});
-
         Map<String, BField> fields = recordType.fields;
+        this.createRecordConstructor(cw, INIT_TYPEDESC, className);
+        this.createRecordConstructor(cw, TYPE_PARAMETER, className);
+        this.createGetSizeMethod(cw, fields, className);
+        this.createRecordClearMethod(cw, typeDef.name.value);
+        this.createRecordPopulateInitialValuesMethod(cw, className);
         this.createRecordFields(cw, fields);
         jvmRecordGen.createAndSplitGetMethod(cw, fields, className, jvmCastGen);
         jvmRecordGen.createAndSplitSetMethod(cw, fields, className, jvmCastGen);
         jvmRecordGen.createAndSplitEntrySetMethod(cw, fields, className, jvmCastGen);
         jvmRecordGen.createAndSplitContainsKeyMethod(cw, fields, className);
         jvmRecordGen.createAndSplitGetValuesMethod(cw, fields, className, jvmCastGen);
-        this.createGetSizeMethod(cw, fields, className);
-        this.createRecordClearMethod(cw, typeDef.name.value);
         jvmRecordGen.createAndSplitRemoveMethod(cw, fields, className, jvmCastGen);
         jvmRecordGen.createAndSplitGetKeysMethod(cw, fields, className);
-        this.createRecordPopulateInitialValuesMethod(cw, className);
-
-        this.createRecordConstructor(cw, INIT_TYPEDESC, className);
-        this.createRecordConstructor(cw, TYPE_PARAMETER, className);
+        jvmRecordGen.createAndSplitGetFieldDefaultValueMethod(cw, recordType, fields, className, tdClass);
         cw.visitEnd();
-
         return jvmPackageGen.getBytes(cw, typeDef);
     }
 
@@ -385,7 +398,7 @@ public class JvmValueGen {
         // load type
         mv.visitVarInsn(ALOAD, 1);
         // invoke `super(type)`;
-        mv.visitMethodInsn(INVOKESPECIAL, MAP_VALUE_IMPL, JVM_INIT_METHOD, argumentClass, false);
+        mv.visitMethodInsn(INVOKESPECIAL, RECORD_VALUE_IMPL, JVM_INIT_METHOD, argumentClass, false);
         mv.visitInsn(RETURN);
         JvmCodeGenUtil.visitMaxStackForMethod(mv, RECORD_INIT_WRAPPER_NAME, className);
         mv.visitEnd();

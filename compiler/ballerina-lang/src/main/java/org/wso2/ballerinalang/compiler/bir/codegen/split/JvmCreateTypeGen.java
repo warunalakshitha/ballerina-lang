@@ -17,7 +17,6 @@
  */
 package org.wso2.ballerinalang.compiler.bir.codegen.split;
 
-import io.ballerina.identifier.Utils;
 import org.ballerinalang.model.types.SelectivelyImmutableReferenceType;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Handle;
@@ -141,7 +140,6 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.VISIT_MAX
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.ADD_TYPE_ID;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.ANY_TO_JBOOLEAN;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_ERROR_TYPE_IMPL;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_FUNCTION_POINTER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_FUNCTION_TYPE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_FUNCTION_TYPE_FOR_STRING;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_JBOOLEAN;
@@ -197,11 +195,11 @@ public class JvmCreateTypeGen {
     private final String allTypesVarClassName;
     private final String annotationVarClassName;
 
-    public JvmCreateTypeGen(JvmTypeGen jvmTypeGen, JvmConstantsGen jvmConstantsGen, BIRNode.BIRPackage module,
-                            TypeHashVisitor typeHashVisitor) {
+    public JvmCreateTypeGen(JvmPackageGen jvmPackageGen, JvmTypeGen jvmTypeGen, JvmConstantsGen jvmConstantsGen,
+                            BIRNode.BIRPackage module, TypeHashVisitor typeHashVisitor) {
         this.jvmTypeGen = jvmTypeGen;
         this.jvmConstantsGen = jvmConstantsGen;
-        this.jvmRecordTypeGen = new JvmRecordTypeGen(this, jvmTypeGen, jvmConstantsGen);
+        this.jvmRecordTypeGen = new JvmRecordTypeGen(jvmPackageGen, this, jvmTypeGen, jvmConstantsGen);
         this.jvmObjectTypeGen = new JvmObjectTypeGen(this, jvmTypeGen, jvmConstantsGen);
         this.jvmErrorTypeGen = new JvmErrorTypeGen(this, jvmTypeGen, jvmConstantsGen);
         this.jvmUnionTypeGen = new JvmUnionTypeGen(this, jvmTypeGen, jvmConstantsGen);
@@ -263,8 +261,7 @@ public class JvmCreateTypeGen {
                 asyncDataCollector, lazyLoadingDataCollector);
         MethodVisitor mv = cw.visitMethod(ACC_STATIC, JVM_STATIC_INIT_METHOD, VOID_METHOD_DESC, null, null);
         mv.visitCode();
-        jvmRecordTypeGen.createRecordType(cw, mv, module, typeClass, (BRecordType) bType, varName, true,
-                jvmPackageGen.symbolTable);
+        jvmRecordTypeGen.createRecordType(cw, mv, module, typeClass, (BRecordType) bType, varName, true);
         genMethodReturn(mv);
         cw.visitEnd();
         jarEntries.put(typeClass + CLASS_FILE_SUFFIX, cw.toByteArray());
@@ -998,53 +995,9 @@ public class JvmCreateTypeGen {
         mv.visitLdcInsn(decodeIdentifier(field.name.value));
         // Load flags
         mv.visitLdcInsn(field.symbol.flags);
+        // Load isDefaultable
+        mv.visitLdcInsn(field.symbol.isDefaultable);
         mv.visitMethodInsn(INVOKESPECIAL, FIELD_IMPL, JVM_INIT_METHOD, INIT_FIELD_IMPL, false);
-    }
-
-    public void splitAddDefaultValues(ClassWriter cw, String typeClassName, BRecordType recordType,
-                                      Map<String, String> fieldNameFPNameMap) {
-        int fieldMapIndex = 0;
-        MethodVisitor mv = null;
-        int methodCount = 0;
-        int fieldsCount = 0;
-        String addDefaultValueMethod = "addDefaultValues";
-        Map<String, BField> fields = recordType.fields;
-        for (Map.Entry<String, String> field : fieldNameFPNameMap.entrySet()) {
-            if (fieldsCount % MAX_FIELDS_PER_SPLIT_METHOD == 0) {
-                mv = cw.visitMethod(ACC_STATIC + ACC_PRIVATE, addDefaultValueMethod, SET_LINKED_HASH_MAP, null, null);
-                mv.visitCode();
-                addDefaultValueMethod = "addDefaultValue$" + ++methodCount;
-            }
-            mv.visitVarInsn(ALOAD, fieldMapIndex);
-            // Load field name
-            mv.visitLdcInsn(Utils.unescapeBallerina(field.getKey()));
-            // load default value function pointer
-            this.loadDefaultValueFp(mv, field.getValue());
-            // Add the field to the map
-            mv.visitMethodInsn(INVOKEINTERFACE, MAP, "put", MAP_PUT, true);
-            // emit a pop, since we are not using the return value from the map.put()
-            mv.visitInsn(POP);
-            fieldsCount++;
-            if (fieldsCount % MAX_FIELDS_PER_SPLIT_METHOD == 0) {
-                if (fieldsCount != fields.size()) {
-                    mv.visitVarInsn(ALOAD, fieldMapIndex);
-                    mv.visitMethodInsn(INVOKESTATIC, typeClassName, addDefaultValueMethod, SET_LINKED_HASH_MAP, false);
-                }
-                mv.visitInsn(RETURN);
-                JvmCodeGenUtil.visitMaxStackForMethod(mv, addDefaultValueMethod, typeClassName);
-                mv.visitEnd();
-            }
-        }
-        if (methodCount != 0 && fieldsCount % MAX_FIELDS_PER_SPLIT_METHOD != 0) {
-            mv.visitInsn(RETURN);
-            JvmCodeGenUtil.visitMaxStackForMethod(mv, addDefaultValueMethod, typeClassName);
-            mv.visitEnd();
-        }
-    }
-
-    private void loadDefaultValueFp(MethodVisitor mv, String functionName) {
-        String varClass = getVarStoreClass(jvmConstantsGen.globalVarsPkgName, functionName);
-        mv.visitFieldInsn(GETSTATIC, varClass, VALUE_VAR_FIELD, GET_FUNCTION_POINTER);
     }
 
     public JvmUnionTypeGen getJvmUnionTypeGen() {

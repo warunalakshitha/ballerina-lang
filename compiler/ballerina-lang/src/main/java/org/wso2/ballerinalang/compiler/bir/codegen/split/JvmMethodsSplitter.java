@@ -41,11 +41,12 @@ public class JvmMethodsSplitter {
     private final JvmValueCreatorGen jvmValueCreatorGen;
     private final BIRNode.BIRPackage module;
 
-    public JvmMethodsSplitter(JvmPackageGen jvmPackageGen, JvmConstantsGen jvmConstantsGen, BIRNode.BIRPackage module,
-                              TypeHashVisitor typeHashVisitor, JvmTypeGen jvmTypeGen) {
+    public JvmMethodsSplitter(JvmPackageGen jvmPackageGen, JvmCastGen jvmCastGen, JvmConstantsGen jvmConstantsGen,
+                              BIRNode.BIRPackage module, TypeHashVisitor typeHashVisitor, JvmTypeGen jvmTypeGen) {
         this.module = module;
         this.jvmPackageGen = jvmPackageGen;
-        this.jvmCreateTypeGen = new JvmCreateTypeGen(jvmTypeGen, jvmConstantsGen, module, typeHashVisitor);
+        this.jvmCreateTypeGen = new JvmCreateTypeGen(jvmPackageGen, jvmTypeGen, jvmConstantsGen, module,
+                typeHashVisitor);
         this.jvmValueCreatorGen = new JvmValueCreatorGen(module.packageID, jvmTypeGen);
         jvmConstantsGen.setJvmCreateTypeGen(jvmCreateTypeGen);
     }
