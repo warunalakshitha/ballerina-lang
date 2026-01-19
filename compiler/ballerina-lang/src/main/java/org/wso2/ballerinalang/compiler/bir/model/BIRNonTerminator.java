@@ -28,8 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.wso2.ballerinalang.compiler.bir.model.InstructionKind.RECORD_DEFAULT_FP_LOAD;
-
 /**
  * A non-terminating instruction.
  * <p>
@@ -1426,7 +1424,7 @@ public abstract class BIRNonTerminator extends BIRAbstractInstruction implements
         public String fieldName;
 
         public RecordDefaultFPLoad(Location pos, BIROperand lhsOp, BType enclosedType, String fieldName) {
-            super(pos, RECORD_DEFAULT_FP_LOAD);
+            super(pos, InstructionKind.RECORD_DEFAULT_FP_LOAD);
             this.enclosedType = enclosedType;
             this.fieldName = fieldName;
             this.lhsOp = lhsOp;

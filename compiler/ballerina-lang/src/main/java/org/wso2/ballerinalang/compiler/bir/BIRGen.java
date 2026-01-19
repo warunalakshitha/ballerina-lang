@@ -85,7 +85,6 @@ import org.wso2.ballerinalang.compiler.semantics.model.symbols.BXMLNSSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.SymTag;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.Symbols;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BArrayType;
-import org.wso2.ballerinalang.compiler.semantics.model.types.BIntersectionType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BInvokableType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BRecordType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BTableType;
@@ -217,7 +216,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -417,9 +415,7 @@ public class BIRGen extends BLangNodeVisitor {
         }
         this.env.enclPkg.typeDefs.add(typeDef);
         typeDef.index = this.env.enclPkg.typeDefs.size() - 1;
-
         typeDef.setMarkdownDocAttachment(symbol.markdownDocumentation);
-
         if (astTypeDefinition.typeNode.getKind() == NodeKind.RECORD_TYPE ||
                 astTypeDefinition.typeNode.getKind() == NodeKind.OBJECT_TYPE) {
             BLangStructureTypeNode typeNode = (BLangStructureTypeNode) astTypeDefinition.typeNode;
@@ -433,7 +429,6 @@ public class BIRGen extends BLangNodeVisitor {
         if (typeSymbol.tag != SymTag.OBJECT || !Symbols.isFlagOn(typeSymbol.flags, Flags.CLASS)) {
             return;
         }
-
         for (BAttachedFunction func : ((BObjectTypeSymbol) typeSymbol).referencedFunctions) {
             if (!Symbols.isFlagOn(func.symbol.flags, Flags.INTERFACE)) {
                 return;
@@ -443,14 +438,11 @@ public class BIRGen extends BLangNodeVisitor {
             BIRFunction birFunc = new BIRFunction(astTypeDefinition.pos, func.funcName, funcSymbol.flags, func.type,
                                                   Names.fromString(DEFAULT_WORKER_NAME), 0,
                                                   funcSymbol.origin.toBIROrigin());
-
             if (funcSymbol.receiverSymbol != null) {
                 birFunc.receiver = getSelf(funcSymbol.receiverSymbol
                 );
             }
-
             birFunc.setMarkdownDocAttachment(funcSymbol.markdownDocumentation);
-
             int defaultableParamsCount = 0;
             birFunc.argsCount = funcSymbol.params.size() + defaultableParamsCount +
                     (funcSymbol.restParam != null ? 1 : 0);
@@ -458,11 +450,9 @@ public class BIRGen extends BLangNodeVisitor {
             if (funcSymbol.restParam != null) {
                 addRestParam(birFunc, funcSymbol.restParam, astTypeDefinition.pos);
             }
-
             birFunc.returnVariable = new BIRVariableDcl(astTypeDefinition.pos, funcSymbol.retType,
                     this.env.nextLocalVarId(names), VarScope.FUNCTION, VarKind.RETURN, null);
-            birFunc.localVars.add(0, birFunc.returnVariable);
-
+            birFunc.localVars.addFirst(birFunc.returnVariable);
             typeDef.attachedFuncs.add(birFunc);
         }
     }
@@ -490,28 +480,21 @@ public class BIRGen extends BLangNodeVisitor {
         typeDefs.put(classDefinition.symbol, typeDef);
         this.env.enclPkg.typeDefs.add(typeDef);
         typeDef.index = this.env.enclPkg.typeDefs.size() - 1;
-
         typeDef.setMarkdownDocAttachment(classDefinition.symbol.markdownDocumentation);
-
         for (BLangType typeRef : classDefinition.typeRefs) {
             typeDef.referencedTypes.add(typeRef.getBType());
         }
-
         typeDef.annotAttachments.addAll(getBIRAnnotAttachments(
                 ((BClassSymbol) classDefinition.symbol).getAnnotations()));
-
         for (BAttachedFunction func : ((BObjectTypeSymbol) classDefinition.symbol).referencedFunctions) {
             BInvokableSymbol funcSymbol = func.symbol;
 
             BIRFunction birFunc = new BIRFunction(classDefinition.pos, func.funcName, funcSymbol.flags, func.type,
                     Names.fromString(DEFAULT_WORKER_NAME), 0, funcSymbol.origin.toBIROrigin());
-
             if (funcSymbol.receiverSymbol != null) {
                 birFunc.receiver = getSelf(funcSymbol.receiverSymbol);
             }
-
             birFunc.setMarkdownDocAttachment(funcSymbol.markdownDocumentation);
-
             int defaultableParamsCount = 0;
             birFunc.argsCount = funcSymbol.params.size() + defaultableParamsCount +
                     (funcSymbol.restParam != null ? 1 : 0);
@@ -519,12 +502,10 @@ public class BIRGen extends BLangNodeVisitor {
             if (funcSymbol.restParam != null) {
                 addRestParam(birFunc, funcSymbol.restParam, classDefinition.pos);
             }
-
             birFunc.returnVariable = new BIRVariableDcl(classDefinition.pos, funcSymbol.retType,
                                                         this.env.nextLocalVarId(names), VarScope.FUNCTION,
                                                         VarKind.RETURN, null);
-            birFunc.localVars.add(0, birFunc.returnVariable);
-
+            birFunc.localVars.addFirst(birFunc.returnVariable);
             typeDef.attachedFuncs.add(birFunc);
         }
     }
@@ -653,7 +634,7 @@ public class BIRGen extends BLangNodeVisitor {
         BType retType = unifier.build(symTable.typeEnv(), astFunc.symbol.type.getReturnType());
         birFunc.returnVariable = new BIRVariableDcl(astFunc.pos, retType, this.env.nextLocalVarId(names),
                                                     VarScope.FUNCTION, VarKind.RETURN, null);
-        birFunc.localVars.add(0, birFunc.returnVariable);
+        birFunc.localVars.addFirst(birFunc.returnVariable);
 
         //add closure vars
         astFunc.paramClosureMap.forEach((k, v) -> addRequiredParam(birFunc, v, astFunc.pos));
@@ -859,33 +840,12 @@ public class BIRGen extends BLangNodeVisitor {
         // temp value in the type and keep it
         if (lambdaExpr.function.flagSet.contains(Flag.RECORD) && targetType != null &&
                 targetType.tag == TypeTags.RECORD) {
-            // If function is init function or split init function, fp values are global variables. So we can lazy
-            // load them. Else, fp loading in same function since those record types are inside function
-            // scope.
             String recordName = targetType.tsymbol.name.value;
-            if (env.isInitFunc) {
-                String fieldName = getFieldName(funcName.value, recordName);
-                BRecordType recordType = (BRecordType) targetType;
-                String encodedFuncName = Utils.encodeFunctionIdentifier(funcName.value);
-                setDefaultValue(recordName, fieldName, encodedFuncName);
-                Optional<BIntersectionType> immutableType = Types.getImmutableType(this.symTable,
-                        recordType.tsymbol.pkgID, recordType);
-                if (immutableType.isPresent()) {
-                    BRecordType effectiveType = (BRecordType) immutableType.get().effectiveType;
-                    setDefaultValue(effectiveType.tsymbol.name.value, fieldName, encodedFuncName);
-                }
-            } else {
-                setScopeAndEmit(new BIRNonTerminator.RecordDefaultFPLoad(lhsOp.pos, lhsOp, targetType,
-                        getFieldName(funcName.value, recordName)));
-            }
+            setScopeAndEmit(new BIRNonTerminator.RecordDefaultFPLoad(lhsOp.pos, lhsOp, targetType,
+                    getFieldName(funcName.value, recordName)));
+            
         }
         this.env.targetOperand = lhsOp;
-    }
-
-    private void setDefaultValue(String recordName, String fieldName, String funcName) {
-        Map<String, String> fieldNameFpMap =
-                this.env.enclPkg.recordDefaultValueMap.computeIfAbsent(recordName, k -> new HashMap<>());
-        fieldNameFpMap.put(fieldName, funcName);
     }
 
     private String getFieldName(String funcName, String typeName) {
