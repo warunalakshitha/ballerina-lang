@@ -29,4 +29,6 @@ public interface Field {
     Type getFieldType();
 
     String getFieldName();
+    
+    boolean isDefaultable();
 }

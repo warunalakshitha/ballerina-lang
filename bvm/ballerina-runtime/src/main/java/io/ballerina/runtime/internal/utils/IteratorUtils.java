@@ -65,7 +65,7 @@ public final class IteratorUtils {
 
     private static BRecordType createIteratorNextReturnTypeInner(Type type) {
         Map<String, Field> fields =
-                Map.of("value", new BField(type, "value", SymbolFlags.PUBLIC + SymbolFlags.REQUIRED));
+                Map.of("value", new BField(type, "value", SymbolFlags.PUBLIC + SymbolFlags.REQUIRED, false));
         return new BRecordType(TypeConstants.ITERATOR_NEXT_RETURN_TYPE, null, 0, fields, null, true,
                 getTypeFlags(type));
     }

@@ -57,7 +57,7 @@ public class Scheduler {
 
     private static final ThreadLocal<StrandHolder> strandHolder = ThreadLocal.withInitial(StrandHolder::new);
 
-    public  final BalRuntime runtime;
+    public final BalRuntime runtime;
 
     public Scheduler(BalRuntime runtime) {
         this.runtime = runtime;

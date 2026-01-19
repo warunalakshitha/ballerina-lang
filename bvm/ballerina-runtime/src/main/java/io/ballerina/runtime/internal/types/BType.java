@@ -100,7 +100,7 @@ public abstract non-sealed class BType extends SemType
     /**
      * Get the empty initialized value of this type. For reference types, this is the value of a variable,
      * when initialized with the empty initializer.
-     * For value types, this is same as the default value (value get from {@code BType#getDefaultValue()}).
+     * For value types, this is same as the default value (value get from {@code BType#getFieldDefaultValue()}).
      *
      * @param <V> Type of the value
      * @return Init value of this type

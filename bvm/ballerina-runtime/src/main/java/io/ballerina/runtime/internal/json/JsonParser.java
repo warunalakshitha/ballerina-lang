@@ -430,8 +430,7 @@ public final class JsonParser {
                     notProvidedFields.add(fieldName);
                 }
             }
-            BMap<BString, Object> recordValue = createRecordValueWithDefaultValues(recordType.getPackage(),
-                    recordType.getName(), notProvidedFields);
+            BMap<BString, Object> recordValue = createRecordValueWithDefaultValues(recordType, notProvidedFields);
             for (Map.Entry<BString, Object> fieldEntry : constructedMap.entrySet()) {
                 recordValue.populateInitialValue(fieldEntry.getKey(), fieldEntry.getValue());
             }

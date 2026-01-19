@@ -224,7 +224,8 @@ import java.util.concurrent.CompletableFuture;
                      channel.read());
          }
          if (targetType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-             return ValueCreator.createMapValue((RecordType) targetType, initialValueEntries);
+             RecordType recordType = (RecordType) targetType;
+             return ValueCreator.createRecordValue(recordType, initialValueEntries);
          }
          return ValueCreator.createMapValue((MapType) targetType, initialValueEntries);
      }

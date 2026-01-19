@@ -37,15 +37,16 @@ import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.ShapeAnalyzer;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BFunctionPointer;
-import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.internal.scheduling.Scheduler;
+import io.ballerina.runtime.internal.scheduling.Strand;
 import io.ballerina.runtime.internal.types.semtype.CellAtomicType.CellMutability;
 import io.ballerina.runtime.internal.types.semtype.DefinitionContainer;
 import io.ballerina.runtime.internal.types.semtype.MappingDefinition;
 import io.ballerina.runtime.internal.values.MapValue;
 import io.ballerina.runtime.internal.values.MapValueImpl;
 import io.ballerina.runtime.internal.values.ReadOnlyUtils;
+import io.ballerina.runtime.internal.values.RecordValueImpl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,15 +134,16 @@ public class BRecordType extends BStructureType implements RecordType, TypeWithS
             Field field = fieldEntry.getValue();
             if (!field.getFieldType().isReadOnly()) {
                 field = new BField(ReadOnlyUtils.getReadOnlyType(field.getFieldType()), field.getFieldName(),
-                        field.getFlags());
+                        field.getFlags(), field.isDefaultable());
             }
             fieldMap.put(fieldEntry.getKey(), field);
         }
         return fieldMap;
     }
-
+    
+    @SuppressWarnings("unchecked")
     @Override
-    public <V extends Object> V getZeroValue() {
+    public <V> V getZeroValue() {
         String typeName = this.typeName;
         if (intersectionType != null) {
             typeName = ReadOnlyUtils.getMutableType((BIntersectionType) intersectionType).getName();
@@ -149,20 +151,22 @@ public class BRecordType extends BStructureType implements RecordType, TypeWithS
         if (isReadOnly()) {
             return (V) ValueCreator.createReadonlyRecordValue(this.pkg, typeName, new HashMap<>());
         }
-        BMap<BString, Object> recordValue = ValueCreator.createRecordValue(this.pkg, typeName);
-        if (defaultValues.isEmpty()) {
-            return (V) recordValue;
-        }
-        for (Map.Entry<String, BFunctionPointer> field : defaultValues.entrySet()) {
-            recordValue.put(StringUtils.fromString(field.getKey()),
-                    field.getValue().call(Scheduler.getStrand().scheduler.runtime));
+        RecordValueImpl<BString, Object> recordValue =
+                (RecordValueImpl<BString, Object>) ValueCreator.createRecordValue(this.pkg, typeName);
+        for (Map.Entry<String, Field> field : fields.entrySet()) {
+            String fieldName = field.getKey();
+            Field bField = field.getValue();
+            if (bField.isDefaultable()) {
+                recordValue.putForcefully(StringUtils.fromString(fieldName),
+                        recordValue.getFieldDefaultValue(Scheduler.getStrand(), fieldName, this));
+            }
         }
         return (V) recordValue;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <V extends Object> V getEmptyValue() {
+    public <V> V getEmptyValue() {
         MapValue<BString, Object> implicitInitValue = new MapValueImpl<>(this);
         this.fields.entrySet().stream()
                 .filter(entry -> !SymbolFlags.isFlagOn(entry.getValue().getFlags(), SymbolFlags.OPTIONAL))
@@ -438,5 +442,9 @@ public class BRecordType extends BStructureType implements RecordType, TypeWithS
             fieldType = SemType.tryInto(cx, fieldType(fieldName));
         }
         return new MappingDefinition.Field(fieldName, fieldType, readonlyField, optionalField);
+    }
+
+    public Object getFieldDefaultValue(Strand strand, String fieldName) {
+        return null;
     }
 }

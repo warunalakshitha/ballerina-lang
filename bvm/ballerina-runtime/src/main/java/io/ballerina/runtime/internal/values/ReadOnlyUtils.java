@@ -218,7 +218,8 @@ public final class ReadOnlyUtils {
                     Field originalField = entry.getValue();
                     fields.put(entry.getKey(),
                             new BField(getImmutableType(originalField.getFieldType(), unresolvedTypes),
-                                    originalField.getFieldName(), originalField.getFlags() | SymbolFlags.READONLY));
+                                    originalField.getFieldName(), originalField.getFlags() | SymbolFlags.READONLY,
+                                    originalField.isDefaultable()));
                 }
 
                 BRecordType immutableRecordType = new BRecordType(
@@ -227,7 +228,6 @@ public final class ReadOnlyUtils {
                         origRecordType.flags |= SymbolFlags.READONLY, fields,
                         null, origRecordType.sealed,
                         origRecordType.typeFlags);
-                immutableRecordType.setDefaultValues(origRecordType.getDefaultValues());
                 BIntersectionType intersectionType = createAndSetImmutableIntersectionType(origRecordType,
                         immutableRecordType);
 
@@ -267,7 +267,8 @@ public final class ReadOnlyUtils {
                     Field originalField = entry.getValue();
                     immutableObjectFields.put(entry.getKey(),
                             new BField(getImmutableType(originalField.getFieldType(), unresolvedTypes),
-                                    originalField.getFieldName(), originalField.getFlags()));
+                                    originalField.getFieldName(), originalField.getFlags(),
+                                    originalField.isDefaultable()));
                 }
                 return objectIntersectionType;
             case TypeTags.TYPE_REFERENCED_TYPE_TAG:

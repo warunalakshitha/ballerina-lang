@@ -31,7 +31,6 @@ import io.ballerina.runtime.api.types.semtype.ShapeAnalyzer;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
-import io.ballerina.runtime.api.values.BFunctionPointer;
 import io.ballerina.runtime.api.values.BIterator;
 import io.ballerina.runtime.api.values.BLink;
 import io.ballerina.runtime.api.values.BMap;
@@ -62,6 +61,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -107,7 +107,7 @@ public class MapValueImpl<K, V> extends LinkedHashMap<K, V> implements RefValue,
     private static final BasicTypeBitSet BASIC_TYPE = Builder.getMappingType();
     private BTypedesc typedesc;
     private Type type;
-    private Type referredType;
+    protected Type referredType;
     private final Map<String, Object> nativeData = new HashMap<>();
     private Type iteratorNextReturnType;
     private SemType shape;
@@ -324,35 +324,62 @@ public class MapValueImpl<K, V> extends LinkedHashMap<K, V> implements RefValue,
         this.referredType = getImpliedType(type);
     }
 
-    protected void populateInitialValues(BMapInitialValueEntry[] initialValues) {
-        Map<String, BFunctionPointer> defaultValues = new HashMap<>();
+    public void populateInitialValues(BMapInitialValueEntry[] initialValues) {
         if (referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-            defaultValues.putAll(((BRecordType) referredType).getDefaultValues());
+            populateInitialValuesForRecord(initialValues);
+            return;
         }
+        populateInitialValuesForMap(initialValues);
+    }
 
+    protected void populateInitialValuesForMap(BMapInitialValueEntry[] initialValues) {
         for (BMapInitialValueEntry initialValue : initialValues) {
             if (initialValue.isKeyValueEntry()) {
                 MappingInitialValueEntry.KeyValueEntry keyValueEntry =
                         (MappingInitialValueEntry.KeyValueEntry) initialValue;
                 Object mapKey = keyValueEntry.key;
-                defaultValues.remove(mapKey.toString());
                 populateInitialValue((K) mapKey, (V) keyValueEntry.value);
                 continue;
             }
-
             MapValueImpl<K, V> values =
                     (MapValueImpl<K, V>) ((MappingInitialValueEntry.SpreadFieldEntry) initialValue).values;
             for (Map.Entry<K, V> entry : values.entrySet()) {
                 K entryKey = entry.getKey();
-                defaultValues.remove(entryKey.toString());
                 populateInitialValue(entryKey, entry.getValue());
             }
         }
+    }
 
-        for (Map.Entry<String, BFunctionPointer> entry : defaultValues.entrySet()) {
-            String key = entry.getKey();
-            populateInitialValue((K) new BmpStringValue(key),
-                    (V) entry.getValue().call(Scheduler.getStrand().scheduler.runtime, new Object[]{}));
+    protected void populateInitialValuesForRecord(BMapInitialValueEntry[] initialValues) {
+        HashSet<String> initialValueKeys = new HashSet<>();
+        for (BMapInitialValueEntry initialValue : initialValues) {
+            if (initialValue.isKeyValueEntry()) {
+                MappingInitialValueEntry.KeyValueEntry keyValueEntry =
+                        (MappingInitialValueEntry.KeyValueEntry) initialValue;
+                Object mapKey = keyValueEntry.key;
+                initialValueKeys.add(mapKey.toString());
+                populateInitialValue((K) mapKey, (V) keyValueEntry.value);
+                continue;
+            }
+            MapValueImpl<K, V> values =
+                    (MapValueImpl<K, V>) ((MappingInitialValueEntry.SpreadFieldEntry) initialValue).values;
+            for (Map.Entry<K, V> entry : values.entrySet()) {
+                K entryKey = entry.getKey();
+                initialValueKeys.add(entryKey.toString());
+                populateInitialValue(entryKey, entry.getValue());
+            }
+        }
+        BRecordType recordType = (BRecordType) this.referredType;
+        if (this instanceof RecordValueImpl<K, V> recordValue) {
+            Set<Map.Entry<String, Field>> fieldEntries = recordType.getFields().entrySet();
+            for (Map.Entry<String, Field> fieldEntry : fieldEntries) {
+                String fieldName = fieldEntry.getKey();
+                Field field = fieldEntry.getValue();
+                if (field.isDefaultable() && !initialValueKeys.contains(fieldName)) {
+                    populateInitialValue((K) StringUtils.fromString(fieldName),
+                            (V) recordValue.getFieldDefaultValue(Scheduler.getStrand(), fieldName, recordType));
+                }
+            }
         }
     }
 
